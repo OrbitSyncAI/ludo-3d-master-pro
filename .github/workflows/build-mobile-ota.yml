@@ -68,8 +68,7 @@ jobs:
           if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
             gh release create v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk \
               --title "Ludo 3D Master Pro - Release v1.1.0 (Commercial Android & iOS)" \
-              --notes "Production commercial release featuring 3D Ludo & Snakes with 300 levels, single-currency royal store, casino lucky wheel with live seconds, and offline progress backup. Developer: Sohel | Raebareli, UP - 229001" \
-              --clobber || gh release upload v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk --clobber
+              --notes "Production commercial release featuring 3D Ludo & Snakes with 300 levels, single-currency royal store, casino lucky wheel with live seconds, and offline progress backup. Developer: Sohel | Raebareli, UP - 229001" || gh release upload v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk --clobber
           fi
 
   build-ios:
