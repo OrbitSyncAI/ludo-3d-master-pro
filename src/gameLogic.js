@@ -3,6 +3,7 @@
  */
 
 import { PLAYERS_CONFIG, SAFE_TILE_INDICES, COMMON_PATH } from './boardData.js';
+import { economy } from './economyState.js';
 
 export const GAME_STATES = {
   MENU: 'MENU',
@@ -47,8 +48,9 @@ export class GameEngine {
       return customPlayers;
     }
     const isBot = this.isAI;
+    const p1Name = economy?.data?.playerName || "Player 1";
     return [
-      { id: 0, name: "Player 1", isAI: false, color: PLAYERS_CONFIG[0] },
+      { id: 0, name: p1Name, isAI: false, color: PLAYERS_CONFIG[0] },
       { id: 1, name: isBot ? "Cyber Green" : "Player 2", isAI: isBot, color: PLAYERS_CONFIG[1] },
       { id: 2, name: isBot ? "Neon Yellow" : "Player 3", isAI: isBot, color: PLAYERS_CONFIG[2] },
       { id: 3, name: isBot ? "Alpha Blue" : "Player 4", isAI: isBot, color: PLAYERS_CONFIG[3] }

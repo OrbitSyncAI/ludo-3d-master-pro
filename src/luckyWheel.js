@@ -1,6 +1,9 @@
 /**
- * Ludo 3D Pro - Realistic Balanced Lucky Wheel with High Player Retention
- * Tighter, balanced coin/gem rewards with ultra-rare Mythic Emperor jackpot
+ * Ludo 3D Master Pro - Realistic Balanced Lucky Wheel with High Player Retention
+ * Features 2 Ultra-Rare Jackpots:
+ *  1. 👑 Ludo Mythic Emperor Board Theme ('mythic_emperor')
+ *  2. 🐉 Snakes Golden Dragon Emperor Board Theme ('snakes_dragon')
+ * Developer: Sohel | Raebareli, UP - 229001
  */
 
 import { economy } from './economyState.js';
@@ -8,14 +11,14 @@ import { sounds } from './audio.js';
 import confetti from 'canvas-confetti';
 
 export const WHEEL_SECTORS = [
-  { label: "50", icon: "🪙", type: "coins", val: 50, color: "#f59e0b", textColor: "#ffffff" },
-  { label: "1 Gem", icon: "💎", type: "gems", val: 1, color: "#0284c7", textColor: "#ffffff" },
-  { label: "100", icon: "🪙", type: "coins", val: 100, color: "#ea2b2b", textColor: "#ffffff" },
-  { label: "2 Gems", icon: "💎", type: "gems", val: 2, color: "#7c4dff", textColor: "#ffffff" },
-  { label: "150", icon: "🪙", type: "coins", val: 150, color: "#00aa4f", textColor: "#ffffff" },
-  { label: "3 Gems", icon: "💎", type: "gems", val: 3, color: "#00b0ff", textColor: "#ffffff" },
-  { label: "300", icon: "🪙", type: "coins", val: 300, color: "#ff6f00", textColor: "#ffffff", isJackpot: true },
-  { label: "MYTHIC THEME", icon: "👑", type: "theme", val: "mythic_emperor", color: "#ffd700", textColor: "#1a2536", isJackpot: true }
+  { label: "100", icon: "🪙", type: "coins", val: 100, color: "#f59e0b", textColor: "#ffffff" },
+  { label: "10 Gems", icon: "💎", type: "gems", val: 10, color: "#0284c7", textColor: "#ffffff" },
+  { label: "LUDO MYTHIC", icon: "👑", type: "ludoTheme", val: "mythic_emperor", color: "#ffd700", textColor: "#1a2536", isJackpot: true },
+  { label: "250", icon: "🪙", type: "coins", val: 250, color: "#ea2b2b", textColor: "#ffffff" },
+  { label: "25 Gems", icon: "💎", type: "gems", val: 25, color: "#7c4dff", textColor: "#ffffff" },
+  { label: "SNAKE MYTHIC", icon: "🐉", type: "snakesTheme", val: "snakes_dragon", color: "#10b981", textColor: "#ffffff", isJackpot: true },
+  { label: "500", icon: "🪙", type: "coins", val: 500, color: "#ff6f00", textColor: "#ffffff" },
+  { label: "50 Gems", icon: "💎", type: "gems", val: 50, color: "#00b0ff", textColor: "#ffffff", isJackpot: true }
 ];
 
 export class LuckyWheel {
@@ -93,13 +96,13 @@ export class LuckyWheel {
       ctx.textBaseline = 'middle';
 
       // Draw Icon
-      ctx.font = '32px sans-serif';
-      ctx.fillText(sector.icon, radius - 20, 0);
+      ctx.font = '30px sans-serif';
+      ctx.fillText(sector.icon, radius - 18, 0);
 
       // Draw Label
       ctx.fillStyle = sector.textColor;
-      ctx.font = 'bold 22px -apple-system, sans-serif';
-      ctx.fillText(sector.label, radius - 62, 0);
+      ctx.font = 'bold 20px -apple-system, sans-serif';
+      ctx.fillText(sector.label, radius - 58, 0);
 
       ctx.restore();
     }
@@ -133,17 +136,17 @@ export class LuckyWheel {
     this.isSpinning = true;
     sounds.playDiceRoll();
 
-    // Realistic high-retention probabilities (Rarer high payouts so visitors play more matches)
+    // Realistic high-retention probabilities
     const rand = Math.random();
     let targetIndex = 0;
-    if (rand < 0.005) targetIndex = 7; // 0.5% chance: Mythic Emperor Theme!
-    else if (rand < 0.02) targetIndex = 6; // 1.5% chance: 300 Coins
-    else if (rand < 0.06) targetIndex = 5; // 4% chance: 3 Gems
-    else if (rand < 0.15) targetIndex = 4; // 9% chance: 150 Coins
-    else if (rand < 0.28) targetIndex = 3; // 13% chance: 2 Gems
-    else if (rand < 0.48) targetIndex = 2; // 20% chance: 100 Coins
-    else if (rand < 0.72) targetIndex = 1; // 24% chance: 1 Gem
-    else targetIndex = 0; // 28% chance: 50 Coins
+    if (rand < 0.005) targetIndex = 2; // 0.5% chance: Ludo Mythic Emperor Theme!
+    else if (rand < 0.012) targetIndex = 5; // 0.7% chance: Snakes Golden Dragon Theme!
+    else if (rand < 0.04) targetIndex = 7; // 2.8% chance: 50 Gems
+    else if (rand < 0.10) targetIndex = 6; // 6% chance: 500 Coins
+    else if (rand < 0.22) targetIndex = 4; // 12% chance: 25 Gems
+    else if (rand < 0.40) targetIndex = 3; // 18% chance: 250 Coins
+    else if (rand < 0.65) targetIndex = 1; // 25% chance: 10 Gems
+    else targetIndex = 0; // 35% chance: 100 Coins
 
     const sectorAngle = (2 * Math.PI) / WHEEL_SECTORS.length;
     const targetAngleOnWheel = (targetIndex + 0.5) * sectorAngle;
@@ -168,7 +171,7 @@ export class LuckyWheel {
       } else {
         this.isSpinning = false;
         sounds.playVictory();
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
 
         const wonSector = WHEEL_SECTORS[targetIndex];
         this.applyReward(wonSector);
@@ -187,9 +190,12 @@ export class LuckyWheel {
       economy.addCoins(sector.val);
     } else if (sector.type === 'gems') {
       economy.addGems(sector.val);
-    } else if (sector.type === 'theme') {
+    } else if (sector.type === 'ludoTheme') {
       economy.unlockItem('themes', sector.val);
       economy.equipItem('themes', sector.val);
+    } else if (sector.type === 'snakesTheme') {
+      economy.unlockItem('snakesThemes', sector.val);
+      economy.equipItem('snakesThemes', sector.val);
     }
     economy.recordSpinUsed();
   }

@@ -1,6 +1,13 @@
 /**
- * Ludo 3D Pro - Luxury Main Menu Hub, 300-Level Sagas, Royal Store & Inventory
+ * Ludo 3D Master Pro - Luxury Main Menu Hub, 300-Level Sagas, Royal Store & Inventory
  * Full PUBG/Free Fire Celebration Animations, 100% Clickable Buttons, Zero Scrollbars
+ * Features:
+ *  - First-time Profile Name/Avatar Setup & Header Profile Edit Modal
+ *  - Single-currency Store (Pure Coins or Pure Diamonds >= 100 or Spin Exclusive)
+ *  - Custom In-Game Insufficient Funds Modal (Zero native alerts!)
+ *  - Lucky Wheel with Live Ticking Seconds (22h 49m 35s) & 2 Mythic Jackpots
+ *  - Perfectly Padded Home Scroll Area with Copyright Footer
+ *  - Data Backup Export (JSON Download) & Import (Restore)
  * Developer: Sohel | Raebareli, UP - 229001
  */
 
@@ -24,6 +31,7 @@ export class HomeUIManager {
     this.activeTab = 'home';
     this.shopCategory = 'ludoThemes'; // 'ludoThemes', 'snakesThemes', 'dice', 'pawns', 'exchange', 'inventory'
     this.wheelInstance = null;
+    this.spinTimerInterval = null;
     this.initDOM();
   }
 
@@ -42,6 +50,13 @@ export class HomeUIManager {
     document.getElementById('game-screen').appendChild(this.setupModal);
 
     this.render();
+
+    // Check if first-time user profile setup is needed
+    if (!economy.data.isProfileSetupDone) {
+      setTimeout(() => {
+        this.openProfileModal(true);
+      }, 350);
+    }
   }
 
   show() {
@@ -51,6 +66,10 @@ export class HomeUIManager {
 
   hide() {
     this.container.classList.add('hidden');
+    if (this.spinTimerInterval) {
+      clearInterval(this.spinTimerInterval);
+      this.spinTimerInterval = null;
+    }
   }
 
   openDrawer() {
@@ -71,16 +90,24 @@ export class HomeUIManager {
   }
 
   render() {
+    if (this.spinTimerInterval) {
+      clearInterval(this.spinTimerInterval);
+      this.spinTimerInterval = null;
+    }
+
+    const playerName = economy.data.playerName || PUBLISHER_INFO.developerName;
+    const playerAvatar = economy.data.avatar || '👑';
+
     this.container.innerHTML = `
       <!-- Top Profile & Wallet Bar -->
       <div class="home-top-bar">
         <div class="top-bar-left">
           <button class="btn-hamburger" id="btn-hamburger-menu" title="Menu">☰</button>
-          <div class="user-profile-badge">
-            <div class="avatar-ring">${economy.data.avatar}</div>
+          <div class="user-profile-badge" id="btn-user-profile" title="Click to Edit Profile">
+            <div class="avatar-ring">${playerAvatar}</div>
             <div class="profile-info">
-              <span class="profile-name">${PUBLISHER_INFO.developerName}</span>
-              <div class="level-pill">LVL ${economy.data.level}</div>
+              <span class="profile-name">${playerName}</span>
+              <div class="level-pill">LVL ${economy.data.level} ✏️</div>
             </div>
           </div>
         </div>
@@ -97,7 +124,7 @@ export class HomeUIManager {
         </div>
       </div>
 
-      <!-- Main Scrollable Content Area (Generous bottom padding so cards never hide!) -->
+      <!-- Main Scrollable Content Area -->
       <div class="home-content-body" id="home-content-body">
         ${this.renderTabContent()}
       </div>
@@ -126,7 +153,7 @@ export class HomeUIManager {
         </button>
       </div>
 
-      <!-- Side Drawer Navigation Menu with CLOSE (✕) Button -->
+      <!-- Side Drawer Navigation Menu with CLOSE (✕) Button & Backup Options -->
       <div class="drawer-overlay hidden" id="drawer-overlay">
         <div class="drawer-panel">
           <div class="drawer-header">
@@ -141,9 +168,21 @@ export class HomeUIManager {
           </div>
 
           <div class="drawer-nav-list">
+            <button class="drawer-nav-item" data-drawer-action="profile">
+              <span class="item-icon">👤</span>
+              <span>Edit Player Profile</span>
+            </button>
             <button class="drawer-nav-item" data-drawer-action="inventory">
               <span class="item-icon">🎒</span>
               <span>My Royal Inventory</span>
+            </button>
+            <button class="drawer-nav-item" data-drawer-action="export-backup">
+              <span class="item-icon">📤</span>
+              <span>Export Progress Backup (Save)</span>
+            </button>
+            <button class="drawer-nav-item" data-drawer-action="import-backup">
+              <span class="item-icon">📥</span>
+              <span>Import Progress Backup (Restore)</span>
             </button>
             <button class="drawer-nav-item" data-drawer-action="rules">
               <span class="item-icon">📖</span>
@@ -161,6 +200,11 @@ export class HomeUIManager {
               <span class="item-icon">📞</span>
               <span>Developer Support</span>
             </button>
+          </div>
+
+          <div class="drawer-copyright-footer">
+            <p>© 2026 Ludo 3D Master Pro. All Rights Reserved.</p>
+            <p>Designed & Developed by Sohel</p>
           </div>
         </div>
       </div>
@@ -195,7 +239,7 @@ export class HomeUIManager {
     return this.renderHomeMenu();
   }
 
-  // 1. Home Menu Hub (5 Vibrant, 100% Clickable Cards)
+  // 1. Home Menu Hub (5 Vibrant, 100% Clickable Cards + Copyright Footer)
   renderHomeMenu() {
     const hasBonus = (economy.data.bonusSpinsAvailable || 0) > 0;
     return `
@@ -268,6 +312,12 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-action="open-snakes-saga">ADVENTURE</button>
         </div>
       </div>
+
+      <!-- Copyright Notice -->
+      <div class="home-copyright-footer">
+        <p class="copyright-line">© 2026 Ludo 3D Master Pro. All Rights Reserved.</p>
+        <p class="dev-line">Designed & Developed by Sohel</p>
+      </div>
     `;
   }
 
@@ -301,7 +351,7 @@ export class HomeUIManager {
         }
       }
 
-      const offsets = ['offset-left', 'offset-center', 'offset-right', 'offset-center'];
+      const offsets = ['offset-center', 'offset-left', 'offset-center', 'offset-right'];
       const offsetClass = offsets[(i - 1) % 4];
 
       levelsHtml += `
@@ -321,12 +371,12 @@ export class HomeUIManager {
         <div class="saga-road-track">
           ${levelsHtml}
         </div>
-        <button id="btn-focus-current" class="btn-focus-current-pill">🎯 LEVEL ${currentUnlock} of 300</button>
+        <button id="btn-focus-current" class="btn-focus-current-pill">🎯 LEVEL ${Math.min(300, currentUnlock)} of 300</button>
       </div>
     `;
   }
 
-  // 2b. Snakes & Ladders 300-Stage Adventure Map (Stage 1 at bottom, Stage 300 at top!)
+  // 3. 300 Stage Snakes & Ladders Adventure Map
   renderSnakesAdventureMap() {
     let stagesHtml = '';
     const completedStages = economy.data.completedSnakesStages || {};
@@ -345,8 +395,8 @@ export class HomeUIManager {
         const reward = SNAKES_MILESTONES[i];
         if (reward) {
           milestoneBadge = `
-            <div class="milestone-box snakes-milestone" data-snakes-milestone="${i}">
-              <span class="chest-icon">${isClaimed ? '✅' : reward.icon}</span>
+            <div class="milestone-box" data-snakes-milestone="${i}">
+              <span class="chest-icon">${isClaimed ? '✅' : '🎁'}</span>
               <div class="milestone-label">
                 <strong>STAGE ${i} BOSS CHEST</strong>
                 <span>${reward.title}</span>
@@ -382,7 +432,7 @@ export class HomeUIManager {
     `;
   }
 
-  // 3. Complete Categorized Royal Store, Diamond Exchange & Inventory
+  // 4. Complete Categorized Royal Store, Diamond Exchange & Inventory
   renderShop() {
     this.shopCategory = this.shopCategory || 'ludoThemes';
 
@@ -400,6 +450,38 @@ export class HomeUIManager {
         const isOwned = ownedList.includes(item.id);
         const isEquipped = currentEquippedId === item.id;
         const rarity = item.rarity || 'COMMON';
+        const isSpin = item.isSpinExclusive;
+
+        let actionBtnHtml = '';
+        if (isEquipped) {
+          actionBtnHtml = '<span class="badge-equipped">✅ EQUIPPED</span>';
+        } else if (isOwned) {
+          actionBtnHtml = `<button class="btn-shop-equip" data-type="${inventoryType}" data-id="${item.id}">EQUIP</button>`;
+        } else if (isSpin) {
+          actionBtnHtml = `<button class="btn-shop-spin-exclusive" data-spin-target="${item.id}">🎡 WIN IN SPIN</button>`;
+        } else if (item.priceGems > 0) {
+          // Pure Diamonds
+          actionBtnHtml = `
+            <button class="btn-shop-buy btn-price-gems" 
+              data-type="${inventoryType}" 
+              data-id="${item.id}" 
+              data-coins="0" 
+              data-gems="${item.priceGems}">
+              💎 ${item.priceGems}
+            </button>
+          `;
+        } else {
+          // Pure Coins
+          actionBtnHtml = `
+            <button class="btn-shop-buy btn-price-coins" 
+              data-type="${inventoryType}" 
+              data-id="${item.id}" 
+              data-coins="${item.priceCoins || 0}" 
+              data-gems="0">
+              🪙 ${(item.priceCoins || 0).toLocaleString()}
+            </button>
+          `;
+        }
 
         return `
           <div class="shop-item-card ${isEquipped ? 'is-equipped' : ''}">
@@ -409,25 +491,13 @@ export class HomeUIManager {
             <div class="item-details">
               <div>
                 <span class="rarity-pill rarity-${rarity.toLowerCase()}">${rarity}</span>
-                ${item.isUltraRare ? '<span class="spin-tag">🎡 SPIN JACKPOT</span>' : ''}
+                ${isSpin ? '<span class="spin-tag">🎡 SPIN JACKPOT</span>' : ''}
               </div>
               <strong>${item.name}</strong>
               <p>${item.desc || ''}</p>
             </div>
             <div class="item-action">
-              ${isEquipped ? 
-                '<span class="badge-equipped">✅ EQUIPPED</span>' : 
-                (isOwned ? 
-                  `<button class="btn-shop-equip" data-type="${inventoryType}" data-id="${item.id}">EQUIP</button>` : 
-                  `<button class="btn-shop-buy" 
-                     data-type="${inventoryType}" 
-                     data-id="${item.id}" 
-                     data-coins="${item.priceCoins || 0}" 
-                     data-gems="${item.priceGems || 0}">
-                    ${item.priceGems > 0 ? `💎 ${item.priceGems}` : `🪙 ${(item.priceCoins || 0).toLocaleString()}`}
-                   </button>`
-                )
-              }
+              ${actionBtnHtml}
             </div>
           </div>
         `;
@@ -439,7 +509,7 @@ export class HomeUIManager {
     if (this.shopCategory === 'ludoThemes') {
       contentHtml = `
         <div class="shop-section">
-          <h4>🎲 Ludo Board Themes (Budget to Mythic)</h4>
+          <h4>🎲 Ludo Board Themes</h4>
           <div class="shop-items-list">
             ${renderItems(SHOP_CATALOG.ludoThemes, 'themes', curTheme)}
           </div>
@@ -448,7 +518,7 @@ export class HomeUIManager {
     } else if (this.shopCategory === 'snakesThemes') {
       contentHtml = `
         <div class="shop-section">
-          <h4>🐍 Snakes & Ladders Themes (Live in 3D!)</h4>
+          <h4>🐍 Snakes & Ladders Themes (Live 3D)</h4>
           <div class="shop-items-list">
             ${renderItems(SHOP_CATALOG.snakesThemes, 'snakesThemes', curSnakesTheme)}
           </div>
@@ -475,7 +545,7 @@ export class HomeUIManager {
     } else if (this.shopCategory === 'exchange') {
       contentHtml = `
         <div class="shop-section">
-          <h4>💎 Buy Diamonds with Coins (1,000 Coins = 50 💎)</h4>
+          <h4>💎 Convert Coins to Diamonds (1,000 Coins = 50 💎)</h4>
           <div class="exchange-grid">
             ${SHOP_CATALOG.coinToDiamondPacks.map(p => {
               const canAfford = economy.data.coins >= p.coins;
@@ -498,6 +568,7 @@ export class HomeUIManager {
       const ownedSnakes = economy.data.inventory.snakesThemes || [];
       const ownedDice = economy.data.inventory.dice || [];
       const ownedPawns = economy.data.inventory.pawns || [];
+
       const totalOwned = ownedLudo.length + ownedSnakes.length + ownedDice.length + ownedPawns.length;
       const totalCatalog = SHOP_CATALOG.ludoThemes.length + SHOP_CATALOG.snakesThemes.length + SHOP_CATALOG.dice.length + SHOP_CATALOG.pawns.length;
       const percent = Math.round((totalOwned / totalCatalog) * 100);
@@ -565,6 +636,285 @@ export class HomeUIManager {
     `;
   }
 
+  // 5. Illustrated Canvas Lucky Wheel with Live Ticking Seconds & Casino Styling
+  renderDailySpin() {
+    const canSpin = economy.canSpin();
+    const bonusCount = economy.data.bonusSpinsAvailable || 0;
+    const countdownMs = economy.getSpinCountdown();
+    const timerStr = this.formatCountdown(countdownMs);
+
+    return `
+      <div class="spin-container">
+        <div class="spin-header">
+          <h3>🎡 DAILY LUCKY WHEEL</h3>
+          <p>Spin to win real coins, gems, and 2 Ultra-Rare Mythic Themes!</p>
+          ${bonusCount > 0 ? `<div class="bonus-spin-badge">🌟 ${bonusCount} BONUS SPINS AVAILABLE!</div>` : ''}
+        </div>
+
+        <div class="wheel-stage">
+          <div class="wheel-pointer">▼</div>
+          <canvas id="lucky-wheel-canvas" width="600" height="600"></canvas>
+        </div>
+
+        <button class="btn-start-spin ${!canSpin ? 'btn-disabled' : ''}" id="btn-spin-now" ${!canSpin ? 'disabled' : ''}>
+          ${canSpin ? (bonusCount > 0 ? `🎰 SPIN BONUS (${bonusCount})` : '🎰 SPIN FOR FREE') : `⏰ NEXT FREE SPIN: ${timerStr}`}
+        </button>
+
+        <div class="spin-result-msg" id="spin-result-msg"></div>
+
+        <!-- High-Grade Casino Gold Rules Card -->
+        <div class="spin-rules-card">
+          <div class="spin-rules-title">
+            <span>✨ CASINO FORTUNE RULES ✨</span>
+          </div>
+          <div class="spin-rules-items">
+            <div class="spin-rule-row">
+              <span class="rule-icon">🕒</span>
+              <span class="rule-text"><strong>1 Free Daily Spin:</strong> Recharges automatically every 24 hours.</span>
+            </div>
+            <div class="spin-rule-row">
+              <span class="rule-icon">⭐</span>
+              <span class="rule-text"><strong>Earn Bonus Spins:</strong> Clear every 5 levels in Saga & Adventure!</span>
+            </div>
+            <div class="spin-rule-row jackpot-row">
+              <span class="rule-icon">👑</span>
+              <span class="rule-text"><strong>Ludo Mythic Emperor:</strong> 24K Celestial Gold Board Theme!</span>
+            </div>
+            <div class="spin-rule-row jackpot-row">
+              <span class="rule-icon">🐉</span>
+              <span class="rule-text"><strong>Snakes Dragon Emperor:</strong> Legendary 24K Gold Ladder Theme!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  formatCountdown(ms) {
+    if (ms <= 0) return '00h 00m 00s';
+    const totalSecs = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+  }
+
+  initLuckyWheel() {
+    const canvas = this.container.querySelector('#lucky-wheel-canvas');
+    if (!canvas) return;
+
+    this.wheelInstance = new LuckyWheel(canvas, (won) => {
+      this.updateWalletDisplay();
+      const msg = this.container.querySelector('#spin-result-msg');
+      const btn = this.container.querySelector('#btn-spin-now');
+      if (msg) {
+        if (won.type === 'ludoTheme') {
+          msg.textContent = `🎉 JACKPOT! You won Ludo Mythic Emperor Theme!`;
+          this.showCelebrationModal('JACKPOT WON!', 'mythic_emperor', 'themes');
+        } else if (won.type === 'snakesTheme') {
+          msg.textContent = `🎉 JACKPOT! You won Snakes Golden Dragon Theme!`;
+          this.showCelebrationModal('JACKPOT WON!', 'snakes_dragon', 'snakesThemes');
+        } else {
+          msg.textContent = `🎉 You won: +${won.val.toLocaleString()} ${won.type === 'coins' ? 'Coins 🪙' : 'Diamonds 💎'}!`;
+        }
+      }
+      this.render();
+    });
+
+    const spinBtn = this.container.querySelector('#btn-spin-now');
+    if (spinBtn) {
+      spinBtn.addEventListener('click', () => {
+        if (economy.canSpin()) {
+          spinBtn.disabled = true;
+          this.wheelInstance.spin();
+        }
+      });
+    }
+
+    // Live Ticking Seconds Timer
+    if (this.spinTimerInterval) clearInterval(this.spinTimerInterval);
+    this.spinTimerInterval = setInterval(() => {
+      if (this.activeTab !== 'spin') {
+        clearInterval(this.spinTimerInterval);
+        this.spinTimerInterval = null;
+        return;
+      }
+      const canSpin = economy.canSpin();
+      const spinBtnEl = this.container.querySelector('#btn-spin-now');
+      if (!spinBtnEl) return;
+
+      if (canSpin) {
+        const bonusCount = economy.data.bonusSpinsAvailable || 0;
+        spinBtnEl.textContent = bonusCount > 0 ? `🎰 SPIN BONUS (${bonusCount})` : '🎰 SPIN FOR FREE';
+        spinBtnEl.disabled = false;
+        spinBtnEl.classList.remove('btn-disabled');
+      } else {
+        const cd = economy.getSpinCountdown();
+        spinBtnEl.textContent = `⏰ NEXT FREE SPIN: ${this.formatCountdown(cd)}`;
+        spinBtnEl.disabled = true;
+        spinBtnEl.classList.add('btn-disabled');
+      }
+    }, 1000);
+  }
+
+  // First Time Setup & Profile Edit Modal
+  openProfileModal(isFirstTime = false) {
+    const currentName = economy.data.playerName || 'Sohel';
+    const currentAvatar = economy.data.avatar || '👑';
+    const avatars = ['👑', '🦁', '🐯', '🐉', '🦅', '🤖', '🧙', '👸', '⚡', '💎', '🎲', '🏆'];
+
+    let selectedAvatar = currentAvatar;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay profile-modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-card profile-modal-card">
+        <div class="profile-modal-header">
+          <span class="profile-header-icon">${isFirstTime ? '🎉' : '👤'}</span>
+          <h3>${isFirstTime ? 'WELCOME TO LUDO 3D!' : 'PLAYER PROFILE'}</h3>
+          <p>${isFirstTime ? 'Enter your champion name and choose your lucky royal avatar:' : 'Update your game profile and custom avatar:'}</p>
+        </div>
+
+        <div class="profile-form-group">
+          <label>CHAMPION NAME</label>
+          <input type="text" id="input-player-name" class="profile-name-input" maxlength="16" value="${currentName}" placeholder="Enter Name">
+        </div>
+
+        <div class="profile-form-group">
+          <label>SELECT ROYAL AVATAR</label>
+          <div class="avatar-selection-grid" id="avatar-grid">
+            ${avatars.map(av => `
+              <button class="avatar-option ${av === selectedAvatar ? 'selected' : ''}" data-avatar="${av}">${av}</button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          ${!isFirstTime ? '<button class="btn-setup-cancel" id="btn-cancel-profile">CANCEL</button>' : ''}
+          <button class="btn-setup-start" id="btn-save-profile">
+            ${isFirstTime ? '🚀 START PLAYING' : '💾 SAVE PROFILE'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('game-screen').appendChild(modal);
+
+    const avBtns = modal.querySelectorAll('.avatar-option');
+    avBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        avBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedAvatar = btn.dataset.avatar;
+      });
+    });
+
+    const cancelBtn = modal.querySelector('#btn-cancel-profile');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        modal.remove();
+      });
+    }
+
+    const saveBtn = modal.querySelector('#btn-save-profile');
+    saveBtn.addEventListener('click', () => {
+      sounds.playButtonClick();
+      const inputEl = modal.querySelector('#input-player-name');
+      const enteredName = (inputEl.value || '').trim() || 'Player 1';
+      economy.setPlayerProfile(enteredName, selectedAvatar);
+      modal.remove();
+      this.render();
+      if (isFirstTime) {
+        sounds.playVictory();
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } });
+      }
+    });
+  }
+
+  // Custom In-Game Insufficient Funds Modal (Zero native alerts!)
+  showInsufficientFundsModal(item, coinsCost, gemsCost) {
+    sounds.playButtonClick();
+    const isCoinsMissing = coinsCost > 0 && economy.data.coins < coinsCost;
+    const isGemsMissing = gemsCost > 0 && economy.data.gems < gemsCost;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-card insufficient-funds-card">
+        <div class="insufficient-icon-header">
+          ${isGemsMissing ? '💎' : '🪙'}
+        </div>
+        <h3 class="insufficient-title">INSUFFICIENT BALANCE</h3>
+        <p class="insufficient-sub">
+          You need more currency to unlock <strong>${item.name}</strong>.
+        </p>
+
+        <div class="balance-breakdown-box">
+          <div class="breakdown-row">
+            <span>Your Balance:</span>
+            <strong>🪙 ${economy.data.coins.toLocaleString()} | 💎 ${economy.data.gems}</strong>
+          </div>
+          <div class="breakdown-row highlight-cost">
+            <span>Item Price:</span>
+            <strong>${gemsCost > 0 ? `💎 ${gemsCost} Diamonds` : `🪙 ${coinsCost.toLocaleString()} Coins`}</strong>
+          </div>
+          <div class="breakdown-row highlight-needed">
+            <span>Still Needed:</span>
+            <strong style="color:#ef4444;">
+              ${isGemsMissing ? `💎 ${(gemsCost - economy.data.gems)} Diamonds` : `🪙 ${(coinsCost - economy.data.coins).toLocaleString()} Coins`}
+            </strong>
+          </div>
+        </div>
+
+        <div class="insufficient-actions">
+          ${isGemsMissing ? `
+            <button class="btn-funds-action btn-convert-now" id="btn-go-exchange">
+              💎 CONVERT COINS TO DIAMONDS
+            </button>
+          ` : ''}
+          <button class="btn-funds-action btn-spin-now" id="btn-go-spin">
+            🎡 SPIN LUCKY WHEEL FOR FREE
+          </button>
+          <button class="btn-setup-cancel" id="btn-close-funds" style="width:100%; margin-top:6px;">
+            CLOSE
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('game-screen').appendChild(modal);
+
+    const closeBtn = modal.querySelector('#btn-close-funds');
+    closeBtn.addEventListener('click', () => {
+      sounds.playButtonClick();
+      modal.remove();
+    });
+
+    const exchBtn = modal.querySelector('#btn-go-exchange');
+    if (exchBtn) {
+      exchBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        modal.remove();
+        this.activeTab = 'shop';
+        this.shopCategory = 'exchange';
+        this.render();
+      });
+    }
+
+    const spinBtn = modal.querySelector('#btn-go-spin');
+    if (spinBtn) {
+      spinBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        modal.remove();
+        this.activeTab = 'spin';
+        this.render();
+      });
+    }
+  }
+
   // PUBG / Free Fire Style Celebratory Unlock / Equip Animation
   showCelebrationModal(headline, itemId, itemType, isEquipOnly = false) {
     sounds.playVictory();
@@ -615,112 +965,101 @@ export class HomeUIManager {
     });
   }
 
-  // Quick 1-Tap Diamond Exchange Prompt
-  showGemExchangePrompt(targetItemId, coinsCost, gemsGiven, onComplete) {
+  // Backup Export: Download JSON
+  exportBackup() {
+    sounds.playButtonClick();
+    const jsonStr = economy.exportBackupJSON();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ludo_3d_master_pro_backup_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.showGenericNotice('BACKUP EXPORTED', 'Your game progress has been safely saved to your device as a JSON file.');
+  }
+
+  // Backup Import: Upload File or Paste JSON
+  openImportModal() {
+    sounds.playButtonClick();
     const modal = document.createElement('div');
-    modal.className = 'pubg-celebration-overlay';
+    modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="pubg-card-burst">
-        <h2 class="pubg-headline">💎 NEED DIAMONDS?</h2>
-        <div class="pubg-item-icon-glow">
-          <span class="pubg-big-icon">💎</span>
+      <div class="modal-card legal-modal-card">
+        <div class="legal-modal-header">
+          <h3>📥 RESTORE PROGRESS BACKUP</h3>
+          <button class="modal-close-icon" id="btn-close-import">✕</button>
         </div>
-        <p class="pubg-item-desc" style="color:white; font-size:0.86rem;">
-          You need more Diamonds for this item!<br><br>
-          Exchange <strong>🪙 ${coinsCost.toLocaleString()} Coins</strong> for <strong>+${gemsGiven} Diamonds 💎</strong> now?
-        </p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
-          <button class="pubg-btn-claim" id="btn-confirm-exchange">
-            🪙 EXCHANGE & UNLOCK
-          </button>
-          <button class="btn-pause-action btn-quit" id="btn-cancel-exchange" style="padding:10px;">
-            CANCEL
-          </button>
+        <div class="legal-modal-content">
+          <p>Select your saved backup JSON file or paste backup text below to restore your level progress, coins, gems, and unlocked themes:</p>
+          <input type="file" id="backup-file-input" accept=".json" style="margin: 12px 0; color: #fff; width: 100%;">
+          <textarea id="backup-text-input" placeholder="Or paste JSON backup string here..." style="width:100%; height:110px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:8px; padding:8px; font-family:monospace; font-size:0.75rem; resize:none;"></textarea>
+        </div>
+        <div style="display:flex; gap:10px; padding:12px 18px;">
+          <button class="btn-setup-cancel" id="btn-cancel-import" style="flex:1;">CANCEL</button>
+          <button class="btn-setup-start" id="btn-confirm-import" style="flex:2;">RESTORE PROGRESS</button>
         </div>
       </div>
     `;
 
-    document.body.appendChild(modal);
+    document.getElementById('game-screen').appendChild(modal);
 
-    modal.querySelector('#btn-confirm-exchange').addEventListener('click', () => {
-      sounds.playButtonClick();
-      modal.remove();
-      if (onComplete) onComplete();
+    const close = () => modal.remove();
+    modal.querySelector('#btn-close-import').addEventListener('click', close);
+    modal.querySelector('#btn-cancel-import').addEventListener('click', close);
+
+    const fileInput = modal.querySelector('#backup-file-input');
+    const textInput = modal.querySelector('#backup-text-input');
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          textInput.value = event.target.result;
+        };
+        reader.readAsText(file);
+      }
     });
 
-    modal.querySelector('#btn-cancel-exchange').addEventListener('click', () => {
+    modal.querySelector('#btn-confirm-import').addEventListener('click', () => {
       sounds.playButtonClick();
+      const content = textInput.value.trim();
+      if (!content) {
+        this.showGenericNotice('EMPTY BACKUP', 'Please choose a backup file or paste valid backup text.');
+        return;
+      }
+      const success = economy.importBackupJSON(content);
       modal.remove();
+      if (success) {
+        sounds.playVictory();
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+        this.showGenericNotice('RESTORE SUCCESSFUL', 'Your game progress, coins, diamonds, and inventory have been successfully restored!');
+        this.render();
+      } else {
+        this.showGenericNotice('INVALID BACKUP', 'The backup file format was invalid or corrupted.');
+      }
     });
   }
 
-  // 4. Illustrated Canvas Lucky Wheel
-  renderDailySpin() {
-    const canSpin = economy.canSpin();
-    const bonusCount = economy.data.bonusSpinsAvailable || 0;
-    const countdownMs = economy.getSpinCountdown();
-    const hours = Math.floor(countdownMs / (1000 * 60 * 60));
-    const mins = Math.floor((countdownMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    return `
-      <div class="spin-container">
-        <div class="spin-header">
-          <h3>🎡 DAILY LUCKY WHEEL</h3>
-          <p>Spin to win real coins, gems, and the Ultra-Rare Mythic Emperor Theme!</p>
-          ${bonusCount > 0 ? `<div class="bonus-spin-badge">🌟 ${bonusCount} BONUS SPINS AVAILABLE!</div>` : ''}
-        </div>
-
-        <div class="wheel-stage">
-          <div class="wheel-pointer">▼</div>
-          <canvas id="lucky-wheel-canvas" width="600" height="600"></canvas>
-        </div>
-
-        <button class="btn-start-spin ${!canSpin ? 'btn-disabled' : ''}" id="btn-spin-now" ${!canSpin ? 'disabled' : ''}>
-          ${canSpin ? '🎰 SPIN FOR FREE' : `⏰ NEXT FREE SPIN: ${hours}h ${mins}m`}
-        </button>
-
-        <div class="spin-result-msg" id="spin-result-msg"></div>
-
-        <div class="spin-rules-box">
-          <p>• 1 Free Daily Spin every 24 Hours</p>
-          <p>• <strong>Bonus Spin:</strong> Earn +1 Extra Spin every 5 levels in Saga!</p>
-          <p>• <strong>Ultra-Rare Jackpot:</strong> 👑 Mythic Emperor Board Theme!</p>
-        </div>
+  showGenericNotice(title, message) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-card legal-modal-card" style="text-align:center;">
+        <h3 style="color:#ffd700; margin-bottom:10px;">${title}</h3>
+        <p style="color:#e2e8f0; font-size:0.88rem; line-height:1.4;">${message}</p>
+        <button class="btn-legal-agree" id="btn-ok-notice" style="margin-top:16px;">OK</button>
       </div>
     `;
-  }
-
-  initLuckyWheel() {
-    const canvas = this.container.querySelector('#lucky-wheel-canvas');
-    if (!canvas) return;
-
-    this.wheelInstance = new LuckyWheel(canvas, (won) => {
-      this.updateWalletDisplay();
-      const msg = this.container.querySelector('#spin-result-msg');
-      const btn = this.container.querySelector('#btn-spin-now');
-      if (msg) {
-        if (won.type === 'theme') {
-          msg.textContent = `🎉 JACKPOT! You won the Mythic Emperor Theme!`;
-          this.showCelebrationModal('JACKPOT WON!', 'mythic_emperor', 'themes');
-        } else {
-          msg.textContent = `🎉 You won: +${won.val.toLocaleString()} ${won.type === 'coins' ? 'Coins' : 'Gems'}!`;
-        }
-      }
-      if (btn) {
-        btn.textContent = "COME BACK TOMORROW";
-        btn.disabled = true;
-      }
+    document.getElementById('game-screen').appendChild(modal);
+    modal.querySelector('#btn-ok-notice').addEventListener('click', () => {
+      sounds.playButtonClick();
+      modal.remove();
     });
-
-    const spinBtn = this.container.querySelector('#btn-spin-now');
-    if (spinBtn) {
-      spinBtn.addEventListener('click', () => {
-        if (economy.canSpin()) {
-          spinBtn.disabled = true;
-          this.wheelInstance.spin();
-        }
-      });
-    }
   }
 
   bindTabEvents() {
@@ -740,6 +1079,14 @@ export class HomeUIManager {
       btnHam.addEventListener('click', () => {
         sounds.playButtonClick();
         this.openDrawer();
+      });
+    }
+
+    const btnProfile = this.container.querySelector('#btn-user-profile');
+    if (btnProfile) {
+      btnProfile.addEventListener('click', () => {
+        sounds.playButtonClick();
+        this.openProfileModal(false);
       });
     }
 
@@ -764,10 +1111,16 @@ export class HomeUIManager {
         sounds.playButtonClick();
         const action = item.dataset.drawerAction;
         this.closeDrawer();
-        if (action === 'inventory') {
+        if (action === 'profile') {
+          this.openProfileModal(false);
+        } else if (action === 'inventory') {
           this.activeTab = 'shop';
           this.shopCategory = 'inventory';
           this.render();
+        } else if (action === 'export-backup') {
+          this.exportBackup();
+        } else if (action === 'import-backup') {
+          this.openImportModal();
         } else {
           this.showLegalModal(action);
         }
@@ -922,7 +1275,7 @@ export class HomeUIManager {
         if (!reward) return;
 
         if (economy.isMilestoneClaimed(mNum)) {
-          alert(`You have already claimed Level ${mNum} Royal Chest!`);
+          this.showGenericNotice('CHEST ALREADY CLAIMED', `You have already claimed Level ${mNum} Royal Chest!`);
           return;
         }
         const completedCount = Object.keys(economy.data.completedLevels).length;
@@ -935,7 +1288,7 @@ export class HomeUIManager {
           }
           this.showCelebrationModal(`LEVEL ${mNum} REWARD CLAIMED!`, reward.itemId || 'coins', reward.itemType || 'themes');
         } else {
-          alert(`Level ${mNum} Royal Chest unlocks when you reach Level ${mNum}!\nReward: ${reward.title}`);
+          this.showGenericNotice(`LEVEL ${mNum} LOCKED`, `Level ${mNum} Royal Chest unlocks when you reach Level ${mNum}!\nReward: ${reward.title}`);
         }
       });
     });
@@ -950,7 +1303,7 @@ export class HomeUIManager {
         if (!reward) return;
 
         if (economy.isSnakesMilestoneClaimed(mNum)) {
-          alert(`You have already claimed Stage ${mNum} Boss Chest!`);
+          this.showGenericNotice('CHEST ALREADY CLAIMED', `You have already claimed Stage ${mNum} Boss Chest!`);
           return;
         }
         const completedStages = economy.data.completedSnakesStages || {};
@@ -965,7 +1318,7 @@ export class HomeUIManager {
           }
           this.showCelebrationModal(`STAGE ${mNum} BOSS CHEST!`, reward.itemId, reward.itemType);
         } else {
-          alert(`Stage ${mNum} Boss Chest unlocks when you beat Stage ${mNum}!\nReward: ${reward.title}`);
+          this.showGenericNotice(`STAGE ${mNum} LOCKED`, `Stage ${mNum} Boss Chest unlocks when you beat Stage ${mNum}!\nReward: ${reward.title}`);
         }
       });
     });
@@ -980,7 +1333,17 @@ export class HomeUIManager {
       });
     });
 
-    // Store Buy Buttons (100% Clickable with Instant Gem Conversion Prompt)
+    // Spin Exclusive Buttons
+    const spinTargetBtns = this.container.querySelectorAll('.btn-shop-spin-exclusive');
+    spinTargetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        this.activeTab = 'spin';
+        this.render();
+      });
+    });
+
+    // Store Buy Buttons (Single-currency validation with Custom Modal)
     const buyBtns = this.container.querySelectorAll('.btn-shop-buy');
     buyBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -989,28 +1352,16 @@ export class HomeUIManager {
         const coins = parseInt(btn.dataset.coins) || 0;
         const gems = parseInt(btn.dataset.gems) || 0;
 
+        let targetItem = null;
+        if (type === 'themes') targetItem = SHOP_CATALOG.ludoThemes.find(i => i.id === id);
+        else if (type === 'snakesThemes') targetItem = SHOP_CATALOG.snakesThemes.find(i => i.id === id);
+        else if (type === 'dice') targetItem = SHOP_CATALOG.dice.find(i => i.id === id);
+        else if (type === 'pawns') targetItem = SHOP_CATALOG.pawns.find(i => i.id === id);
+        if (!targetItem) targetItem = { name: id, icon: '✨' };
+
         // Check if player has enough funds
         if (economy.data.coins < coins || economy.data.gems < gems) {
-          const deficitGems = gems - economy.data.gems;
-          // If deficit is gems and player has coins to convert
-          if (deficitGems > 0 && economy.data.coins >= 1000) {
-            const packsNeeded = Math.ceil(deficitGems / 50);
-            const coinsCost = packsNeeded * 1000;
-            const gemsGiven = packsNeeded * 50;
-
-            this.showGemExchangePrompt(id, coinsCost, gemsGiven, () => {
-              if (economy.exchangeCoinsForGems(coinsCost, gemsGiven)) {
-                const purchase = economy.purchaseItem(type, id, coins, gems);
-                if (purchase.success) {
-                  if (this.callbacks.onEquip) this.callbacks.onEquip(type, id);
-                  this.showCelebrationModal('UNLOCKED & EQUIPPED!', id, type);
-                }
-              }
-            });
-            return;
-          }
-
-          alert(`💎 INSUFFICIENT BALANCE\nYou have: 🪙 ${economy.data.coins.toLocaleString()} Coins | 💎 ${economy.data.gems} Diamonds.\nItem price: ${coins > 0 ? coins.toLocaleString() + ' Coins ' : ''}${gems > 0 ? gems + ' Diamonds 💎' : ''}.\n\n💡 Tip: Convert coins to diamonds or spin the Lucky Wheel!`);
+          this.showInsufficientFundsModal(targetItem, coins, gems);
           return;
         }
 
@@ -1022,7 +1373,7 @@ export class HomeUIManager {
       });
     });
 
-    // Store Equip Buttons (100% Clickable with Instant Feedback)
+    // Store Equip Buttons
     const equipBtns = this.container.querySelectorAll('.btn-shop-equip');
     equipBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1042,9 +1393,9 @@ export class HomeUIManager {
         const coins = parseInt(btn.dataset.coins);
         const gems = parseInt(btn.dataset.gems);
         if (economy.exchangeCoinsForGems(coins, gems)) {
-          this.showCelebrationModal(`EXCHANGED FOR +${gems} 💎!`, 'diamond_pack', 'exchange');
+          this.showCelebrationModal(`CONVERTED FOR +${gems} 💎!`, 'diamond_pack', 'exchange');
         } else {
-          alert(`❌ Not enough Coins! You need ${coins.toLocaleString()} Coins.`);
+          this.showGenericNotice('NOT ENOUGH COINS', `You need 🪙 ${coins.toLocaleString()} Coins to convert to diamonds.`);
         }
       });
     });
@@ -1079,7 +1430,7 @@ export class HomeUIManager {
 
         <div class="setup-section">
           <label>OPPONENT MODE</label>
-          <div class="setup-btn-group" id="group-opp-type">
+          <div class="setup-btn-group setup-vertical-group" id="group-opp-type">
             <button class="setup-opp-btn active" data-opp="ai">🤖 VS SMART BOTS</button>
             <button class="setup-opp-btn" data-opp="pass_play">👥 PASS & PLAY (FRIENDS)</button>
           </div>

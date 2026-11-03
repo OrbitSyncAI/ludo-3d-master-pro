@@ -1,5 +1,5 @@
 /**
- * Ludo 3D Pro - Economy & Persistence Engine (Real Wallet, Strict Validation & Bonus Spins)
+ * Ludo 3D Master Pro - Economy & Persistence Engine (Real Wallet, Strict Validation & Bonus Spins)
  * Supports 300 Ludo Saga Levels + 300 Snakes Adventure Stages + Full Themes Inventory
  * Developer: Sohel | Raebareli, UP - 229001
  */
@@ -9,6 +9,7 @@ const STORAGE_KEY = 'ludo_3d_player_save_v3';
 const DEFAULT_STATE = {
   playerName: 'Sohel',
   avatar: '👑',
+  isProfileSetupDone: true,
   level: 1,
   xp: 0,
   coins: 5000,
@@ -46,7 +47,6 @@ class EconomyManager {
   loadState() {
     try {
       if (typeof localStorage !== 'undefined') {
-        // Try v3 first, fallback to v2
         let saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('ludo_3d_player_save_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -73,6 +73,10 @@ class EconomyManager {
             pawn: parsed.equipped?.pawn || 'crown'
           };
 
+          state.playerName = parsed.playerName || DEFAULT_STATE.playerName;
+          state.avatar = parsed.avatar || DEFAULT_STATE.avatar;
+          state.isProfileSetupDone = (parsed.isProfileSetupDone !== undefined) ? parsed.isProfileSetupDone : true;
+
           state.completedLevels = parsed.completedLevels || {};
           state.completedSnakesStages = parsed.completedSnakesStages || {};
           state.claimedMilestones = Array.isArray(parsed.claimedMilestones) ? parsed.claimedMilestones : [];
@@ -84,7 +88,9 @@ class EconomyManager {
     } catch (e) {
       console.warn('Failed to load state', e);
     }
-    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    const fresh = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    fresh.isProfileSetupDone = false; // Prompt for first time install!
+    return fresh;
   }
 
   saveState() {
@@ -95,6 +101,17 @@ class EconomyManager {
     } catch (e) {
       console.warn('Failed to save state', e);
     }
+  }
+
+  setPlayerProfile(name, avatar) {
+    if (name && name.trim()) {
+      this.data.playerName = name.trim();
+    }
+    if (avatar) {
+      this.data.avatar = avatar;
+    }
+    this.data.isProfileSetupDone = true;
+    this.saveState();
   }
 
   addCoins(amount) {
@@ -224,10 +241,13 @@ class EconomyManager {
     return this.data.inventory[type].includes(itemId);
   }
 
-  // Strict Store Purchase Validation
+  // Strict Store Purchase Validation (Pure Coins or Pure Diamonds)
   purchaseItem(type, itemId, priceCoins = 0, priceGems = 0) {
     if (this.data.coins < priceCoins || this.data.gems < priceGems) {
-      return { success: false, reason: "Insufficient funds!" };
+      return {
+        success: false,
+        reason: (this.data.coins < priceCoins) ? `Need ${priceCoins - this.data.coins} more Coins` : `Need ${priceGems - this.data.gems} more Diamonds`
+      };
     }
 
     this.data.coins -= priceCoins;
@@ -269,17 +289,6 @@ class EconomyManager {
     return true;
   }
 
-  // Legacy fallback: Exchange Gems for Coins
-  exchangeGemsForCoins(gemsAmount, coinsAmount) {
-    if (this.data.gems < gemsAmount) {
-      return false;
-    }
-    this.data.gems -= gemsAmount;
-    this.data.coins += coinsAmount;
-    this.saveState();
-    return true;
-  }
-
   unlockItem(type, itemId) {
     if (!this.data.inventory[type]) {
       this.data.inventory[type] = [];
@@ -288,6 +297,40 @@ class EconomyManager {
       this.data.inventory[type].push(itemId);
     }
     this.saveState();
+  }
+
+  // Export Progress to JSON string
+  exportBackupJSON() {
+    return JSON.stringify(this.data, null, 2);
+  }
+
+  // Import Progress from JSON string
+  importBackupJSON(jsonStr) {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (typeof parsed !== 'object' || !parsed) return false;
+      this.data = {
+        ...DEFAULT_STATE,
+        ...parsed,
+        inventory: {
+          themes: Array.isArray(parsed.inventory?.themes) ? parsed.inventory.themes : ['classic_royal'],
+          snakesThemes: Array.isArray(parsed.inventory?.snakesThemes) ? parsed.inventory.snakesThemes : ['snakes_classic'],
+          dice: Array.isArray(parsed.inventory?.dice) ? parsed.inventory.dice : ['classic'],
+          pawns: Array.isArray(parsed.inventory?.pawns) ? parsed.inventory.pawns : ['crown']
+        },
+        equipped: {
+          theme: parsed.equipped?.theme || 'classic_royal',
+          snakesTheme: parsed.equipped?.snakesTheme || 'snakes_classic',
+          dice: parsed.equipped?.dice || 'classic',
+          pawn: parsed.equipped?.pawn || 'crown'
+        }
+      };
+      this.saveState();
+      return true;
+    } catch (e) {
+      console.error('Failed to import backup JSON', e);
+      return false;
+    }
   }
 }
 

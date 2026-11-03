@@ -5,6 +5,7 @@
 
 import { sounds } from './audio.js';
 import { PLAYERS_CONFIG } from './boardData.js';
+import { economy } from './economyState.js';
 
 export class UIManager {
   constructor(callbacks = {}) {
@@ -240,7 +241,7 @@ export class UIManager {
 
       card.innerHTML = `
         <div class="player-avatar hud-avatar-box" style="background: ${p.color ? p.color.primary + '22' : '#ffffff22'}">
-          <span class="hud-avatar">${p.isAI ? '🤖' : '👑'}</span>
+          <span class="hud-avatar">${p.isAI ? '🤖' : (economy?.data?.avatar || '👑')}</span>
         </div>
         <div class="player-info hud-player-meta">
           <strong class="player-name hud-name" style="color: ${p.color ? p.color.textColor : '#ffffff'}">${p.name}</strong>

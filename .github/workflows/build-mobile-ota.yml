@@ -61,12 +61,15 @@ jobs:
           path: android/app/build/outputs/bundle/release/*.aab
         continue-on-error: true
 
-      - name: Attach APK to GitHub Release v1.0.0
+      - name: Create or Update GitHub Release v1.1.0 with APK
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
-            gh release upload v1.0.0 android/app/build/outputs/apk/debug/app-debug.apk --clobber || true
+            gh release create v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk \
+              --title "Ludo 3D Master Pro - Release v1.1.0 (Commercial Android & iOS)" \
+              --notes "Production commercial release featuring 3D Ludo & Snakes with 300 levels, single-currency royal store, casino lucky wheel with live seconds, and offline progress backup. Developer: Sohel | Raebareli, UP - 229001" \
+              --clobber || gh release upload v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk --clobber
           fi
 
   build-ios:

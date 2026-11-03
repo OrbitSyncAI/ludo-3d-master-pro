@@ -2115,3 +2115,325 @@ html, body {
   font-size: 18px;
   letter-spacing: 3px;
 }
+
+/* =========================================================
+   USER REQUEST OVERHAUL: CASINO RULES, PROFILE, SETUP MODAL,
+   SINGLE CURRENCY STORE & COPYRIGHT NOTICE
+   ========================================================= */
+
+/* Setup Opponent Vertical Group Fix (PASS & PLAY Button Overflow Fix) */
+.setup-vertical-group {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  gap: 10px !important;
+}
+
+.setup-vertical-group .setup-opp-btn {
+  width: 100% !important;
+  flex: none !important;
+  padding: 13px 16px !important;
+  font-size: 0.88rem !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  white-space: normal !important;
+  border-radius: 14px !important;
+}
+
+/* Casino-Grade Lucky Wheel Rules Card */
+.spin-rules-card {
+  margin-top: 20px;
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 41, 59, 0.96) 100%);
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 16px rgba(255, 215, 0, 0.15);
+  text-align: left;
+}
+
+.spin-rules-title {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #ffd700;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 215, 0, 0.35);
+}
+
+.spin-rules-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spin-rule-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.spin-rule-row .rule-icon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+
+.spin-rule-row.jackpot-row {
+  background: rgba(255, 215, 0, 0.1);
+  padding: 6px 10px;
+  border-radius: 10px;
+  border-left: 3px solid #ffd700;
+  color: #fef08a;
+}
+
+/* Copyright Footers */
+.home-copyright-footer {
+  margin-top: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.75);
+}
+.home-copyright-footer .copyright-line {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+.home-copyright-footer .dev-line {
+  font-size: 0.7rem;
+  color: #ffd700;
+  margin-top: 4px;
+  font-weight: 800;
+}
+.drawer-copyright-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+.drawer-copyright-footer p {
+  margin: 2px 0;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+/* User Profile Setup & Edit Modal */
+.profile-modal-overlay {
+  z-index: 1000;
+}
+.profile-modal-card {
+  width: 90%;
+  max-width: 360px;
+  background: linear-gradient(145deg, #16243b 0%, #0e1726 100%);
+  border: 2px solid #ffd700;
+  border-radius: 24px;
+  padding: 24px 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 215, 0, 0.25);
+  color: #ffffff;
+  text-align: center;
+  animation: modal-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.profile-modal-header .profile-header-icon {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 8px;
+}
+.profile-modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffd700;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px;
+}
+.profile-modal-header p {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 0 0 18px;
+  line-height: 1.4;
+}
+.profile-form-group {
+  text-align: left;
+  margin-bottom: 16px;
+}
+.profile-form-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #ffd700;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.profile-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 215, 0, 0.4);
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.profile-name-input:focus {
+  border-color: #ffd700;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+.avatar-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.avatar-option {
+  height: 48px;
+  font-size: 1.6rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.avatar-option:active {
+  transform: scale(0.92);
+}
+.avatar-option.selected {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 179, 0, 0.4));
+  border-color: #ffd700;
+  transform: scale(1.06);
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.4);
+}
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Insufficient Funds Modal */
+.insufficient-funds-card {
+  width: 90%;
+  max-width: 350px;
+  background: linear-gradient(145deg, #18253b 0%, #0d1624 100%);
+  border: 2px solid #ef4444;
+  border-radius: 24px;
+  padding: 24px 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 20px rgba(239, 68, 68, 0.25);
+  color: #ffffff;
+  text-align: center;
+  animation: modal-pop 0.25s ease;
+}
+.insufficient-icon-header {
+  font-size: 2.6rem;
+  margin-bottom: 8px;
+}
+.insufficient-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #f87171;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px;
+}
+.insufficient-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+.balance-breakdown-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+.breakdown-row strong {
+  font-size: 0.82rem;
+  color: #ffffff;
+}
+.breakdown-row.highlight-cost strong {
+  color: #ffd700;
+}
+.insufficient-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btn-funds-action {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+.btn-funds-action:active {
+  transform: scale(0.96);
+}
+.btn-convert-now {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+.btn-spin-now {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: 1.5px solid #fbbf24;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+/* Store Buttons Styling */
+.btn-shop-spin-exclusive {
+  padding: 9px 12px;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  border: 1.5px solid #c084fc;
+  border-radius: 14px;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.76rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-shop-spin-exclusive:active {
+  transform: scale(0.95);
+}
+.btn-price-gems {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
+}
+.btn-price-coins {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+  border-color: #facc15 !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.35) !important;
+}

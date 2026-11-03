@@ -19,6 +19,7 @@ import { SAFE_TILE_INDICES } from './boardData.js';
 import { calculateLudoKingCamera } from './cameraHelper.js';
 import { economy } from './economyState.js';
 import { SHOP_CATALOG } from './shopData.js';
+import { liveUpdater } from './liveUpdater.js';
 
 class LudoApp {
   constructor() {
@@ -40,6 +41,9 @@ class LudoApp {
 
     // Start on Home Screen by default!
     this.homeUI.show();
+
+    // Silent Background OTA Live Updater
+    liveUpdater.initSilentUpdate();
   }
 
   // 1. Three.js Scene & Strictly Fixed Camera (Zero Drag / Zero Wobble)

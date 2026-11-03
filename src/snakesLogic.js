@@ -3,6 +3,8 @@
  * Distinguishes between landing tile and ladder/snake destination tile
  */
 
+import { economy } from './economyState.js';
+
 export const LADDERS = {
   4: 14,
   9: 31,
@@ -50,8 +52,9 @@ export class SnakesEngine {
     this.isAI = config.isAI !== false;
     this.levelNumber = config.levelNumber || null;
 
+    const p1Name = economy?.data?.playerName || "Player 1";
     this.players = [
-      { id: 0, name: "Player 1", isAI: false, colorHex: 0xff1744, text: "#ff1744" },
+      { id: 0, name: p1Name, isAI: false, colorHex: 0xff1744, text: "#ff1744" },
       { id: 1, name: this.isAI ? "Cyber Green" : "Player 2", isAI: this.isAI, colorHex: 0x00e676, text: "#00e676" },
       { id: 2, name: this.isAI ? "Neon Yellow" : "Player 3", isAI: this.isAI, colorHex: 0xffc400, text: "#ffc400" },
       { id: 3, name: this.isAI ? "Alpha Blue" : "Player 4", isAI: this.isAI, colorHex: 0x00b0ff, text: "#00b0ff" }

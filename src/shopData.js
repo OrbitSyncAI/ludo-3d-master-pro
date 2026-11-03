@@ -1,11 +1,14 @@
 /**
- * Ludo 3D Pro - Complete Customization & Diamond Store Catalog
- * Separated Categories: Ludo Themes, Snakes Themes, Dice Skins, Pawns, and Coin-to-Diamond Exchange
- * Tiers: COMMON, RARE, EPIC, LEGENDARY, MYTHIC
+ * Ludo 3D Master Pro - Complete Customization & Store Catalog
+ * Strict Pricing Rules:
+ *  - ZERO mixed currencies (each item is EITHER pure Coins, pure Diamonds, or Spin Jackpot exclusive)
+ *  - Pure Diamonds start from minimum 100 💎 (100, 150, 200, 250, 300)
+ *  - Spin Exclusive items CANNOT be purchased with coins or gems (must be won on the Lucky Wheel)
+ * Developer: Sohel | Raebareli, UP - 229001
  */
 
 export const SHOP_CATALOG = {
-  // 1. LUDO BOARD THEMES
+  // 1. LUDO BOARD THEMES (Pure Coins OR Pure Diamonds >= 100 OR Spin Exclusive)
   ludoThemes: [
     {
       id: 'classic_royal',
@@ -47,8 +50,8 @@ export const SHOP_CATALOG = {
       name: 'Candy Sweet Kingdom',
       desc: 'Delightful strawberry candy board with sugar crystal borders.',
       rarity: 'RARE',
-      priceCoins: 10000,
-      priceGems: 10,
+      priceCoins: 12000,
+      priceGems: 0,
       icon: '🍬',
       previewColor: '#ec4899',
       sceneBg: 0x2b1029,
@@ -61,30 +64,12 @@ export const SHOP_CATALOG = {
       yardColor: 0x831843
     },
     {
-      id: 'emerald',
-      name: 'Diamond Emerald Jade',
-      desc: 'Luxury high-roller theme forged from pure green jade & diamonds.',
-      rarity: 'EPIC',
-      priceCoins: 18000,
-      priceGems: 35,
-      icon: '💎',
-      previewColor: '#10b981',
-      sceneBg: 0x031c12,
-      boardColor: 0x064e3b,
-      trimColor: 0x10b981,
-      surfaceColor: 0x022c22,
-      pathwayColor: 0xd1fae5,
-      innerYardColor: 0xecfdf5,
-      starColor: 0x34d399,
-      yardColor: 0x065f46
-    },
-    {
       id: 'ocean_atlantis',
       name: 'Deep Ocean Atlantis',
       desc: 'Lost kingdom of Atlantis with pearlescent turquoise & deep sea sapphire.',
-      rarity: 'EPIC',
-      priceCoins: 24000,
-      priceGems: 45,
+      rarity: 'RARE',
+      priceCoins: 25000,
+      priceGems: 0,
       icon: '🌊',
       previewColor: '#0ea5e9',
       sceneBg: 0x071e33,
@@ -97,12 +82,30 @@ export const SHOP_CATALOG = {
       yardColor: 0x075985
     },
     {
+      id: 'emerald',
+      name: 'Diamond Emerald Jade',
+      desc: 'Luxury high-roller theme forged from pure green jade & diamonds.',
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 100,
+      icon: '💎',
+      previewColor: '#10b981',
+      sceneBg: 0x031c12,
+      boardColor: 0x064e3b,
+      trimColor: 0x10b981,
+      surfaceColor: 0x022c22,
+      pathwayColor: 0xd1fae5,
+      innerYardColor: 0xecfdf5,
+      starColor: 0x34d399,
+      yardColor: 0x065f46
+    },
+    {
       id: 'neon',
       name: 'Cyber Neon Arena',
       desc: 'Electric slate with high-glow neon laser tracks & cyber borders.',
       rarity: 'LEGENDARY',
-      priceCoins: 35000,
-      priceGems: 60,
+      priceCoins: 0,
+      priceGems: 150,
       icon: '⚡',
       previewColor: '#00e5ff',
       sceneBg: 0x05070e,
@@ -119,8 +122,8 @@ export const SHOP_CATALOG = {
       name: 'Volcanic Magma Chamber',
       desc: 'Forged in subterranean molten lava with glowing obsidian borders.',
       rarity: 'LEGENDARY',
-      priceCoins: 48000,
-      priceGems: 80,
+      priceCoins: 0,
+      priceGems: 200,
       icon: '🌋',
       previewColor: '#ef4444',
       sceneBg: 0x1c0707,
@@ -137,8 +140,8 @@ export const SHOP_CATALOG = {
       name: 'Cosmic Galaxy Void',
       desc: 'Celestial deep space with swirling nebula dust and starlight tracks.',
       rarity: 'LEGENDARY',
-      priceCoins: 60000,
-      priceGems: 120,
+      priceCoins: 0,
+      priceGems: 300,
       icon: '🌌',
       previewColor: '#a855f7',
       sceneBg: 0x0d051a,
@@ -153,10 +156,11 @@ export const SHOP_CATALOG = {
     {
       id: 'mythic_emperor',
       name: 'Mythic Emperor 24K Gold',
-      desc: 'The pinnacle of triumph: pure celestial 24K gold with imperial diamonds.',
+      desc: 'Supreme grandmaster board: pure 24K celestial gold with diamond inlays. Won only on Lucky Wheel!',
       rarity: 'MYTHIC',
-      priceCoins: 90000,
-      priceGems: 180,
+      priceCoins: 0,
+      priceGems: 0,
+      isSpinExclusive: true,
       isUltraRare: true,
       icon: '👑',
       previewColor: '#eab308',
@@ -171,7 +175,7 @@ export const SHOP_CATALOG = {
     }
   ],
 
-  // 2. SNAKES & LADDERS BOARD THEMES
+  // 2. SNAKES & LADDERS BOARD THEMES (Pure Coins OR Pure Diamonds >= 100 OR Spin Exclusive)
   snakesThemes: [
     {
       id: 'snakes_classic',
@@ -204,8 +208,8 @@ export const SHOP_CATALOG = {
       name: 'Sugar Rush Candy Land',
       desc: 'Sweet peppermint ladders and delicious gummy fruit snakes!',
       rarity: 'RARE',
-      priceCoins: 11000,
-      priceGems: 15,
+      priceCoins: 12000,
+      priceGems: 0,
       icon: '🍭',
       previewColor: '#f43f5e',
       sceneBg: 0x2b1029,
@@ -216,9 +220,9 @@ export const SHOP_CATALOG = {
       id: 'snakes_desert',
       name: 'Desert Mirage Cobra',
       desc: 'Golden Sahara sand dunes with royal hieroglyphic cobras.',
-      rarity: 'EPIC',
-      priceCoins: 19000,
-      priceGems: 30,
+      rarity: 'RARE',
+      priceCoins: 22000,
+      priceGems: 0,
       icon: '🏜️',
       previewColor: '#f97316',
       sceneBg: 0x261205,
@@ -229,9 +233,9 @@ export const SHOP_CATALOG = {
       id: 'snakes_ocean',
       name: 'Deep Sea Atlantis Serpents',
       desc: 'Coral reef ocean floor with glowing electric sea vipers and brass ladders.',
-      rarity: 'EPIC',
-      priceCoins: 28000,
-      priceGems: 45,
+      rarity: 'RARE',
+      priceCoins: 35000,
+      priceGems: 0,
       icon: '🐬',
       previewColor: '#06b6d4',
       sceneBg: 0x071e33,
@@ -241,10 +245,10 @@ export const SHOP_CATALOG = {
     {
       id: 'snakes_cyber',
       name: 'Cyberpunk Matrix Neon',
-      desc: 'Holographic laser beam ladders and cybernetic viper robots in the grid.',
-      rarity: 'LEGENDARY',
-      priceCoins: 38000,
-      priceGems: 65,
+      desc: 'Holographic laser beam ladders and cybernetic viper robots in the digital matrix.',
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 100,
       icon: '⚡',
       previewColor: '#8b5cf6',
       sceneBg: 0x05070e,
@@ -254,10 +258,10 @@ export const SHOP_CATALOG = {
     {
       id: 'snakes_magma',
       name: 'Volcanic Lava Fissures',
-      desc: 'Charred basalt stone with fiery molten magma snakes crawling from the earth.',
+      desc: 'Charred basalt stone with fiery molten magma snakes crawling from the core.',
       rarity: 'LEGENDARY',
-      priceCoins: 52000,
-      priceGems: 90,
+      priceCoins: 0,
+      priceGems: 150,
       icon: '🌋',
       previewColor: '#dc2626',
       sceneBg: 0x1c0707,
@@ -267,10 +271,10 @@ export const SHOP_CATALOG = {
     {
       id: 'snakes_galaxy',
       name: 'Cosmic Starlight Serpents',
-      desc: 'Swirling celestial void with starlight beam ladders and cosmic vipers.',
+      desc: 'Swirling celestial void with starlight beam ladders and cosmic nebula vipers.',
       rarity: 'LEGENDARY',
-      priceCoins: 68000,
-      priceGems: 130,
+      priceCoins: 0,
+      priceGems: 250,
       icon: '🌌',
       previewColor: '#d946ef',
       sceneBg: 0x0d051a,
@@ -280,10 +284,12 @@ export const SHOP_CATALOG = {
     {
       id: 'snakes_dragon',
       name: 'Golden Dragon Emperor',
-      desc: 'Grandmaster imperial temple with 24K gold ladders and mythical golden dragons.',
+      desc: 'Grandmaster imperial temple with 24K gold ladders and mythical dragons. Won only on Lucky Wheel!',
       rarity: 'MYTHIC',
-      priceCoins: 95000,
-      priceGems: 200,
+      priceCoins: 0,
+      priceGems: 0,
+      isSpinExclusive: true,
+      isUltraRare: true,
       icon: '🐉',
       previewColor: '#eab308',
       sceneBg: 0x1a0f02,
@@ -292,7 +298,7 @@ export const SHOP_CATALOG = {
     }
   ],
 
-  // 3. DICE SKINS
+  // 3. DICE SKINS (Pure Coins OR Pure Diamonds >= 100)
   dice: [
     {
       id: 'classic',
@@ -323,8 +329,8 @@ export const SHOP_CATALOG = {
       name: 'Cyber Neon Cube',
       desc: 'High-tech obsidian die with electric cyan laser pips.',
       rarity: 'RARE',
-      priceCoins: 10000,
-      priceGems: 10,
+      priceCoins: 15000,
+      priceGems: 0,
       icon: '⚡',
       baseColor: '#0f172a',
       pipRed: '#06b6d4',
@@ -335,8 +341,8 @@ export const SHOP_CATALOG = {
       name: 'Mystic Amethyst Crystal',
       desc: 'Deep violet translucent crystal die cut from pure royal quartz.',
       rarity: 'EPIC',
-      priceCoins: 18000,
-      priceGems: 25,
+      priceCoins: 0,
+      priceGems: 100,
       icon: '🔮',
       baseColor: '#7e22ce',
       pipRed: '#f43f5e',
@@ -347,8 +353,8 @@ export const SHOP_CATALOG = {
       name: 'Sapphire Diamond Dice',
       desc: 'Refractive blue crystal die forged from flawless sapphire gems.',
       rarity: 'EPIC',
-      priceCoins: 25000,
-      priceGems: 40,
+      priceCoins: 0,
+      priceGems: 150,
       icon: '💎',
       baseColor: '#0284c7',
       pipRed: '#ff0055',
@@ -359,8 +365,8 @@ export const SHOP_CATALOG = {
       name: 'Volcanic Magma Fire',
       desc: 'Forged in volcanic lava with glowing molten amber spots.',
       rarity: 'LEGENDARY',
-      priceCoins: 40000,
-      priceGems: 60,
+      priceCoins: 0,
+      priceGems: 200,
       icon: '🔥',
       baseColor: '#c2410c',
       pipRed: '#facc15',
@@ -371,8 +377,8 @@ export const SHOP_CATALOG = {
       name: 'Holographic Prismatic',
       desc: 'Shimmering iridescent die that shifts colors dynamically in light.',
       rarity: 'MYTHIC',
-      priceCoins: 75000,
-      priceGems: 120,
+      priceCoins: 0,
+      priceGems: 300,
       icon: '🌈',
       baseColor: '#ec4899',
       pipRed: '#3b82f6',
@@ -380,7 +386,7 @@ export const SHOP_CATALOG = {
     }
   ],
 
-  // 4. PAWNS / TOKENS
+  // 4. PAWNS / TOKENS (Pure Coins OR Pure Diamonds >= 100)
   pawns: [
     {
       id: 'crown',
@@ -404,9 +410,9 @@ export const SHOP_CATALOG = {
       id: 'crystal',
       name: 'Diamond King Statue',
       desc: 'Precision-cut diamond crystal with glowing internal prismatic reflections.',
-      rarity: 'EPIC',
-      priceCoins: 16000,
-      priceGems: 25,
+      rarity: 'RARE',
+      priceCoins: 18000,
+      priceGems: 0,
       icon: '💎'
     },
     {
@@ -414,26 +420,26 @@ export const SHOP_CATALOG = {
       name: 'Royal Lion Crest',
       desc: 'Imperial heraldic golden lion crest representing courage and victory.',
       rarity: 'EPIC',
-      priceCoins: 26000,
-      priceGems: 40,
+      priceCoins: 0,
+      priceGems: 100,
       icon: '🦁'
     },
     {
       id: 'dragon_sigil',
       name: 'Imperial Dragon Sigil',
       desc: 'Ancient jade & gold dragon emblem that commands the board.',
-      rarity: 'LEGENDARY',
-      priceCoins: 45000,
-      priceGems: 70,
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 150,
       icon: '🐉'
     },
     {
       id: 'gold_statue',
       name: 'Emperor Solid Gold Trophy',
       desc: 'Pure polished bullion gold trophy pawns for supreme grandmasters.',
-      rarity: 'MYTHIC',
-      priceCoins: 85000,
-      priceGems: 150,
+      rarity: 'LEGENDARY',
+      priceCoins: 0,
+      priceGems: 250,
       icon: '🏆'
     }
   ],
