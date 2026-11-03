@@ -1,0 +1,9 @@
+{
+  "appId": "com.ludomaster3d.game",
+  "appName": "Ludo 3D Master Pro",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

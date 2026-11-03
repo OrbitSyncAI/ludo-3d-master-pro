@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#070a12" />
+    <meta name="description" content="Ludo 3D Master Pro - High Performance 3D Mobile Game" />
+    <title>Ludo 3D Mobile Pro</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- App Container (Adapts as Native Screen on Phone, or Sleek Phone Mockup on PC) -->
+    <div id="device-wrapper">
+      <div id="mobile-notch">
+        <span class="speaker-slit"></span>
+        <span class="camera-lens"></span>
+      </div>
+
+      <div id="game-screen">
+        <div id="canvas-container"></div>
+        <!-- UI overlay generated dynamically by src/ui.js -->
+      </div>
+
+      <div id="home-indicator"></div>
+    </div>
+
+    <!-- Toggle Device Frame Button (only visible on desktop for testing) -->
+    <button id="btn-device-toggle" class="desktop-only-btn" title="Toggle Mobile Mockup Frame">
+      📱 Phone View
+    </button>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
