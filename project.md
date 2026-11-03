@@ -16,11 +16,13 @@
 - **Copyright Notice:** `© 2026 Ludo 3D Master Pro. All Rights Reserved. Designed & Developed by Sohel.`
 - **GitHub Repository:** [`https://github.com/OrbitSyncAI/ludo-3d-master-pro`](https://github.com/OrbitSyncAI/ludo-3d-master-pro)
 - **Current Live Release:** [`v1.1.0 (Production Release)`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.1.0)
-- **Compiled Android APK:**
-  - Local Storage: `D:\Download\Ludo-3D-Master-Pro-v1.1.0.apk` and `D:\Download\app-debug.apk`
-  - Cloud Direct Download: [`app-debug.apk`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/download/v1.1.0/app-debug.apk)
-  - Size: 4.26 MB (4,262,756 Bytes)
-  - SHA-256: `D0CFAB944273A3853DE28E457CE5BE94E941053AF8067E521AC38AA1FAF97D0E`
+- **Compiled Artifacts (Android & iOS):**
+  - Local Storage Folder: `D:\Download\`
+  - Android APK: `D:\Download\app-debug.apk` (4.26 MB)
+  - Android AAB: `D:\Download\app-release.aab` (3.12 MB)
+  - iOS IPA Package: `D:\Download\Ludo-3D-Master-Pro-iOS.ipa` (1.35 MB)
+  - iOS App Zip: `D:\Download\Ludo-3D-Master-Pro-iOS-App.zip` (1.36 MB)
+  - Cloud Direct Release: [`https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.1.0`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.1.0)
 
 ---
 
