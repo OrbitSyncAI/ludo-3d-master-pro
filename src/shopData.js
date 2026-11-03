@@ -18,7 +18,10 @@ export const SHOP_CATALOG = {
       previewColor: '#ffffff',
       boardColor: 0x16233b,
       trimColor: 0xffd700,
-      surfaceColor: 0xffffff
+      surfaceColor: 0x1e293b,
+      pathwayColor: 0xf8fafc,
+      innerYardColor: 0xffffff,
+      starColor: 0xffea00
     },
     {
       id: 'wood',
@@ -29,9 +32,12 @@ export const SHOP_CATALOG = {
       priceGems: 0,
       icon: '🌲',
       previewColor: '#8d6e63',
-      boardColor: 0x4e342e,
+      boardColor: 0x3e2723,
       trimColor: 0xffb300,
-      surfaceColor: 0xd7ccc8
+      surfaceColor: 0x271911,
+      pathwayColor: 0xd7ccc8,
+      innerYardColor: 0xefebe9,
+      starColor: 0xffb300
     },
     {
       id: 'candy_kingdom',
@@ -44,7 +50,10 @@ export const SHOP_CATALOG = {
       previewColor: '#ec4899',
       boardColor: 0x831843,
       trimColor: 0xf472b6,
-      surfaceColor: 0xfdf2f8
+      surfaceColor: 0x500724,
+      pathwayColor: 0xfce7f3,
+      innerYardColor: 0xfff1f2,
+      starColor: 0xfbbf24
     },
     {
       id: 'emerald',
@@ -57,7 +66,10 @@ export const SHOP_CATALOG = {
       previewColor: '#10b981',
       boardColor: 0x064e3b,
       trimColor: 0x34d399,
-      surfaceColor: 0xecfdf5
+      surfaceColor: 0x022c22,
+      pathwayColor: 0xd1fae5,
+      innerYardColor: 0xecfdf5,
+      starColor: 0xfacc15
     },
     {
       id: 'ocean_atlantis',
@@ -70,7 +82,10 @@ export const SHOP_CATALOG = {
       previewColor: '#0ea5e9',
       boardColor: 0x0c4a6e,
       trimColor: 0x38bdf8,
-      surfaceColor: 0xf0f9ff
+      surfaceColor: 0x082f49,
+      pathwayColor: 0xe0f2fe,
+      innerYardColor: 0xf0f9ff,
+      starColor: 0xfacc15
     },
     {
       id: 'neon',
@@ -82,8 +97,11 @@ export const SHOP_CATALOG = {
       icon: '⚡',
       previewColor: '#00e5ff',
       boardColor: 0x0f172a,
-      trimColor: 0x06b6d4,
-      surfaceColor: 0x1e293b
+      trimColor: 0x00e5ff,
+      surfaceColor: 0x020617,
+      pathwayColor: 0x1e293b,
+      innerYardColor: 0x0f172a,
+      starColor: 0x00e5ff
     },
     {
       id: 'volcano_lava',
@@ -96,7 +114,10 @@ export const SHOP_CATALOG = {
       previewColor: '#ef4444',
       boardColor: 0x450a0a,
       trimColor: 0xf97316,
-      surfaceColor: 0x1c1917
+      surfaceColor: 0x1c1917,
+      pathwayColor: 0x44403c,
+      innerYardColor: 0x292524,
+      starColor: 0xf97316
     },
     {
       id: 'galaxy_starlight',
@@ -109,7 +130,10 @@ export const SHOP_CATALOG = {
       previewColor: '#a855f7',
       boardColor: 0x2e1065,
       trimColor: 0xc084fc,
-      surfaceColor: 0x0f172a
+      surfaceColor: 0x090514,
+      pathwayColor: 0x3b0764,
+      innerYardColor: 0x1e1035,
+      starColor: 0xe879f9
     },
     {
       id: 'mythic_emperor',
@@ -123,7 +147,10 @@ export const SHOP_CATALOG = {
       previewColor: '#eab308',
       boardColor: 0x422006,
       trimColor: 0xfacc15,
-      surfaceColor: 0xfefce8
+      surfaceColor: 0x241502,
+      pathwayColor: 0xfefce8,
+      innerYardColor: 0xfef08a,
+      starColor: 0xffea00
     }
   ],
 

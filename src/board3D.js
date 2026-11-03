@@ -22,6 +22,8 @@ export class Board3D {
     this.group = new THREE.Group();
     this.tileMeshes = [];
     this.starMeshes = [];
+    this.pathwayMeshes = [];
+    this.innerYardMeshes = [];
     this.init();
   }
 
@@ -39,10 +41,10 @@ export class Board3D {
   buildBase() {
     const boardThickness = 0.65;
     
-    // Main Solid Luxury Frame Plinth (Deep Royal Navy Frame)
+    // Main Solid Luxury Frame Plinth
     const baseGeo = new THREE.BoxGeometry(16.6, boardThickness, 16.6);
     this.baseMat = new THREE.MeshStandardMaterial({
-      color: 0x16233b, // Rich dark navy border frame
+      color: 0x16233b,
       roughness: 0.25,
       metalness: 0.3
     });
@@ -62,10 +64,10 @@ export class Board3D {
     trimMesh.position.y = -boardThickness / 2;
     this.group.add(trimMesh);
 
-    // Dark Slate Grid Surface (Produces sharp dark lines between all pathway tiles!)
+    // Themed Grid Surface
     const surfaceGeo = new THREE.BoxGeometry(15.2, 0.05, 15.2);
     this.surfaceMat = new THREE.MeshStandardMaterial({
-      color: 0x1e293b, // Crisp dark slate grid backing
+      color: 0x1e293b,
       roughness: 0.4,
       metalness: 0.1
     });
@@ -75,15 +77,43 @@ export class Board3D {
     this.group.add(surfaceMesh);
   }
 
-  // Apply Theme dynamically from equipped theme
+  // Apply Theme dynamically from equipped theme - TOTAL 3D TRANSFORMATION
   applyCurrentTheme() {
     const themeId = (economy && economy.data && economy.data.equipped && economy.data.equipped.theme) || 'classic_royal';
-    const theme = SHOP_CATALOG.themes.find(t => t.id === themeId) || SHOP_CATALOG.themes[0];
+    const theme = (SHOP_CATALOG.ludoThemes && SHOP_CATALOG.ludoThemes.find(t => t.id === themeId)) || SHOP_CATALOG.ludoThemes[0];
 
     if (this.baseMat && theme.boardColor !== undefined) this.baseMat.color.setHex(theme.boardColor);
     if (this.trimMat && theme.trimColor !== undefined) this.trimMat.color.setHex(theme.trimColor);
-    // Keep surfaceMat dark grid for razor sharp tile lines
-    if (this.surfaceMat) this.surfaceMat.color.setHex(0x1e293b);
+    if (this.surfaceMat && theme.surfaceColor !== undefined) this.surfaceMat.color.setHex(theme.surfaceColor);
+
+    // Apply custom theme colors to all pathway tiles
+    if (this.pathwayMeshes) {
+      this.pathwayMeshes.forEach(mesh => {
+        if (!mesh.userData.isStart) {
+          const col = mesh.userData.isSafe ? (theme.starColor || 0xffea00) : (theme.pathwayColor || 0xf8fafc);
+          mesh.material.color.setHex(col);
+        }
+      });
+    }
+
+    // Apply custom theme colors to all inner yard pads
+    if (this.innerYardMeshes) {
+      this.innerYardMeshes.forEach(mesh => {
+        if (theme.innerYardColor !== undefined) {
+          mesh.material.color.setHex(theme.innerYardColor);
+        }
+      });
+    }
+
+    // Apply theme to stars
+    if (this.starMeshes) {
+      this.starMeshes.forEach(star => {
+        if (theme.starColor !== undefined) {
+          star.material.color.setHex(theme.starColor);
+          if (star.material.emissive) star.material.emissive.setHex(theme.starColor);
+        }
+      });
+    }
   }
 
   // 4 Player Base Yards
@@ -104,17 +134,18 @@ export class Board3D {
       yardMesh.receiveShadow = true;
       yardGroup.add(yardMesh);
 
-      // Inner Glossy White Pad
+      // Inner Themed Pad
       const innerGeo = new THREE.BoxGeometry(4.5, 0.09, 4.5);
       const innerMat = new THREE.MeshStandardMaterial({
         color: 0xffffff,
-        roughness: 0.15,
+        roughness: 0.2,
         metalness: 0.1
       });
       const innerMesh = new THREE.Mesh(innerGeo, innerMat);
       innerMesh.position.set(worldCenter.x, 0.11, worldCenter.z);
       innerMesh.receiveShadow = true;
       yardGroup.add(innerMesh);
+      this.innerYardMeshes.push(innerMesh);
 
       // 4 Token Pedestals with Golden Rings
       p.yardPositions.forEach((pos) => {
@@ -178,6 +209,7 @@ export class Board3D {
 
       this.group.add(tileMesh);
       this.tileMeshes.push(tileMesh);
+      this.pathwayMeshes.push(tileMesh);
 
       // Star Safe Zone Mesh
       if (isSafe) {
