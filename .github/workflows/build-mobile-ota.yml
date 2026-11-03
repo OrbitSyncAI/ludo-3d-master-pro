@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-android:
     name: 🤖 Compile Android APK & AAB
@@ -24,9 +27,6 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Install Dependencies
         run: npm ci
@@ -48,7 +48,7 @@ jobs:
           cd android
           ./gradlew bundleRelease --stacktrace || true
 
-      - name: Upload Android APK
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ludo-3D-Master-Pro-Android-APK
@@ -60,6 +60,14 @@ jobs:
           name: Ludo-3D-Master-Pro-Android-AAB
           path: android/app/build/outputs/bundle/release/*.aab
         continue-on-error: true
+
+      - name: Attach APK to GitHub Release v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            gh release upload v1.0.0 android/app/build/outputs/apk/debug/app-debug.apk --clobber || true
+          fi
 
   build-ios:
     name: 🍏 Compile iOS App Bundle

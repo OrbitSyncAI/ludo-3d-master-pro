@@ -16,6 +16,7 @@ export const SHOP_CATALOG = {
       priceGems: 0,
       icon: '🏛️',
       previewColor: '#ffffff',
+      sceneBg: 0x10192d,
       boardColor: 0x16233b,
       trimColor: 0xffd700,
       surfaceColor: 0x1e293b,
@@ -32,12 +33,14 @@ export const SHOP_CATALOG = {
       priceGems: 0,
       icon: '🌲',
       previewColor: '#8d6e63',
-      boardColor: 0x3e2723,
-      trimColor: 0xffb300,
-      surfaceColor: 0x271911,
-      pathwayColor: 0xd7ccc8,
-      innerYardColor: 0xefebe9,
-      starColor: 0xffb300
+      sceneBg: 0x22130b,
+      boardColor: 0x4a2c17,
+      trimColor: 0xd4af37,
+      surfaceColor: 0x2e180d,
+      pathwayColor: 0xdfd3c3,
+      innerYardColor: 0xf3ece2,
+      starColor: 0xb8860b,
+      yardColor: 0x543219
     },
     {
       id: 'candy_kingdom',
@@ -48,12 +51,14 @@ export const SHOP_CATALOG = {
       priceGems: 10,
       icon: '🍬',
       previewColor: '#ec4899',
-      boardColor: 0x831843,
+      sceneBg: 0x2b1029,
+      boardColor: 0x9d174d,
       trimColor: 0xf472b6,
       surfaceColor: 0x500724,
-      pathwayColor: 0xfce7f3,
-      innerYardColor: 0xfff1f2,
-      starColor: 0xfbbf24
+      pathwayColor: 0xfdf2f8,
+      innerYardColor: 0xffe4e6,
+      starColor: 0xfbbf24,
+      yardColor: 0x831843
     },
     {
       id: 'emerald',
@@ -64,12 +69,14 @@ export const SHOP_CATALOG = {
       priceGems: 35,
       icon: '💎',
       previewColor: '#10b981',
+      sceneBg: 0x031c12,
       boardColor: 0x064e3b,
-      trimColor: 0x34d399,
+      trimColor: 0x10b981,
       surfaceColor: 0x022c22,
       pathwayColor: 0xd1fae5,
       innerYardColor: 0xecfdf5,
-      starColor: 0xfacc15
+      starColor: 0x34d399,
+      yardColor: 0x065f46
     },
     {
       id: 'ocean_atlantis',
@@ -80,12 +87,14 @@ export const SHOP_CATALOG = {
       priceGems: 45,
       icon: '🌊',
       previewColor: '#0ea5e9',
+      sceneBg: 0x071e33,
       boardColor: 0x0c4a6e,
       trimColor: 0x38bdf8,
       surfaceColor: 0x082f49,
       pathwayColor: 0xe0f2fe,
       innerYardColor: 0xf0f9ff,
-      starColor: 0xfacc15
+      starColor: 0x38bdf8,
+      yardColor: 0x075985
     },
     {
       id: 'neon',
@@ -96,12 +105,14 @@ export const SHOP_CATALOG = {
       priceGems: 60,
       icon: '⚡',
       previewColor: '#00e5ff',
+      sceneBg: 0x05070e,
       boardColor: 0x0f172a,
-      trimColor: 0x00e5ff,
+      trimColor: 0x00f0ff,
       surfaceColor: 0x020617,
       pathwayColor: 0x1e293b,
       innerYardColor: 0x0f172a,
-      starColor: 0x00e5ff
+      starColor: 0x00f0ff,
+      yardColor: 0x111827
     },
     {
       id: 'volcano_lava',
@@ -112,12 +123,14 @@ export const SHOP_CATALOG = {
       priceGems: 80,
       icon: '🌋',
       previewColor: '#ef4444',
+      sceneBg: 0x1c0707,
       boardColor: 0x450a0a,
       trimColor: 0xf97316,
       surfaceColor: 0x1c1917,
-      pathwayColor: 0x44403c,
-      innerYardColor: 0x292524,
-      starColor: 0xf97316
+      pathwayColor: 0x292524,
+      innerYardColor: 0x1c1917,
+      starColor: 0xff5722,
+      yardColor: 0x3f1010
     },
     {
       id: 'galaxy_starlight',
@@ -128,12 +141,14 @@ export const SHOP_CATALOG = {
       priceGems: 120,
       icon: '🌌',
       previewColor: '#a855f7',
+      sceneBg: 0x0d051a,
       boardColor: 0x2e1065,
       trimColor: 0xc084fc,
       surfaceColor: 0x090514,
       pathwayColor: 0x3b0764,
       innerYardColor: 0x1e1035,
-      starColor: 0xe879f9
+      starColor: 0xf472b6,
+      yardColor: 0x3b126e
     },
     {
       id: 'mythic_emperor',
@@ -145,12 +160,14 @@ export const SHOP_CATALOG = {
       isUltraRare: true,
       icon: '👑',
       previewColor: '#eab308',
-      boardColor: 0x422006,
+      sceneBg: 0x1a0f02,
+      boardColor: 0x713f12,
       trimColor: 0xfacc15,
-      surfaceColor: 0x241502,
+      surfaceColor: 0x422006,
       pathwayColor: 0xfefce8,
       innerYardColor: 0xfef08a,
-      starColor: 0xffea00
+      starColor: 0xffea00,
+      yardColor: 0x582c07
     }
   ],
 
@@ -165,6 +182,7 @@ export const SHOP_CATALOG = {
       priceGems: 0,
       icon: '🐍',
       previewColor: '#22c55e',
+      sceneBg: 0x10192d,
       boardColor: 0x16233b,
       trimColor: 0xffd700
     },
@@ -177,6 +195,7 @@ export const SHOP_CATALOG = {
       priceGems: 0,
       icon: '🌴',
       previewColor: '#16a34a',
+      sceneBg: 0x052e16,
       boardColor: 0x14532d,
       trimColor: 0x4ade80
     },
@@ -189,6 +208,7 @@ export const SHOP_CATALOG = {
       priceGems: 15,
       icon: '🍭',
       previewColor: '#f43f5e',
+      sceneBg: 0x2b1029,
       boardColor: 0x881337,
       trimColor: 0xfb7185
     },
@@ -201,6 +221,7 @@ export const SHOP_CATALOG = {
       priceGems: 30,
       icon: '🏜️',
       previewColor: '#f97316',
+      sceneBg: 0x261205,
       boardColor: 0x7c2d12,
       trimColor: 0xfb923c
     },
@@ -213,6 +234,7 @@ export const SHOP_CATALOG = {
       priceGems: 45,
       icon: '🐬',
       previewColor: '#06b6d4',
+      sceneBg: 0x071e33,
       boardColor: 0x164e63,
       trimColor: 0x22d3ee
     },
@@ -225,6 +247,7 @@ export const SHOP_CATALOG = {
       priceGems: 65,
       icon: '⚡',
       previewColor: '#8b5cf6',
+      sceneBg: 0x05070e,
       boardColor: 0x1e1b4b,
       trimColor: 0xa78bfa
     },
@@ -237,6 +260,7 @@ export const SHOP_CATALOG = {
       priceGems: 90,
       icon: '🌋',
       previewColor: '#dc2626',
+      sceneBg: 0x1c0707,
       boardColor: 0x450a0a,
       trimColor: 0xf87171
     },
@@ -249,6 +273,7 @@ export const SHOP_CATALOG = {
       priceGems: 130,
       icon: '🌌',
       previewColor: '#d946ef',
+      sceneBg: 0x0d051a,
       boardColor: 0x3b0764,
       trimColor: 0xe879f9
     },
@@ -261,6 +286,7 @@ export const SHOP_CATALOG = {
       priceGems: 200,
       icon: '🐉',
       previewColor: '#eab308',
+      sceneBg: 0x1a0f02,
       boardColor: 0x713f12,
       trimColor: 0xfacc15
     }

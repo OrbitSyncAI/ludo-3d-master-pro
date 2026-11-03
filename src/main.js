@@ -115,8 +115,20 @@ class LudoApp {
     this.homeUI = new HomeUIManager({
       onStartGame: (config) => this.startMatch(config),
       onEquip: (type, id) => {
-        if (this.board3D && type === 'themes') {
-          this.board3D.applyCurrentTheme();
+        if (type === 'themes' || type === 'ludoThemes') {
+          const theme = SHOP_CATALOG.ludoThemes?.find(t => t.id === id);
+          if (this.scene && theme && theme.sceneBg) {
+            this.scene.background = new THREE.Color(theme.sceneBg);
+          }
+          if (this.board3D) {
+            this.board3D.applyCurrentTheme();
+          }
+        }
+        if (type === 'snakesThemes') {
+          const theme = SHOP_CATALOG.snakesThemes?.find(t => t.id === id);
+          if (this.scene && theme && theme.sceneBg) {
+            this.scene.background = new THREE.Color(theme.sceneBg);
+          }
         }
         if (this.dice3D && type === 'dice') {
           this.dice3D.applySkin();
@@ -170,6 +182,11 @@ class LudoApp {
   // Start Ludo (Classic or Quick)
   startLudoMatch(config) {
     this.currentConfig = config;
+    const curThemeId = economy.data.equipped?.theme || 'classic_royal';
+    const themeObj = SHOP_CATALOG.ludoThemes?.find(t => t.id === curThemeId);
+    if (this.scene && themeObj && themeObj.sceneBg) {
+      this.scene.background = new THREE.Color(themeObj.sceneBg);
+    }
     this.board3D = new Board3D(this.scene);
     this.engine = new GameEngine(config);
 
@@ -194,7 +211,12 @@ class LudoApp {
   // Start Snakes & Ladders
   startSnakesMatch(config) {
     this.currentConfig = config;
-    this.snakesBoard3D = new SnakesBoard3D(this.scene, economy.data.equipped?.snakesTheme);
+    const snakesThemeId = economy.data.equipped?.snakesTheme || 'snakes_classic';
+    const snakesThemeObj = SHOP_CATALOG.snakesThemes?.find(t => t.id === snakesThemeId);
+    if (this.scene && snakesThemeObj && snakesThemeObj.sceneBg) {
+      this.scene.background = new THREE.Color(snakesThemeObj.sceneBg);
+    }
+    this.snakesBoard3D = new SnakesBoard3D(this.scene, snakesThemeId);
     this.snakesEngine = new SnakesEngine(config);
     this.snakesBoard3D.createPawns(this.snakesEngine.players);
 

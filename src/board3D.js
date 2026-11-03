@@ -24,6 +24,7 @@ export class Board3D {
     this.starMeshes = [];
     this.pathwayMeshes = [];
     this.innerYardMeshes = [];
+    this.yardMeshes = [];
     this.init();
   }
 
@@ -82,6 +83,11 @@ export class Board3D {
     const themeId = (economy && economy.data && economy.data.equipped && economy.data.equipped.theme) || 'classic_royal';
     const theme = (SHOP_CATALOG.ludoThemes && SHOP_CATALOG.ludoThemes.find(t => t.id === themeId)) || SHOP_CATALOG.ludoThemes[0];
 
+    // Atmospheric Scene 3D Background transformation
+    if (this.scene && theme.sceneBg !== undefined) {
+      this.scene.background = new THREE.Color(theme.sceneBg);
+    }
+
     if (this.baseMat && theme.boardColor !== undefined) this.baseMat.color.setHex(theme.boardColor);
     if (this.trimMat && theme.trimColor !== undefined) this.trimMat.color.setHex(theme.trimColor);
     if (this.surfaceMat && theme.surfaceColor !== undefined) this.surfaceMat.color.setHex(theme.surfaceColor);
@@ -92,6 +98,9 @@ export class Board3D {
         if (!mesh.userData.isStart) {
           const col = mesh.userData.isSafe ? (theme.starColor || 0xffea00) : (theme.pathwayColor || 0xf8fafc);
           mesh.material.color.setHex(col);
+          if (mesh.material.roughness !== undefined) {
+            mesh.material.roughness = themeId === 'neon' ? 0.08 : (themeId === 'wood' ? 0.35 : 0.2);
+          }
         }
       });
     }
@@ -114,6 +123,17 @@ export class Board3D {
         }
       });
     }
+
+    // Update outer yard plinths if theme has custom yardColor
+    if (this.yardMeshes) {
+      this.yardMeshes.forEach(mesh => {
+        if (theme.yardColor !== undefined) {
+          mesh.material.color.setHex(theme.yardColor);
+        } else if (mesh.userData && mesh.userData.defaultColor) {
+          mesh.material.color.setHex(mesh.userData.defaultColor);
+        }
+      });
+    }
   }
 
   // 4 Player Base Yards
@@ -132,7 +152,9 @@ export class Board3D {
       const yardMesh = new THREE.Mesh(yardGeo, yardMat);
       yardMesh.position.set(worldCenter.x, 0.06, worldCenter.z);
       yardMesh.receiveShadow = true;
+      yardMesh.userData = { player: p, defaultColor: p.hexColor };
       yardGroup.add(yardMesh);
+      this.yardMeshes.push(yardMesh);
 
       // Inner Themed Pad
       const innerGeo = new THREE.BoxGeometry(4.5, 0.09, 4.5);
