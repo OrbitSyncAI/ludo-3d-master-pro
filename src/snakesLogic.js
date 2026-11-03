@@ -52,9 +52,9 @@ export class SnakesEngine {
 
     this.players = [
       { id: 0, name: "Player 1", isAI: false, colorHex: 0xff1744, text: "#ff1744" },
-      { id: 1, name: "Cyber Green", isAI: this.isAI, colorHex: 0x00e676, text: "#00e676" },
-      { id: 2, name: "Neon Yellow", isAI: this.isAI, colorHex: 0xffc400, text: "#ffc400" },
-      { id: 3, name: "Alpha Blue", isAI: this.isAI, colorHex: 0x00b0ff, text: "#00b0ff" }
+      { id: 1, name: this.isAI ? "Cyber Green" : "Player 2", isAI: this.isAI, colorHex: 0x00e676, text: "#00e676" },
+      { id: 2, name: this.isAI ? "Neon Yellow" : "Player 3", isAI: this.isAI, colorHex: 0xffc400, text: "#ffc400" },
+      { id: 3, name: this.isAI ? "Alpha Blue" : "Player 4", isAI: this.isAI, colorHex: 0x00b0ff, text: "#00b0ff" }
     ].slice(0, this.playerCount);
 
     this.activePlayerIndex = 0;

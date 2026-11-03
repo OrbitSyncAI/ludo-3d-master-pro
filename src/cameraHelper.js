@@ -9,15 +9,15 @@ export function calculateLudoKingCamera(width, height) {
   
   // Board width is 16.5 units. Total target width with clean 3% mobile margins = 17.2 units
   const targetWorldWidth = 17.2;
-  const fovVerticalRad = (40 * Math.PI) / 180;
+  const fovVerticalRad = (38 * Math.PI) / 180;
   const tanHalfFov = Math.tan(fovVerticalRad / 2);
 
   // In top-down view, horizontal visible width = 2 * distance * tanHalfFov * aspect
-  // distance = targetWorldWidth / (2 * tanHalfFov * aspect)
   const requiredDist = (targetWorldWidth / 2) / (tanHalfFov * Math.min(aspect, 0.72));
 
   return {
-    position: { x: 0, y: Math.max(26, requiredDist), z: 0.001 },
-    lookAt: { x: 0, y: 0, z: 0 }
+    position: { x: 0, y: Math.max(26, requiredDist), z: 0.0001 },
+    lookAt: { x: 0, y: 0, z: 0 },
+    up: { x: 0, y: 0, z: -1 }
   };
 }

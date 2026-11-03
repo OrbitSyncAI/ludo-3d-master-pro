@@ -18,6 +18,7 @@ export class GameEngine {
     // Mode: 'classic' (all 4 tokens home) or 'quick' (1st token home)
     this.mode = config.mode || 'classic';
     this.playerCount = config.playerCount || 4; // 2, 3, or 4
+    this.isAI = config.isAI !== false;
     
     // Players setup: [{ id, name, isAI, difficulty: 'medium' }]
     this.players = this.initPlayers(config.players);
@@ -45,12 +46,12 @@ export class GameEngine {
     if (customPlayers && customPlayers.length > 0) {
       return customPlayers;
     }
-    // Default setup: 1 Human, 3 AI Bots
+    const isBot = this.isAI;
     return [
       { id: 0, name: "Player 1", isAI: false, color: PLAYERS_CONFIG[0] },
-      { id: 1, name: "Cyber Green", isAI: true, color: PLAYERS_CONFIG[1] },
-      { id: 2, name: "Neon Yellow", isAI: true, color: PLAYERS_CONFIG[2] },
-      { id: 3, name: "Alpha Blue", isAI: true, color: PLAYERS_CONFIG[3] }
+      { id: 1, name: isBot ? "Cyber Green" : "Player 2", isAI: isBot, color: PLAYERS_CONFIG[1] },
+      { id: 2, name: isBot ? "Neon Yellow" : "Player 3", isAI: isBot, color: PLAYERS_CONFIG[2] },
+      { id: 3, name: isBot ? "Alpha Blue" : "Player 4", isAI: isBot, color: PLAYERS_CONFIG[3] }
     ].slice(0, this.playerCount);
   }
 

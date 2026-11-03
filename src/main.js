@@ -18,6 +18,7 @@ import { sounds } from './audio.js';
 import { SAFE_TILE_INDICES } from './boardData.js';
 import { calculateLudoKingCamera } from './cameraHelper.js';
 import { economy } from './economyState.js';
+import { SHOP_CATALOG } from './shopData.js';
 
 class LudoApp {
   constructor() {
@@ -72,6 +73,7 @@ class LudoApp {
   updateFixedCamera(width, height) {
     const camConfig = calculateLudoKingCamera(width, height);
     this.camera.position.set(camConfig.position.x, camConfig.position.y, camConfig.position.z);
+    this.camera.up.set(0, 0, -1);
     this.camera.lookAt(camConfig.lookAt.x, camConfig.lookAt.y, camConfig.lookAt.z);
   }
 
@@ -231,7 +233,7 @@ class LudoApp {
       const cfg = { ...this.currentConfig };
       const levelNum = this.currentLevelNum;
       const snakesLevelNum = this.currentSnakesLevelNum;
-      this.cleanupCurrentGame();
+      this.cleanupBoards();
       this.currentLevelNum = levelNum;
       this.currentSnakesLevelNum = snakesLevelNum;
       if (cfg.mode === 'snakes') {
@@ -312,8 +314,9 @@ class LudoApp {
       return;
     }
 
+    if (!this.engine) return;
     const curPlayer = this.engine.getCurrentPlayer();
-    if (curPlayer.isAI || this.isProcessingTurn || this.engine.state !== GAME_STATES.WAITING_FOR_ROLL) return;
+    if (!curPlayer || curPlayer.isAI || this.isProcessingTurn || this.engine.state !== GAME_STATES.WAITING_FOR_ROLL) return;
 
     this.executeLudoRoll();
   }
