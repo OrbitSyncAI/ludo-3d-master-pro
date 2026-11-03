@@ -61,18 +61,8 @@ jobs:
           path: android/app/build/outputs/bundle/release/*.aab
         continue-on-error: true
 
-      - name: Create or Update GitHub Release v1.1.0 with APK
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
-            gh release create v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk \
-              --title "Ludo 3D Master Pro - Release v1.1.0 (Commercial Android & iOS)" \
-              --notes "Production commercial release featuring 3D Ludo & Snakes with 300 levels, single-currency royal store, casino lucky wheel with live seconds, and offline progress backup. Developer: Sohel | Raebareli, UP - 229001" || gh release upload v1.1.0 android/app/build/outputs/apk/debug/app-debug.apk --clobber
-          fi
-
   build-ios:
-    name: 🍏 Compile iOS App Bundle
+    name: 🍏 Compile iOS App Bundle & IPA
     runs-on: macos-14
     steps:
       - name: Checkout Code
@@ -93,13 +83,75 @@ jobs:
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      - name: Build iOS Archive (Simulator / Ad-Hoc)
+      - name: Build iOS App & Package IPA
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphonesimulator -configuration Release CODE_SIGNING_ALLOWED=NO build || true
+          pod install || true
+          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphonesimulator -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          APP_DIR=$(find build/Build/Products -name "*.app" -type d | head -n 1)
+          echo "Found compiled iOS app at: $APP_DIR"
+          mkdir -p ipa_payload/Payload
+          cp -R "$APP_DIR" ipa_payload/Payload/
+          cd ipa_payload
+          zip -r ../Ludo-3D-Master-Pro-iOS.ipa Payload
+          cd ..
+          zip -r Ludo-3D-Master-Pro-iOS-App.zip "$APP_DIR"
+          ls -lh Ludo-3D-Master-Pro-iOS*
 
-      - name: Upload iOS Xcode Project
+      - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Ludo-3D-Master-Pro-iOS-Project
-          path: ios/App/
+          name: Ludo-3D-Master-Pro-iOS-IPA
+          path: ios/App/Ludo-3D-Master-Pro-iOS.ipa
+
+      - name: Upload iOS App Zip Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ludo-3D-Master-Pro-iOS-App
+          path: ios/App/Ludo-3D-Master-Pro-iOS-App.zip
+
+  publish-release:
+    name: 🚀 Publish GitHub Release with APK & iOS
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: Ludo-3D-Master-Pro-Android-APK
+          path: release_assets
+
+      - name: Download Android AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: Ludo-3D-Master-Pro-Android-AAB
+          path: release_assets
+        continue-on-error: true
+
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: Ludo-3D-Master-Pro-iOS-IPA
+          path: release_assets
+
+      - name: Download iOS App Zip
+        uses: actions/download-artifact@v4
+        with:
+          name: Ludo-3D-Master-Pro-iOS-App
+          path: release_assets
+
+      - name: Create or Update GitHub Release v1.1.0 with APK and iOS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Listing release assets:"
+          ls -lh release_assets/
+          gh release delete v1.1.0 --yes || true
+          gh release create v1.1.0 release_assets/* \
+            --title "Ludo 3D Master Pro - Release v1.1.0 (Android APK & iOS Bundle)" \
+            --notes "Official Commercial Release v1.1.0 featuring 3D Ludo & Snakes with 300 levels, single-currency royal store, casino lucky wheel with live seconds, offline progress backup, and silent background updater. Includes compiled Android APK and iOS packages. Developer: Sohel | Raebareli, UP - 229001"
