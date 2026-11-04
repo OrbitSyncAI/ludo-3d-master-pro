@@ -50,7 +50,7 @@ export class UIManager {
     this.rollController.className = 'roll-controller hidden';
     this.rollController.innerHTML = `
       <div class="turn-prompt-pill" id="turn-prompt">
-        <span id="turn-prompt-text">Welcome to Ludo 3D!</span>
+        <span id="turn-prompt-text">Welcome to Ludo 3D</span>
       </div>
 
       <div class="roll-btn-wrapper">
@@ -224,7 +224,7 @@ export class UIManager {
         }
       }
       if (rollMain) {
-        rollMain.textContent = rollValue ? `ROLLED ${rollValue}!` : 'ROLL DICE';
+        rollMain.textContent = rollValue ? `ROLLED ${rollValue}` : 'ROLL DICE';
       }
     }
   }
@@ -280,7 +280,7 @@ export class UIManager {
 
     const text = document.getElementById('turn-prompt-text');
     if (text) {
-      text.textContent = `${playerName}'s turn - Tap to Roll!`;
+      text.textContent = `${playerName}'s turn - Tap to Roll`;
     }
   }
 

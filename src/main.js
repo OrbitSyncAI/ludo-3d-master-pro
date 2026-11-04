@@ -275,13 +275,11 @@ class LudoApp {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
 
-    const handleTap = (event) => {
-      if (event.target.closest('.hud-btn, .roll-btn, .modal-card, .player-card, .desktop-only-btn, .home-screen-container')) return;
-
+    const getIntersectedDiceOrToken = (event) => {
       const rect = this.container.getBoundingClientRect();
-      const clientX = event.clientX || (event.changedTouches && event.changedTouches[0].clientX);
-      const clientY = event.clientY || (event.changedTouches && event.changedTouches[0].clientY);
-      if (clientX === undefined || clientY === undefined) return;
+      const clientX = event.clientX || (event.changedTouches && event.changedTouches[0]?.clientX);
+      const clientY = event.clientY || (event.changedTouches && event.changedTouches[0]?.clientY);
+      if (clientX === undefined || clientY === undefined) return null;
 
       this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -292,21 +290,46 @@ class LudoApp {
       for (let hit of intersects) {
         let cur = hit.object;
         while (cur && cur !== this.scene) {
-          if (cur.userData && cur.userData.isDice) {
-            this.handleRollClick();
-            return;
-          }
-          if (cur.userData && cur.userData.isToken) {
-            this.handleTokenClick(cur.userData.playerId, cur.userData.tokenIndex);
-            return;
-          }
+          if (cur.userData && cur.userData.isDice) return { type: 'dice' };
+          if (cur.userData && cur.userData.isToken) return { type: 'token', playerId: cur.userData.playerId, tokenIndex: cur.userData.tokenIndex };
           cur = cur.parent;
+        }
+      }
+      return null;
+    };
+
+    const handlePointerDown = (event) => {
+      if (event.target.closest('.hud-btn, .modal-card, .player-card, .desktop-only-btn, .home-screen-container')) return;
+      if (event.target.closest('.roll-btn')) {
+        if (this.dice3D) this.dice3D.onPointerPress();
+        return;
+      }
+      const hit = getIntersectedDiceOrToken(event);
+      if (hit && hit.type === 'dice') {
+        if (this.dice3D) this.dice3D.onPointerPress();
+      }
+    };
+
+    const handleTap = (event) => {
+      if (this.dice3D) this.dice3D.onPointerRelease();
+      if (event.target.closest('.hud-btn, .roll-btn, .modal-card, .player-card, .desktop-only-btn, .home-screen-container')) return;
+
+      const hit = getIntersectedDiceOrToken(event);
+      if (hit) {
+        if (hit.type === 'dice') {
+          this.handleRollClick();
+        } else if (hit.type === 'token') {
+          this.handleTokenClick(hit.playerId, hit.tokenIndex);
         }
       }
     };
 
     const screen = document.getElementById('game-screen');
+    screen.addEventListener('pointerdown', handlePointerDown);
     screen.addEventListener('pointerup', handleTap);
+    screen.addEventListener('pointercancel', () => {
+      if (this.dice3D) this.dice3D.onPointerRelease();
+    });
   }
 
   // 6. Turn Controller (Ludo)
@@ -321,7 +344,7 @@ class LudoApp {
       this.scheduleLudoAITurn();
     } else {
       this.inGameUI.setRollButtonEnabled(true);
-      this.inGameUI.updateStatus(`${curPlayer.name}'s turn - Tap to Roll!`);
+      this.inGameUI.updateStatus(`${curPlayer.name}'s turn - Tap to Roll`);
     }
   }
 
@@ -351,7 +374,7 @@ class LudoApp {
     const result = this.engine.onDiceRolled(rollValue);
 
     if (result.action === 'FORFEIT_THREE_SIXES') {
-      this.inGameUI.updateStatus(`3 Sixes in a row! Turn forfeited!`, true);
+      this.inGameUI.updateStatus(`3 Sixes in a row - Turn forfeited`, true);
       await this.sleep(300);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
@@ -360,7 +383,7 @@ class LudoApp {
     }
 
     if (result.action === 'NO_MOVES') {
-      this.inGameUI.updateStatus(`Rolled ${rollValue} - No valid moves!`);
+      this.inGameUI.updateStatus(`Rolled ${rollValue} - No valid moves`);
       await this.sleep(250);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
@@ -377,7 +400,7 @@ class LudoApp {
         await this.sleep(120);
         await this.executeLudoMove(this.validMoves[0]);
       } else {
-        this.inGameUI.updateStatus(`Rolled ${rollValue} - Tap a glowing token!`);
+        this.inGameUI.updateStatus(`Rolled ${rollValue} - Tap a glowing token`);
         this.highlightMovableTokens(curPlayer.id, this.validMoves);
         this.isProcessingTurn = false;
       }
@@ -469,7 +492,7 @@ class LudoApp {
     }
 
     if (result.action === 'NO_MOVES') {
-      this.inGameUI.updateStatus(`${this.engine.getCurrentPlayer().name} rolled ${rollValue} - No moves!`);
+      this.inGameUI.updateStatus(`${this.engine.getCurrentPlayer().name} rolled ${rollValue} - No moves`);
       await this.sleep(220);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
@@ -495,7 +518,7 @@ class LudoApp {
       this.handleSnakesRoll();
     } else {
       this.inGameUI.setRollButtonEnabled(true);
-      this.inGameUI.updateStatus(`${curP.name}'s turn - Tap to Roll!`);
+      this.inGameUI.updateStatus(`${curP.name}'s turn - Tap to Roll`);
     }
   }
 
@@ -514,8 +537,12 @@ class LudoApp {
     const result = this.snakesEngine.processRoll(rollValue);
 
     if (result.action === 'NO_MOVE') {
-      this.inGameUI.updateStatus(`Rolled ${rollValue} - Need exact roll to reach 100!`);
-      await this.sleep(250);
+      if (result.bonusTurn) {
+        this.inGameUI.updateStatus(`Rolled 6 - Need exact roll to reach 100. Bonus roll`);
+      } else {
+        this.inGameUI.updateStatus(`Rolled ${rollValue} - Need exact roll to reach 100`);
+      }
+      await this.sleep(900);
       this.isProcessingTurn = false;
       this.updateSnakesTurnUI();
       return;
@@ -527,12 +554,12 @@ class LudoApp {
     // Step 2: Now the pawn is standing on landedPos - trigger Ladder or Snake if hit!
     if (result.climbedLadder) {
       sounds.playSafeZone();
-      this.inGameUI.updateStatus(`🪜 WOW! ${curP.name} hit Ladder at ${result.landedPos}! Climbing to ${result.finalPos}!`, true);
+      this.inGameUI.updateStatus(`🪜 Ladder climb: ${curP.name} climbed to tile ${result.finalPos}`, true);
       await this.sleep(150);
       await this.snakesBoard3D.animateLadderClimb(curPIdx, result.landedPos, result.finalPos);
     } else if (result.bittenBySnake) {
       sounds.playTokenCapture();
-      this.inGameUI.updateStatus(`🐍 OH NO! ${curP.name} bitten by Snake at ${result.landedPos}! Slid down to ${result.finalPos}!`, true);
+      this.inGameUI.updateStatus(`🐍 Snake bite: ${curP.name} slid down to tile ${result.finalPos}`, true);
       await this.sleep(150);
       await this.snakesBoard3D.animateSnakeSlide(curPIdx, result.landedPos, result.finalPos);
     }
@@ -543,7 +570,7 @@ class LudoApp {
     }
 
     if (result.bonusTurn) {
-      this.inGameUI.updateStatus(`🎉 Rolled 6! ${curP.name} gets a BONUS ROLL!`, true);
+      this.inGameUI.updateStatus(`🎲 Rolled 6 - ${curP.name} gets a bonus roll`, true);
       await this.sleep(200);
     }
 

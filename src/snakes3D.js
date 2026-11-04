@@ -151,23 +151,29 @@ export class SnakesBoard3D {
     pawn.position.set(endCoord.x + offset, 0.1, endCoord.z);
   }
 
-  hopSingleTile(pawn, start, end, offset = 0, duration = 95) {
+  hopSingleTile(pawn, start, end, offset = 0, duration = 165) {
     return new Promise((resolve) => {
       const startTime = performance.now();
-      const hopHeight = 0.55;
+      const hopHeight = 0.58;
 
       const step = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1.0);
+        const arc = Math.sin(progress * Math.PI);
 
         pawn.position.x = start.x + (end.x - start.x) * progress + offset;
         pawn.position.z = start.z + (end.z - start.z) * progress;
-        pawn.position.y = 0.1 + Math.sin(progress * Math.PI) * hopHeight;
+        pawn.position.y = 0.1 + arc * hopHeight;
+
+        const scaleY = 1.0 + arc * 0.12;
+        const scaleXZ = 1.0 - arc * 0.06;
+        pawn.scale.set(scaleXZ, scaleY, scaleXZ);
 
         if (progress < 1.0) {
           requestAnimationFrame(step);
         } else {
           pawn.position.set(end.x + offset, 0.1, end.z);
+          pawn.scale.set(1.0, 1.0, 1.0);
           resolve();
         }
       };
@@ -175,8 +181,8 @@ export class SnakesBoard3D {
     });
   }
 
-  // 2. Smooth Climb Up Along the Ladder (Snappy 340ms)
-  animateLadderClimb(playerIndex, startTile, targetTile, duration = 340) {
+  // 2. Smooth Climb Up Along the Ladder (Authentic 650ms)
+  animateLadderClimb(playerIndex, startTile, targetTile, duration = 650) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return Promise.resolve();
 
@@ -206,8 +212,8 @@ export class SnakesBoard3D {
     });
   }
 
-  // 3. Smooth Slide Down Along the Snake Body (Snappy 350ms)
-  animateSnakeSlide(playerIndex, startTile, targetTile, duration = 350) {
+  // 3. Smooth Slide Down Along the Snake Body (Authentic 680ms)
+  animateSnakeSlide(playerIndex, startTile, targetTile, duration = 680) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return Promise.resolve();
 

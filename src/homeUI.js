@@ -998,21 +998,194 @@ export class HomeUIManager {
     });
   }
 
-  // Backup Export: Download JSON
+  // Backup Export: Dedicated Download & Share Modal for Mobile & Desktop
   exportBackup() {
+    this.openExportModal();
+  }
+
+  openExportModal() {
     sounds.playButtonClick();
     const jsonStr = economy.exportBackupJSON();
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ludo_3d_master_pro_backup_${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    let previewData = {};
+    try { previewData = JSON.parse(jsonStr); } catch (e) {}
 
-    this.showGenericNotice('BACKUP EXPORTED', 'Your game progress has been safely saved to your device as a JSON file.');
+    const name = previewData.player?.name || economy.data.playerName || 'Player';
+    const coins = previewData.wallet?.coins !== undefined ? previewData.wallet.coins : economy.data.coins;
+    const gems = previewData.wallet?.gems !== undefined ? previewData.wallet.gems : economy.data.gems;
+    const lvl = previewData.player?.level || economy.data.level || 1;
+    const ludoCount = Object.keys(previewData.sagaProgress?.completedLevels || economy.data.completedLevels || {}).length;
+    const snakesCount = Object.keys(previewData.sagaProgress?.completedSnakesStages || economy.data.completedSnakesStages || {}).length;
+    const themesCount = (previewData.inventory?.themes || economy.data.inventory?.themes || []).length;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-card backup-restore-card">
+        <div class="backup-modal-header">
+          <div class="backup-header-title">
+            <span class="backup-header-icon">💾</span>
+            <div>
+              <h3>EXPORT GAME PROGRESS</h3>
+              <p>Safely download or share your coins, levels & themes</p>
+            </div>
+          </div>
+          <button class="modal-close-icon" id="btn-close-export">✕</button>
+        </div>
+
+        <div class="backup-modal-body">
+          <div class="backup-preview-badge" style="background: #f0fdf4; border-color: #22c55e; color: #15803d;">
+            <span class="preview-badge-title">✨ CURRENT SAFEGUARDED PROGRESS:</span>
+            <div class="preview-badge-details">
+              <strong>${name}</strong> (LVL ${lvl}) • 🪙 ${coins.toLocaleString()} Coins • 💎 ${gems.toLocaleString()} Diamonds • 🏆 ${ludoCount} Levels • 🐍 ${snakesCount} Stages • 🎨 ${themesCount} Themes
+            </div>
+          </div>
+
+          <!-- Download Button -->
+          <button class="btn-backup-action btn-gold-download" id="btn-trigger-download">
+            <span class="action-icon">📥</span>
+            <div class="action-text">
+              <strong>DOWNLOAD BACKUP FILE (.json)</strong>
+              <small>Direct file download to your device storage</small>
+            </div>
+          </button>
+
+          <!-- Native Share / Save to Drive / WhatsApp -->
+          <button class="btn-backup-action btn-blue-share" id="btn-trigger-share">
+            <span class="action-icon">📤</span>
+            <div class="action-text">
+              <strong>SAVE TO FILES / SHARE VIA APPS</strong>
+              <small>Save to Files, Google Drive, WhatsApp or Notes</small>
+            </div>
+          </button>
+
+          <!-- 1-Tap Copy Button -->
+          <button class="btn-backup-action btn-purple-copy" id="btn-trigger-copy">
+            <span class="action-icon">📋</span>
+            <div class="action-text">
+              <strong>COPY BACKUP CODE (1-TAP)</strong>
+              <small>Copy raw text to clipboard to save anywhere</small>
+            </div>
+          </button>
+
+          <div id="export-status-alert" class="backup-live-alert hidden"></div>
+
+          <div class="backup-divider"><span>OR VIEW RAW BACKUP TEXT</span></div>
+          <textarea id="export-text-view" class="backup-textarea" readonly>${jsonStr}</textarea>
+        </div>
+
+        <div class="backup-modal-actions" style="justify-content: flex-end;">
+          <button class="btn-setup-cancel" id="btn-done-export">DONE / CLOSE</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('game-screen').appendChild(modal);
+
+    const close = () => modal.remove();
+    modal.querySelector('#btn-close-export').addEventListener('click', close);
+    modal.querySelector('#btn-done-export').addEventListener('click', close);
+
+    const alertBox = modal.querySelector('#export-status-alert');
+    const showAlert = (msg, isSuccess = true) => {
+      alertBox.textContent = msg;
+      alertBox.className = `backup-live-alert ${isSuccess ? '' : 'alert-error'}`;
+      alertBox.classList.remove('hidden');
+    };
+
+    const filename = `ludo_3d_master_pro_backup_${Date.now()}.json`;
+
+    // 1. Download action
+    modal.querySelector('#btn-trigger-download').addEventListener('click', () => {
+      sounds.playButtonClick();
+      try {
+        const encodedData = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonStr);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = encodedData;
+        a.download = filename;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+
+        // Also trigger blob fallback for mobile webviews
+        setTimeout(() => {
+          try {
+            const a2 = document.createElement('a');
+            a2.href = blobUrl;
+            a2.download = filename;
+            document.body.appendChild(a2);
+            a2.click();
+            setTimeout(() => a2.remove(), 2000);
+          } catch (e) {}
+        }, 150);
+
+        setTimeout(() => {
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
+        }, 1000);
+
+        showAlert(`✅ Download started! File "${filename}" saved.`);
+      } catch (e) {
+        showAlert('⚠️ Direct download blocked. Please use Copy or Share buttons below.', false);
+      }
+    });
+
+    // 2. Share action
+    modal.querySelector('#btn-trigger-share').addEventListener('click', async () => {
+      sounds.playButtonClick();
+      try {
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const file = new File([blob], filename, { type: 'application/json' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Ludo 3D Master Pro Backup',
+            text: `Backup for ${name} (Coins: ${coins})`
+          });
+          showAlert('✅ Backup shared successfully!');
+          return;
+        }
+
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Ludo 3D Master Pro Backup',
+            text: jsonStr
+          });
+          showAlert('✅ Backup text shared successfully!');
+          return;
+        }
+
+        showAlert('⚠️ Native share not supported on this device. Use Copy Code below.', false);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showAlert('⚠️ Share sheet closed or cancelled.', false);
+        }
+      }
+    });
+
+    // 3. Copy Code action
+    modal.querySelector('#btn-trigger-copy').addEventListener('click', () => {
+      sounds.playButtonClick();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(jsonStr).then(() => {
+            showAlert('✅ 100% Copied! You can now paste this backup anywhere.');
+          });
+        } else {
+          const ta = modal.querySelector('#export-text-view');
+          ta.select();
+          document.execCommand('copy');
+          showAlert('✅ Copied to clipboard! You can now paste this backup anywhere.');
+        }
+      } catch (e) {
+        const ta = modal.querySelector('#export-text-view');
+        ta.select();
+        showAlert('📋 Selected text. Long press to copy.');
+      }
+    });
   }
 
   // Backup Import: Upload File or Paste JSON (Luxury Redesign with Live Progress Preview)
@@ -1037,10 +1210,14 @@ export class HomeUIManager {
           <div class="file-drop-zone" id="file-drop-zone">
             <span class="drop-zone-icon">📁</span>
             <span class="drop-zone-text">Tap to select your backup .json file</span>
-            <input type="file" id="backup-file-input" accept=".json" class="hidden-file-input">
+            <input type="file" id="backup-file-input" accept=".json,application/json,text/plain,*/*" class="hidden-file-input">
           </div>
 
           <div class="backup-divider"><span>OR PASTE BACKUP TEXT</span></div>
+
+          <div class="backup-paste-row">
+            <button class="btn-paste-clipboard" id="btn-quick-paste">📋 Paste from Clipboard</button>
+          </div>
 
           <textarea id="backup-text-input" class="backup-textarea" placeholder="Paste your saved JSON progress text here..."></textarea>
 
@@ -1063,13 +1240,10 @@ export class HomeUIManager {
     modal.querySelector('#btn-close-import').addEventListener('click', close);
     modal.querySelector('#btn-cancel-import').addEventListener('click', close);
 
-    const fileZone = modal.querySelector('#file-drop-zone');
     const fileInput = modal.querySelector('#backup-file-input');
     const textInput = modal.querySelector('#backup-text-input');
     const previewBox = modal.querySelector('#backup-preview-badge');
     const previewDetails = modal.querySelector('#preview-badge-details');
-
-    fileZone.addEventListener('click', () => fileInput.click());
 
     const updatePreview = (jsonStr) => {
       try {
@@ -1096,6 +1270,25 @@ export class HomeUIManager {
     textInput.addEventListener('input', () => {
       updatePreview(textInput.value.trim());
     });
+
+    // Paste from clipboard
+    const btnPaste = modal.querySelector('#btn-quick-paste');
+    if (btnPaste) {
+      btnPaste.addEventListener('click', async () => {
+        sounds.playButtonClick();
+        try {
+          if (navigator.clipboard && navigator.clipboard.readText) {
+            const clipText = await navigator.clipboard.readText();
+            if (clipText && clipText.trim()) {
+              textInput.value = clipText.trim();
+              updatePreview(clipText.trim());
+            }
+          }
+        } catch (e) {
+          textInput.focus();
+        }
+      });
+    }
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -1220,7 +1413,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.1';
+    const CURRENT_VERSION = '1.3.2';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1275,7 +1468,7 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.1').replace(/^v/, '');
+      const latestTag = (release.tag_name || 'v1.3.2').replace(/^v/, '');
 
       let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/app-debug.apk`;
       let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro-iOS.ipa`;

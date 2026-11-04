@@ -163,4 +163,4 @@ jobs:
           gh release delete "$TAG" --yes || true
           gh release create "$TAG" release_assets/* \
             --title "Ludo 3D Master Pro - Release $TAG (Commercial Android & iOS)" \
-            --notes "Official Commercial Release $TAG featuring: 3D physics dice placed in exact center of board, clean home screen with copyright removed, dedicated full-screen drawer pages with prominent ← Back navigation, full-screen System Update page with direct APK & iOS download links, luxury royal backup export dialog, and teammate/pass-and-play Player 1-4 naming convention. Developer: Sohel | Raebareli, UP - 229001"
+            --notes "Official Commercial Release $TAG featuring: Dedicated Mobile Export Download & Share Popup, Transparent Native File Picker for Backup Restore, Permanent Multi-Version Vault Progress Preservation across updates, Smooth Tactile Dice Squish on Touch with calibrated 680ms physics tumble, Balanced 165ms Token Hop & Squash/Stretch animation, Removal of all exclamation marks in turn/roll boxes, and Fixed Snakes tile 98 overshoot turn-passing logic. Developer: Sohel | Raebareli, UP - 229001"

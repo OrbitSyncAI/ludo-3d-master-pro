@@ -5,6 +5,16 @@
  */
 
 const STORAGE_KEY = 'ludo_3d_player_save_v3';
+const PERMANENT_VAULT_KEY = 'ludo_3d_permanent_progress_vault';
+const LEGACY_KEYS = [
+  'ludo_3d_player_save_v3',
+  'ludo_3d_permanent_progress_vault',
+  'ludo_3d_player_save_v2',
+  'ludo_3d_player_save_v1',
+  'ludo_3d_player_save',
+  'ludo_3d_master_save',
+  'ludo_3d_backup_auto'
+];
 
 const DEFAULT_STATE = {
   playerName: 'Sohel',
@@ -47,17 +57,58 @@ class EconomyManager {
   loadState() {
     try {
       if (typeof localStorage !== 'undefined') {
-        let saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('ludo_3d_player_save_v2');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const state = { ...DEFAULT_STATE, ...parsed };
+        let bestParsed = null;
+        for (const key of LEGACY_KEYS) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            try {
+              const p = JSON.parse(raw);
+              if (p && typeof p === 'object') {
+                if (!bestParsed) {
+                  bestParsed = p;
+                } else {
+                  // Merge progress to guarantee zero loss across updates
+                  bestParsed.coins = Math.max(bestParsed.coins || 0, p.coins || 0);
+                  bestParsed.gems = Math.max(bestParsed.gems || 0, p.gems || 0);
+                  bestParsed.level = Math.max(bestParsed.level || 1, p.level || 1);
+                  bestParsed.xp = Math.max(bestParsed.xp || 0, p.xp || 0);
+                  bestParsed.playerName = bestParsed.playerName || p.playerName;
+                  bestParsed.avatar = bestParsed.avatar || p.avatar;
+                  bestParsed.completedLevels = { ...(p.completedLevels || {}), ...(bestParsed.completedLevels || {}) };
+                  bestParsed.completedSnakesStages = { ...(p.completedSnakesStages || {}), ...(bestParsed.completedSnakesStages || {}) };
+                  
+                  // Merge inventory arrays
+                  const pThemes = Array.isArray(p.inventory?.themes) ? p.inventory.themes : [];
+                  const curThemes = Array.isArray(bestParsed.inventory?.themes) ? bestParsed.inventory.themes : [];
+                  bestParsed.inventory = bestParsed.inventory || {};
+                  bestParsed.inventory.themes = Array.from(new Set([...curThemes, ...pThemes]));
+
+                  const pSnakes = Array.isArray(p.inventory?.snakesThemes) ? p.inventory.snakesThemes : [];
+                  const curSnakes = Array.isArray(bestParsed.inventory?.snakesThemes) ? bestParsed.inventory.snakesThemes : [];
+                  bestParsed.inventory.snakesThemes = Array.from(new Set([...curSnakes, ...pSnakes]));
+
+                  const pDice = Array.isArray(p.inventory?.dice) ? p.inventory.dice : [];
+                  const curDice = Array.isArray(bestParsed.inventory?.dice) ? bestParsed.inventory.dice : [];
+                  bestParsed.inventory.dice = Array.from(new Set([...curDice, ...pDice]));
+
+                  const pPawns = Array.isArray(p.inventory?.pawns) ? p.inventory.pawns : [];
+                  const curPawns = Array.isArray(bestParsed.inventory?.pawns) ? bestParsed.inventory.pawns : [];
+                  bestParsed.inventory.pawns = Array.from(new Set([...curPawns, ...pPawns]));
+                }
+              }
+            } catch (err) {}
+          }
+        }
+
+        if (bestParsed) {
+          const state = { ...DEFAULT_STATE, ...bestParsed };
 
           // Defensive array check to prevent undefined errors
           state.inventory = {
-            themes: Array.isArray(parsed.inventory?.themes) ? parsed.inventory.themes : ['classic_royal'],
-            snakesThemes: Array.isArray(parsed.inventory?.snakesThemes) ? parsed.inventory.snakesThemes : ['snakes_classic'],
-            dice: Array.isArray(parsed.inventory?.dice) ? parsed.inventory.dice : ['classic'],
-            pawns: Array.isArray(parsed.inventory?.pawns) ? parsed.inventory.pawns : ['crown']
+            themes: Array.isArray(bestParsed.inventory?.themes) ? bestParsed.inventory.themes : ['classic_royal'],
+            snakesThemes: Array.isArray(bestParsed.inventory?.snakesThemes) ? bestParsed.inventory.snakesThemes : ['snakes_classic'],
+            dice: Array.isArray(bestParsed.inventory?.dice) ? bestParsed.inventory.dice : ['classic'],
+            pawns: Array.isArray(bestParsed.inventory?.pawns) ? bestParsed.inventory.pawns : ['crown']
           };
 
           // Ensure default items always owned
@@ -67,20 +118,20 @@ class EconomyManager {
           if (!state.inventory.pawns.includes('crown')) state.inventory.pawns.push('crown');
 
           state.equipped = {
-            theme: parsed.equipped?.theme || 'classic_royal',
-            snakesTheme: parsed.equipped?.snakesTheme || 'snakes_classic',
-            dice: parsed.equipped?.dice || 'classic',
-            pawn: parsed.equipped?.pawn || 'crown'
+            theme: bestParsed.equipped?.theme || 'classic_royal',
+            snakesTheme: bestParsed.equipped?.snakesTheme || 'snakes_classic',
+            dice: bestParsed.equipped?.dice || 'classic',
+            pawn: bestParsed.equipped?.pawn || 'crown'
           };
 
-          state.playerName = parsed.playerName || DEFAULT_STATE.playerName;
-          state.avatar = parsed.avatar || DEFAULT_STATE.avatar;
-          state.isProfileSetupDone = (parsed.isProfileSetupDone !== undefined) ? parsed.isProfileSetupDone : true;
+          state.playerName = bestParsed.playerName || DEFAULT_STATE.playerName;
+          state.avatar = bestParsed.avatar || DEFAULT_STATE.avatar;
+          state.isProfileSetupDone = (bestParsed.isProfileSetupDone !== undefined) ? bestParsed.isProfileSetupDone : true;
 
-          state.completedLevels = parsed.completedLevels || {};
-          state.completedSnakesStages = parsed.completedSnakesStages || {};
-          state.claimedMilestones = Array.isArray(parsed.claimedMilestones) ? parsed.claimedMilestones : [];
-          state.claimedSnakesMilestones = Array.isArray(parsed.claimedSnakesMilestones) ? parsed.claimedSnakesMilestones : [];
+          state.completedLevels = bestParsed.completedLevels || {};
+          state.completedSnakesStages = bestParsed.completedSnakesStages || {};
+          state.claimedMilestones = Array.isArray(bestParsed.claimedMilestones) ? bestParsed.claimedMilestones : [];
+          state.claimedSnakesMilestones = Array.isArray(bestParsed.claimedSnakesMilestones) ? bestParsed.claimedSnakesMilestones : [];
 
           return state;
         }
@@ -96,7 +147,9 @@ class EconomyManager {
   saveState() {
     try {
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+        const payload = JSON.stringify(this.data);
+        localStorage.setItem(STORAGE_KEY, payload);
+        localStorage.setItem(PERMANENT_VAULT_KEY, payload);
       }
     } catch (e) {
       console.warn('Failed to save state', e);
@@ -398,6 +451,7 @@ class EconomyManager {
         };
       }
 
+      this.data.isProfileSetupDone = true;
       this.saveState();
       return true;
     } catch (e) {

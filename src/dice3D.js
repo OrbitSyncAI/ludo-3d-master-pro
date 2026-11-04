@@ -181,6 +181,19 @@ export class Dice3D {
     }
   }
 
+  onPointerPress() {
+    if (this.isRolling) return;
+    this.mesh.scale.set(0.92, 0.88, 0.92);
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(12); } catch (e) {}
+    }
+  }
+
+  onPointerRelease() {
+    if (this.isRolling) return;
+    this.mesh.scale.set(1.0, 1.0, 1.0);
+  }
+
   roll(targetValue = null) {
     if (this.isRolling) return Promise.resolve(this.currentValue);
 
@@ -191,9 +204,10 @@ export class Dice3D {
     this.currentValue = finalVal;
 
     const targetRot = this.faceRotations[finalVal];
-    const spinsX = (Math.floor(Math.random() * 3) + 3) * Math.PI * 2;
-    const spinsY = (Math.floor(Math.random() * 3) + 3) * Math.PI * 2;
-    const spinsZ = (Math.floor(Math.random() * 3) + 3) * Math.PI * 2;
+    // Controlled 2 revolutions on each axis for clean, non-blurring 3D tumble
+    const spinsX = 2 * Math.PI * 2;
+    const spinsY = 2 * Math.PI * 2;
+    const spinsZ = 1 * Math.PI * 2;
 
     const startRot = {
       x: this.mesh.rotation.x,
@@ -207,34 +221,52 @@ export class Dice3D {
     };
 
     const startY = this.basePosition.y;
-    const peakY = startY + 2.2;
-    const duration = 400; // Snappy fast roll
+    const peakY = startY + 2.0;
+    const duration = 680; // Optimal commercial roll duration (neither too fast nor too slow)
     const startTime = performance.now();
 
     return new Promise((resolve) => {
       const animateRoll = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1.0);
-        const ease = 1 - Math.pow(1 - progress, 3);
+        
+        // Quintic ease-out for realistic angular deceleration
+        const ease = 1 - Math.pow(1 - progress, 3.6);
 
         this.mesh.rotation.x = startRot.x + (endRot.x - startRot.x) * ease;
         this.mesh.rotation.y = startRot.y + (endRot.y - startRot.y) * ease;
         this.mesh.rotation.z = startRot.z + (endRot.z - startRot.z) * ease;
 
-        if (progress < 0.75) {
-          const jumpT = progress / 0.75;
-          this.mesh.position.y = startY + Math.sin(jumpT * Math.PI) * (peakY - startY);
+        // Realistic multi-stage physical bounce curve
+        if (progress < 0.65) {
+          // Phase 1: High parabolic toss up and down
+          const t1 = progress / 0.65;
+          this.mesh.position.y = startY + Math.sin(t1 * Math.PI) * (peakY - startY);
+          this.mesh.scale.set(1.0, 1.0, 1.0);
+        } else if (progress < 0.85) {
+          // Phase 2: First landing rebound bounce
+          const t2 = (progress - 0.65) / 0.20;
+          this.mesh.position.y = startY + Math.sin(t2 * Math.PI) * 0.35;
+          // Slight stretch on bounce
+          const squish = 1.0 - Math.sin(t2 * Math.PI) * 0.05;
+          this.mesh.scale.set(1.0 + (1.0 - squish), squish, 1.0 + (1.0 - squish));
         } else {
-          const bounceT = (progress - 0.75) / 0.25;
-          this.mesh.position.y = startY + Math.sin(bounceT * Math.PI) * 0.28;
+          // Phase 3: Micro settling bounce & resting flush
+          const t3 = (progress - 0.85) / 0.15;
+          this.mesh.position.y = startY + Math.sin(t3 * Math.PI) * 0.08;
+          this.mesh.scale.set(1.0, 1.0, 1.0);
         }
 
         if (progress < 1.0) {
           requestAnimationFrame(animateRoll);
         } else {
           sounds.playDiceResult();
+          if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            try { navigator.vibrate([15, 10, 20]); } catch (e) {}
+          }
           this.mesh.position.copy(this.basePosition);
           this.mesh.rotation.set(targetRot.x, targetRot.y, targetRot.z);
+          this.mesh.scale.set(1.0, 1.0, 1.0);
           this.isRolling = false;
           resolve(finalVal);
         }

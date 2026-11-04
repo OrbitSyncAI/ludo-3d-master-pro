@@ -176,11 +176,11 @@ export class Token3D {
     this.isMoving = false;
   }
 
-  // Smooth arc hop animation from point A to B (Fast & Snappy 105ms)
-  animateSingleHop(start, end, duration = 105) {
+  // Smooth arc hop animation from point A to B (Commercial 165ms - neither too fast nor too slow)
+  animateSingleHop(start, end, duration = 165) {
     return new Promise((resolve) => {
       const startTime = performance.now();
-      const hopHeight = 0.55;
+      const hopHeight = 0.58;
 
       const stepHop = (now) => {
         const elapsed = now - startTime;
@@ -190,7 +190,13 @@ export class Token3D {
         const x = start.x + (end.x - start.x) * progress;
         const z = start.z + (end.z - start.z) * progress;
         // Parabolic arc for Y
-        const y = start.y + Math.sin(progress * Math.PI) * hopHeight;
+        const arc = Math.sin(progress * Math.PI);
+        const y = start.y + arc * hopHeight;
+
+        // Subtle squash and stretch for juicy cartoon hop feel
+        const scaleY = 1.0 + arc * 0.12;
+        const scaleXZ = 1.0 - arc * 0.06;
+        this.mesh.scale.set(scaleXZ, scaleY, scaleXZ);
 
         this.mesh.position.set(x, y, z);
         this.selectionRing.position.set(x, 0.12, z);
@@ -199,6 +205,7 @@ export class Token3D {
           requestAnimationFrame(stepHop);
         } else {
           this.mesh.position.set(end.x, end.y, end.z);
+          this.mesh.scale.set(1.0, 1.0, 1.0);
           resolve();
         }
       };
@@ -206,8 +213,8 @@ export class Token3D {
     });
   }
 
-  // Dramatic Arc out of Yard onto Start Square (Snappy 210ms)
-  animateYardSpawn(duration = 210) {
+  // Dramatic Arc out of Yard onto Start Square (Smooth 320ms)
+  animateYardSpawn(duration = 320) {
     return new Promise((resolve) => {
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);

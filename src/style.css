@@ -3033,6 +3033,121 @@ html, body {
   color: #0369a1;
 }
 
+.file-drop-zone {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.file-drop-zone .hidden-file-input {
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+}
+
+.btn-backup-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-backup-action:active {
+  transform: scale(0.97);
+}
+
+.btn-backup-action .action-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.btn-backup-action .action-text strong {
+  display: block;
+  font-size: 0.86rem;
+  letter-spacing: 0.3px;
+}
+
+.btn-backup-action .action-text small {
+  display: block;
+  font-size: 0.68rem;
+  opacity: 0.88;
+  margin-top: 2px;
+}
+
+.btn-gold-download {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #1e1b4b !important;
+  border: 1.5px solid #fbbf24 !important;
+}
+
+.btn-gold-download strong {
+  color: #1e1b4b !important;
+}
+
+.btn-blue-share {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #38bdf8 !important;
+}
+
+.btn-blue-share strong {
+  color: #ffffff !important;
+}
+
+.btn-purple-copy {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #c084fc !important;
+}
+
+.btn-purple-copy strong {
+  color: #ffffff !important;
+}
+
+.backup-live-alert {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1.5px solid #10b981;
+}
+
+.backup-paste-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.btn-paste-clipboard {
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .hidden-file-input {
   display: none;
 }

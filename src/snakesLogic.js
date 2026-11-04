@@ -104,12 +104,18 @@ export class SnakesEngine {
 
     // Must reach 100 exactly
     if (landedPos > 100) {
+      const bonus = (roll === 6);
+      if (!bonus) {
+        this.activePlayerIndex = (this.activePlayerIndex + 1) % this.playerCount;
+      }
       return {
         action: 'NO_MOVE',
         startPos,
         landedPos: startPos,
         finalPos: startPos,
-        roll
+        roll,
+        bonusTurn: bonus,
+        nextPlayer: this.getCurrentPlayer()
       };
     }
 
