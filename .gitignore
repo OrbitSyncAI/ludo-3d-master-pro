@@ -7,3 +7,5 @@ dist
 
 proof_*.png
 audit_*.mjs
+downloaded_artifacts/
+*.cjs

@@ -285,6 +285,42 @@ class SoundEngine {
       timeOffset += note.d + 0.04;
     });
   }
+
+  // Defeat / Loss Jingle (Minor downward cadence)
+  playDefeat() {
+    this.vibrate([100, 80, 200]);
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const melody = [
+      { f: 392.00, d: 0.20 }, // G4
+      { f: 349.23, d: 0.20 }, // F4
+      { f: 311.13, d: 0.24 }, // Eb4
+      { f: 261.63, d: 0.55 }  // C4
+    ];
+
+    let timeOffset = 0;
+    melody.forEach((note) => {
+      const startT = this.ctx.currentTime + timeOffset;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(note.f, startT);
+
+      gain.gain.setValueAtTime(0.25 * this.volume, startT);
+      gain.gain.exponentialRampToValueAtTime(0.001, startT + note.d);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(startT);
+      osc.stop(startT + note.d);
+
+      timeOffset += note.d + 0.05;
+    });
+  }
 }
 
 export const sounds = new SoundEngine();

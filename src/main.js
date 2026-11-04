@@ -331,14 +331,15 @@ class LudoApp {
     this.engine.state = GAME_STATES.ROLLING;
     this.inGameUI.updateDiceDisplay(null, true);
 
-    const rollValue = await this.dice3D.roll();
+    const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
+    const rollValue = await this.dice3D.roll(smartTarget);
     this.inGameUI.updateDiceDisplay(rollValue, false);
 
     const result = this.engine.onDiceRolled(rollValue);
 
     if (result.action === 'FORFEIT_THREE_SIXES') {
       this.inGameUI.updateStatus(`3 Sixes in a row! Turn forfeited!`, true);
-      await this.sleep(1000);
+      await this.sleep(300);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
       this.updateTurnUI();
@@ -347,7 +348,7 @@ class LudoApp {
 
     if (result.action === 'NO_MOVES') {
       this.inGameUI.updateStatus(`Rolled ${rollValue} - No valid moves!`);
-      await this.sleep(900);
+      await this.sleep(250);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
       this.updateTurnUI();
@@ -360,7 +361,7 @@ class LudoApp {
     if (!curPlayer.isAI) {
       if (this.validMoves.length === 1) {
         this.inGameUI.updateStatus(`Rolled ${rollValue} - Moving token...`);
-        await this.sleep(350);
+        await this.sleep(120);
         await this.executeLudoMove(this.validMoves[0]);
       } else {
         this.inGameUI.updateStatus(`Rolled ${rollValue} - Tap a glowing token!`);
@@ -411,7 +412,7 @@ class LudoApp {
       const oppToken = this.tokens[result.capturedOpponent.playerId][result.capturedOpponent.tokenIndex];
       this.inGameUI.updateStatus(`💥 Knockout! Opponent captured! Bonus turn!`, true);
       await oppToken.animateCaptured();
-      await this.sleep(300);
+      await this.sleep(120);
     }
 
     if (result.action === 'GAME_OVER') {
@@ -424,7 +425,7 @@ class LudoApp {
     if (result.bonusTurn) {
       const reason = result.capturedOpponent ? 'Capture' : (this.engine.currentRoll === 6 ? 'Six' : 'Goal');
       this.inGameUI.updateStatus(`🎉 ${reason}! Bonus turn!`, true);
-      await this.sleep(600);
+      await this.sleep(220);
     }
 
     this.validMoves = [];
@@ -433,20 +434,21 @@ class LudoApp {
   }
 
   async scheduleLudoAITurn() {
-    await this.sleep(600);
+    await this.sleep(200);
     if (this.engine.state === GAME_STATES.GAME_OVER) return;
 
     this.isProcessingTurn = true;
     this.inGameUI.updateDiceDisplay(null, true);
 
-    const rollValue = await this.dice3D.roll();
+    const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
+    const rollValue = await this.dice3D.roll(smartTarget);
     this.inGameUI.updateDiceDisplay(rollValue, false);
 
     const result = this.engine.onDiceRolled(rollValue);
 
     if (result.action === 'FORFEIT_THREE_SIXES') {
       this.inGameUI.updateStatus(`3 Sixes! Turn forfeited!`);
-      await this.sleep(900);
+      await this.sleep(250);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
       this.updateTurnUI();
@@ -455,7 +457,7 @@ class LudoApp {
 
     if (result.action === 'NO_MOVES') {
       this.inGameUI.updateStatus(`${this.engine.getCurrentPlayer().name} rolled ${rollValue} - No moves!`);
-      await this.sleep(800);
+      await this.sleep(220);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
       this.updateTurnUI();
@@ -463,7 +465,7 @@ class LudoApp {
     }
 
     const bestMove = LudoAI.chooseBestMove(this.engine, result.validMoves);
-    await this.sleep(400);
+    await this.sleep(140);
     await this.executeLudoMove(bestMove);
   }
 
@@ -476,7 +478,7 @@ class LudoApp {
     if (curP.isAI) {
       this.inGameUI.setRollButtonEnabled(false);
       this.inGameUI.updateStatus(`${curP.name} is rolling...`);
-      await this.sleep(700);
+      await this.sleep(220);
       this.handleSnakesRoll();
     } else {
       this.inGameUI.setRollButtonEnabled(true);
@@ -490,7 +492,8 @@ class LudoApp {
     this.inGameUI.setRollButtonEnabled(false);
     this.inGameUI.updateDiceDisplay(null, true);
 
-    const rollValue = await this.dice3D.roll();
+    const smartTarget = this.snakesEngine.generateSmartRoll(this.snakesEngine.activePlayerIndex);
+    const rollValue = await this.dice3D.roll(smartTarget);
     this.inGameUI.updateDiceDisplay(rollValue, false);
 
     const curPIdx = this.snakesEngine.activePlayerIndex;
@@ -499,7 +502,7 @@ class LudoApp {
 
     if (result.action === 'NO_MOVE') {
       this.inGameUI.updateStatus(`Rolled ${rollValue} - Need exact roll to reach 100!`);
-      await this.sleep(900);
+      await this.sleep(250);
       this.isProcessingTurn = false;
       this.updateSnakesTurnUI();
       return;
@@ -512,12 +515,12 @@ class LudoApp {
     if (result.climbedLadder) {
       sounds.playSafeZone();
       this.inGameUI.updateStatus(`🪜 WOW! ${curP.name} hit Ladder at ${result.landedPos}! Climbing to ${result.finalPos}!`, true);
-      await this.sleep(350);
+      await this.sleep(150);
       await this.snakesBoard3D.animateLadderClimb(curPIdx, result.landedPos, result.finalPos);
     } else if (result.bittenBySnake) {
       sounds.playTokenCapture();
       this.inGameUI.updateStatus(`🐍 OH NO! ${curP.name} bitten by Snake at ${result.landedPos}! Slid down to ${result.finalPos}!`, true);
-      await this.sleep(350);
+      await this.sleep(150);
       await this.snakesBoard3D.animateSnakeSlide(curPIdx, result.landedPos, result.finalPos);
     }
 
@@ -528,81 +531,123 @@ class LudoApp {
 
     if (result.bonusTurn) {
       this.inGameUI.updateStatus(`🎉 Rolled 6! ${curP.name} gets a BONUS ROLL!`, true);
-      await this.sleep(500);
+      await this.sleep(200);
     }
 
     this.isProcessingTurn = false;
     this.updateSnakesTurnUI();
   }
 
-  // 8. Victory Handler (Differentiated Rewards: High for Levels, Medium for Bots, 0 for Pass & Play)
+  // 8. Victory & Defeat Handler (Strict: Only User Wins Award Stars & Progress)
   onMatchVictory(winner) {
     let rewardInfo = null;
+    const isUserWinner = (winner.id === 0);
 
     if (this.currentLevelNum) {
       // 1. Ludo 300 Saga Mode
-      const stars = 3;
-      economy.completeLevel(this.currentLevelNum, stars);
-      rewardInfo = {
-        isLevel: true,
-        title: `LUDO SAGA LEVEL ${this.currentLevelNum} CLEARED!`,
-        coins: 1500,
-        gems: 10,
-        xp: 250,
-        stars
-      };
-      this.currentLevelNum = null;
+      if (isUserWinner) {
+        const stars = 3;
+        economy.completeLevel(this.currentLevelNum, stars);
+        rewardInfo = {
+          isDefeat: false,
+          isLevel: true,
+          title: `LUDO SAGA LEVEL ${this.currentLevelNum} CLEARED!`,
+          coins: 1500,
+          gems: 10,
+          xp: 250,
+          stars
+        };
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      } else {
+        // Bot won -> DEFEAT! Level remains uncleared
+        rewardInfo = {
+          isDefeat: true,
+          isLevel: true,
+          title: `LEVEL ${this.currentLevelNum} FAILED`,
+          coins: 40,
+          gems: 0,
+          xp: 20,
+          stars: 0
+        };
+      }
     } else if (this.currentSnakesLevelNum) {
       // 2. Snakes 300 Stage Mode
-      const stars = 3;
-      economy.completeSnakesStage(this.currentSnakesLevelNum, stars);
-      rewardInfo = {
-        isLevel: true,
-        title: `SNAKES STAGE ${this.currentSnakesLevelNum} CONQUERED!`,
-        coins: 1200,
-        gems: 8,
-        xp: 200,
-        stars
-      };
-      this.currentSnakesLevelNum = null;
+      if (isUserWinner) {
+        const stars = 3;
+        economy.completeSnakesStage(this.currentSnakesLevelNum, stars);
+        rewardInfo = {
+          isDefeat: false,
+          isLevel: true,
+          title: `SNAKES STAGE ${this.currentSnakesLevelNum} CONQUERED!`,
+          coins: 1200,
+          gems: 8,
+          xp: 200,
+          stars
+        };
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      } else {
+        // Bot won -> DEFEAT! Stage remains uncleared
+        rewardInfo = {
+          isDefeat: true,
+          isLevel: true,
+          title: `STAGE ${this.currentSnakesLevelNum} FAILED`,
+          coins: 30,
+          gems: 0,
+          xp: 15,
+          stars: 0
+        };
+      }
     } else if (this.currentConfig && this.currentConfig.isAI) {
       // 3. Match vs AI Bot
-      const isUserWinner = winner.id === 0;
       if (isUserWinner) {
         economy.addCoins(250);
         economy.addGems(2);
         economy.addXP(60);
         rewardInfo = {
+          isDefeat: false,
           isLevel: false,
           title: 'VICTORY OVER CYBER BOT!',
           coins: 250,
           gems: 2,
           xp: 60
         };
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       } else {
-        economy.addCoins(50);
-        economy.addXP(20);
+        economy.addCoins(40);
+        economy.addXP(15);
         rewardInfo = {
+          isDefeat: true,
           isLevel: false,
-          title: 'BOT WON - CONSOLATION REWARD',
-          coins: 50,
+          title: 'DEFEAT - BOT WON',
+          coins: 40,
           gems: 0,
-          xp: 20
+          xp: 15,
+          stars: 0
         };
       }
     } else {
       // 4. Pass & Play (Human Friends on same device) -> Zero farming
       rewardInfo = {
-        isFriendly: true
+        isDefeat: false,
+        isFriendly: true,
+        title: `${winner.name} WINS!`
       };
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }
 
-    // Confetti
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-
-    this.inGameUI.showVictoryModal(winner, this.engine ? this.engine.stats : null, rewardInfo, () => {
-      this.exitToHome();
-    });
+    this.inGameUI.showVictoryModal(
+      winner,
+      this.engine ? this.engine.stats : null,
+      rewardInfo,
+      () => {
+        this.currentLevelNum = null;
+        this.currentSnakesLevelNum = null;
+        this.exitToHome();
+      },
+      () => {
+        this.restartMatch();
+      }
+    );
   }
 
   getStackOffset(targetToken) {

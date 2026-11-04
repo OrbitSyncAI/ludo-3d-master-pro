@@ -145,13 +145,13 @@ jobs:
           name: Ludo-3D-Master-Pro-iOS-App
           path: release_assets
 
-      - name: Create or Update GitHub Release v1.1.0 with APK and iOS
+      - name: Create or Update GitHub Release v1.2.0 with APK and iOS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Listing release assets:"
           ls -lh release_assets/
-          gh release delete v1.1.0 --yes || true
-          gh release create v1.1.0 release_assets/* \
-            --title "Ludo 3D Master Pro - Release v1.1.0 (Android APK & iOS Bundle)" \
-            --notes "Official Commercial Release v1.1.0 featuring 3D Ludo & Snakes with 300 levels, single-currency royal store, casino lucky wheel with live seconds, offline progress backup, and silent background updater. Includes compiled Android APK and iOS packages. Developer: Sohel | Raebareli, UP - 229001"
+          gh release delete v1.2.0 --yes || true
+          gh release create v1.2.0 release_assets/* \
+            --title "Ludo 3D Master Pro - Release v1.2.0 (Android APK & iOS Bundle)" \
+            --notes "Official Commercial Release v1.2.0 featuring: Snappy responsive 3D animations, Ludo King scale edge-to-edge camera zoom, complete single-currency royal store with 9 new themes, live ticking seconds lucky wheel, clean uncluttered 300-level saga maps, dedicated defeat vs victory flow with retry match, and silent background updater. Includes compiled Android APK and iOS packages. Developer: Sohel | Raebareli, UP - 229001"

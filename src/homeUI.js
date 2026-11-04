@@ -218,14 +218,22 @@ export class HomeUIManager {
       this.initLuckyWheel();
     }
 
-    // Scroll to bottom (Level 1) when Ludo or Snakes Saga opens
+    // Scroll active shop sub-tab into view so horizontal nav stays exactly on clicked tab
+    if (this.activeTab === 'shop') {
+      const activeSubTab = this.container.querySelector('.shop-sub-tab.active');
+      if (activeSubTab) {
+        activeSubTab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+      }
+    }
+
+    // Smoothly scroll to current level node when Ludo or Snakes Saga opens
     if (this.activeTab === 'ludo_saga' || this.activeTab === 'snakes_saga') {
       setTimeout(() => {
         const activeNode = this.container.querySelector('.saga-node.current') || 
                            this.container.querySelector('[data-level="1"]') ||
                            this.container.querySelector('[data-snakes-stage="1"]');
         if (activeNode) {
-          activeNode.scrollIntoView({ block: 'center', behavior: 'auto' });
+          activeNode.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
       }, 60);
     }
@@ -360,7 +368,6 @@ export class HomeUIManager {
           <div class="saga-node ${isLocked ? 'locked' : ''} ${isCurrent ? 'current' : ''} ${stars > 0 ? 'completed' : ''}" data-level="${i}">
             <span class="level-num">${i}</span>
             ${stars > 0 ? `<div class="node-stars">${'⭐'.repeat(stars)}</div>` : ''}
-            ${isCurrent ? '<div class="pin-marker">🏁 START HERE</div>' : ''}
           </div>
         </div>
       `;
@@ -371,7 +378,6 @@ export class HomeUIManager {
         <div class="saga-road-track">
           ${levelsHtml}
         </div>
-        <button id="btn-focus-current" class="btn-focus-current-pill">🎯 LEVEL ${Math.min(300, currentUnlock)} of 300</button>
       </div>
     `;
   }
@@ -416,7 +422,6 @@ export class HomeUIManager {
           <div class="saga-node snakes-node ${isLocked ? 'locked' : ''} ${isCurrent ? 'current' : ''} ${stars > 0 ? 'completed' : ''}" data-snakes-stage="${i}">
             <span class="level-num">${i}</span>
             ${stars > 0 ? `<div class="node-stars">${'⭐'.repeat(stars)}</div>` : ''}
-            ${isCurrent ? '<div class="pin-marker">🏁 START HERE</div>' : ''}
           </div>
         </div>
       `;
@@ -427,7 +432,6 @@ export class HomeUIManager {
         <div class="saga-road-track">
           ${stagesHtml}
         </div>
-        <button id="btn-focus-current" class="btn-focus-current-pill">🎯 STAGE ${Math.min(300, currentUnlock)} of 300</button>
       </div>
     `;
   }
@@ -982,25 +986,44 @@ export class HomeUIManager {
     this.showGenericNotice('BACKUP EXPORTED', 'Your game progress has been safely saved to your device as a JSON file.');
   }
 
-  // Backup Import: Upload File or Paste JSON
+  // Backup Import: Upload File or Paste JSON (Luxury Redesign with Live Progress Preview)
   openImportModal() {
     sounds.playButtonClick();
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-card legal-modal-card">
-        <div class="legal-modal-header">
-          <h3>📥 RESTORE PROGRESS BACKUP</h3>
+      <div class="modal-card backup-restore-card">
+        <div class="backup-modal-header">
+          <div class="backup-header-title">
+            <span class="backup-header-icon">📥</span>
+            <div>
+              <h3>RESTORE PROGRESS BACKUP</h3>
+              <p>Restore your saved coins, diamonds, levels & unlocked themes</p>
+            </div>
+          </div>
           <button class="modal-close-icon" id="btn-close-import">✕</button>
         </div>
-        <div class="legal-modal-content">
-          <p>Select your saved backup JSON file or paste backup text below to restore your level progress, coins, gems, and unlocked themes:</p>
-          <input type="file" id="backup-file-input" accept=".json" style="margin: 12px 0; color: #fff; width: 100%;">
-          <textarea id="backup-text-input" placeholder="Or paste JSON backup string here..." style="width:100%; height:110px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:8px; padding:8px; font-family:monospace; font-size:0.75rem; resize:none;"></textarea>
+
+        <div class="backup-modal-body">
+          <div class="file-drop-zone" id="file-drop-zone">
+            <span class="drop-zone-icon">📁</span>
+            <span class="drop-zone-text">Tap to select your backup .json file</span>
+            <input type="file" id="backup-file-input" accept=".json" class="hidden-file-input">
+          </div>
+
+          <div class="backup-divider"><span>OR PASTE BACKUP TEXT</span></div>
+
+          <textarea id="backup-text-input" class="backup-textarea" placeholder="Paste your saved JSON progress text here..."></textarea>
+
+          <div id="backup-preview-badge" class="backup-preview-badge hidden">
+            <span class="preview-badge-title">✨ VALID PROGRESS DETECTED:</span>
+            <div class="preview-badge-details" id="preview-badge-details"></div>
+          </div>
         </div>
-        <div style="display:flex; gap:10px; padding:12px 18px;">
-          <button class="btn-setup-cancel" id="btn-cancel-import" style="flex:1;">CANCEL</button>
-          <button class="btn-setup-start" id="btn-confirm-import" style="flex:2;">RESTORE PROGRESS</button>
+
+        <div class="backup-modal-actions">
+          <button class="btn-setup-cancel" id="btn-cancel-import">CANCEL</button>
+          <button class="btn-setup-start btn-gold-restore" id="btn-confirm-import">RESTORE PROGRESS</button>
         </div>
       </div>
     `;
@@ -1011,8 +1034,39 @@ export class HomeUIManager {
     modal.querySelector('#btn-close-import').addEventListener('click', close);
     modal.querySelector('#btn-cancel-import').addEventListener('click', close);
 
+    const fileZone = modal.querySelector('#file-drop-zone');
     const fileInput = modal.querySelector('#backup-file-input');
     const textInput = modal.querySelector('#backup-text-input');
+    const previewBox = modal.querySelector('#backup-preview-badge');
+    const previewDetails = modal.querySelector('#preview-badge-details');
+
+    fileZone.addEventListener('click', () => fileInput.click());
+
+    const updatePreview = (jsonStr) => {
+      try {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed && typeof parsed === 'object') {
+          const name = parsed.player?.name || parsed.playerName || 'Player';
+          const coins = parsed.wallet?.coins !== undefined ? parsed.wallet.coins : (parsed.coins || 0);
+          const gems = parsed.wallet?.gems !== undefined ? parsed.wallet.gems : (parsed.gems || 0);
+          const lvl = parsed.player?.level || parsed.level || 1;
+          const completedLudo = Object.keys(parsed.sagaProgress?.completedLevels || parsed.completedLevels || {}).length;
+
+          previewDetails.innerHTML = `
+            <strong>${name}</strong> (LVL ${lvl}) | 🪙 ${coins.toLocaleString()} Coins | 💎 ${gems.toLocaleString()} Diamonds | 🏆 ${completedLudo} Ludo Levels
+          `;
+          previewBox.classList.remove('hidden');
+          return true;
+        }
+      } catch (e) {
+        previewBox.classList.add('hidden');
+      }
+      return false;
+    };
+
+    textInput.addEventListener('input', () => {
+      updatePreview(textInput.value.trim());
+    });
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -1020,6 +1074,7 @@ export class HomeUIManager {
         const reader = new FileReader();
         reader.onload = (event) => {
           textInput.value = event.target.result;
+          updatePreview(event.target.result);
         };
         reader.readAsText(file);
       }

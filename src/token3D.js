@@ -176,11 +176,11 @@ export class Token3D {
     this.isMoving = false;
   }
 
-  // Smooth arc hop animation from point A to B
-  animateSingleHop(start, end, duration = 160) {
+  // Smooth arc hop animation from point A to B (Fast & Snappy 105ms)
+  animateSingleHop(start, end, duration = 105) {
     return new Promise((resolve) => {
       const startTime = performance.now();
-      const hopHeight = 0.65;
+      const hopHeight = 0.55;
 
       const stepHop = (now) => {
         const elapsed = now - startTime;
@@ -206,13 +206,13 @@ export class Token3D {
     });
   }
 
-  // Dramatic Arc out of Yard onto Start Square
-  animateYardSpawn(duration = 380) {
+  // Dramatic Arc out of Yard onto Start Square (Snappy 210ms)
+  animateYardSpawn(duration = 210) {
     return new Promise((resolve) => {
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);
       const startTime = performance.now();
-      const jumpHeight = 1.6;
+      const jumpHeight = 1.4;
 
       const spawnAnim = (now) => {
         const elapsed = now - startTime;
@@ -237,7 +237,7 @@ export class Token3D {
     });
   }
 
-  // Knockout return to base yard
+  // Knockout return to base yard (Snappy 240ms)
   animateCaptured() {
     return new Promise((resolve) => {
       sounds.playTokenCapture();
@@ -245,7 +245,7 @@ export class Token3D {
       this.step = -1;
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const startTime = performance.now();
-      const duration = 450;
+      const duration = 240;
 
       const capAnim = (now) => {
         const elapsed = now - startTime;

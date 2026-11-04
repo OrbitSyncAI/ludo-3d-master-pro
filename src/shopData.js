@@ -154,6 +154,60 @@ export const SHOP_CATALOG = {
       yardColor: 0x3b126e
     },
     {
+      id: 'phoenix_flame',
+      name: 'Phoenix Solar Flare',
+      desc: 'Mythical flame theme with glowing molten copper trim & ember paths.',
+      rarity: 'RARE',
+      priceCoins: 18000,
+      priceGems: 0,
+      icon: '🔥',
+      previewColor: '#f97316',
+      sceneBg: 0x1f0a04,
+      boardColor: 0x7c2d12,
+      trimColor: 0xfb923c,
+      surfaceColor: 0x431407,
+      pathwayColor: 0xffedd5,
+      innerYardColor: 0xfed7aa,
+      starColor: 0xf97316,
+      yardColor: 0x9a3412
+    },
+    {
+      id: 'cyber_glitch',
+      name: 'Cyber Synthwave Glitch',
+      desc: 'Retro arcade grid with neon magenta paths and violet holographic stars.',
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 120,
+      icon: '👾',
+      previewColor: '#d946ef',
+      sceneBg: 0x130426,
+      boardColor: 0x4a044e,
+      trimColor: 0xec4899,
+      surfaceColor: 0x2e0854,
+      pathwayColor: 0xfae8ff,
+      innerYardColor: 0xf5d0fe,
+      starColor: 0xec4899,
+      yardColor: 0x701a75
+    },
+    {
+      id: 'royal_gold_diamond',
+      name: 'Imperial Sovereign Gold',
+      desc: 'Mastercraft tournament board in solid 24K mirror gold and radiant diamonds.',
+      rarity: 'LEGENDARY',
+      priceCoins: 0,
+      priceGems: 250,
+      icon: '👑',
+      previewColor: '#eab308',
+      sceneBg: 0x1a1203,
+      boardColor: 0x854d0e,
+      trimColor: 0xfacc15,
+      surfaceColor: 0x422006,
+      pathwayColor: 0xfef9c3,
+      innerYardColor: 0xfef08a,
+      starColor: 0xffd700,
+      yardColor: 0xa16207
+    },
+    {
       id: 'mythic_emperor',
       name: 'Mythic Emperor 24K Gold',
       desc: 'Supreme grandmaster board: pure 24K celestial gold with diamond inlays. Won only on Lucky Wheel!',
@@ -282,6 +336,32 @@ export const SHOP_CATALOG = {
       trimColor: 0xe879f9
     },
     {
+      id: 'frost_glacier',
+      name: 'Frost Glacier Peak',
+      desc: 'Arctic tundra with crystalline ice bridges and sapphire frost serpents.',
+      rarity: 'RARE',
+      priceCoins: 15000,
+      priceGems: 0,
+      icon: '❄️',
+      previewColor: '#38bdf8',
+      sceneBg: 0x082f49,
+      boardColor: 0x075985,
+      trimColor: 0x7dd3fc
+    },
+    {
+      id: 'shadow_ninja',
+      name: 'Midnight Shadow Viper',
+      desc: 'Silent shinobi temple with obsidian ladders and smoke-shrouded shadow cobras.',
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 150,
+      icon: '🥷',
+      previewColor: '#6366f1',
+      sceneBg: 0x0f172a,
+      boardColor: 0x1e1b4b,
+      trimColor: 0x818cf8
+    },
+    {
       id: 'snakes_dragon',
       name: 'Golden Dragon Emperor',
       desc: 'Grandmaster imperial temple with 24K gold ladders and mythical dragons. Won only on Lucky Wheel!',
@@ -335,6 +415,30 @@ export const SHOP_CATALOG = {
       baseColor: '#0f172a',
       pipRed: '#06b6d4',
       pipDark: '#38bdf8'
+    },
+    {
+      id: 'dragon_eye',
+      name: 'Dragon Eye Crimson',
+      desc: 'Fierce reptilian dragon scale die with burning amber pips.',
+      rarity: 'RARE',
+      priceCoins: 18000,
+      priceGems: 0,
+      icon: '👁️',
+      baseColor: '#991b1b',
+      pipRed: '#fbbf24',
+      pipDark: '#450a0a'
+    },
+    {
+      id: 'glitch_cube',
+      name: 'Prism Glitch Cube',
+      desc: 'Translucent crystal prism die with pulsing neon ultraviolet dots.',
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 100,
+      icon: '🔮',
+      baseColor: '#4c1d95',
+      pipRed: '#c084fc',
+      pipDark: '#2e1065'
     },
     {
       id: 'amethyst',
@@ -414,6 +518,24 @@ export const SHOP_CATALOG = {
       priceCoins: 18000,
       priceGems: 0,
       icon: '💎'
+    },
+    {
+      id: 'spartan_helmet',
+      name: 'Spartan Warlord Helmet',
+      desc: 'Forged ancient bronze battle helm of undefeated arena champions.',
+      rarity: 'RARE',
+      priceCoins: 14000,
+      priceGems: 0,
+      icon: '🛡️'
+    },
+    {
+      id: 'phoenix_feather',
+      name: 'Celestial Phoenix Quill',
+      desc: 'Ever-burning feather plume that shines with golden solar fire.',
+      rarity: 'EPIC',
+      priceCoins: 0,
+      priceGems: 120,
+      icon: '🪶'
     },
     {
       id: 'lion_crest',

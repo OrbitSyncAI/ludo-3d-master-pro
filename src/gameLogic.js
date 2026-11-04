@@ -34,6 +34,7 @@ export class GameEngine {
 
     // Token states: [playerIndex][tokenIndex] = step (-1 = yard, 0..50 = track, 51..55 = home, 56 = won)
     this.tokens = Array.from({ length: 4 }, () => [-1, -1, -1, -1]);
+    this.turnsWithoutSix = [0, 0, 0, 0];
 
     // Statistics
     this.stats = {
@@ -101,6 +102,37 @@ export class GameEngine {
     });
 
     return valid;
+  }
+
+  // Dynamic Anti-Frustration Smart Roll Algorithm (Ludo King Balanced Luck)
+  generateSmartRoll(playerIndex = this.activePlayerIndex) {
+    const player = this.players[playerIndex];
+    if (!player) return Math.floor(Math.random() * 6) + 1;
+    const isHuman = !player.isAI;
+    const tokens = this.tokens[player.id];
+    const allInYard = tokens.every(s => s === -1);
+
+    // Anti-frustration rule 1: If human has all 4 tokens trapped in yard and hasn't rolled a 6 for 2+ turns
+    if (isHuman && allInYard && (this.turnsWithoutSix[player.id] || 0) >= 2) {
+      if (Math.random() < 0.45) {
+        this.turnsWithoutSix[player.id] = 0;
+        return 6;
+      }
+    }
+
+    // Anti-frustration rule 2: Prevent accidental 3rd consecutive six forfeit for human player
+    if (isHuman && this.consecutiveSixes === 2) {
+      return Math.floor(Math.random() * 5) + 1; // Roll 1..5 safely
+    }
+
+    // Fair standard roll (1..6)
+    const roll = Math.floor(Math.random() * 6) + 1;
+    if (roll === 6) {
+      this.turnsWithoutSix[player.id] = 0;
+    } else {
+      this.turnsWithoutSix[player.id] = (this.turnsWithoutSix[player.id] || 0) + 1;
+    }
+    return roll;
   }
 
   // Process a roll value

@@ -64,10 +64,23 @@ export class SnakesEngine {
     this.positions = Array(this.playerCount).fill(1); // all start at square 1
     this.winner = null;
     this.isOver = false;
+    this.recentSnakeBite = Array(this.playerCount).fill(false);
   }
 
   getCurrentPlayer() {
     return this.players[this.activePlayerIndex];
+  }
+
+  // Dynamic Comeback Assist
+  generateSmartRoll(playerIndex = this.activePlayerIndex) {
+    const isHuman = (playerIndex === 0);
+    // If recently bitten by a snake, grant exciting comeback roll
+    if (isHuman && this.recentSnakeBite[playerIndex]) {
+      this.recentSnakeBite[playerIndex] = false;
+      const boostRolls = [4, 5, 6];
+      return boostRolls[Math.floor(Math.random() * boostRolls.length)];
+    }
+    return Math.floor(Math.random() * 6) + 1;
   }
 
   processRoll(roll) {
@@ -98,6 +111,7 @@ export class SnakesEngine {
     // Check if landed tile has a Snake
     else if (SNAKES[landedPos]) {
       bittenBySnake = true;
+      this.recentSnakeBite[curP] = true;
       finalPos = SNAKES[landedPos];
     }
 

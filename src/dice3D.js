@@ -207,8 +207,8 @@ export class Dice3D {
     };
 
     const startY = this.basePosition.y;
-    const peakY = startY + 2.4;
-    const duration = 650;
+    const peakY = startY + 2.2;
+    const duration = 400; // Snappy fast roll
     const startTime = performance.now();
 
     return new Promise((resolve) => {

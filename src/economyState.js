@@ -299,32 +299,105 @@ class EconomyManager {
     this.saveState();
   }
 
-  // Export Progress to JSON string
+  // Export Progress to Clean Sanitized Player Progress JSON (Zero internal code / Zero secrets)
   exportBackupJSON() {
-    return JSON.stringify(this.data, null, 2);
+    const cleanProgress = {
+      app: 'Ludo 3D Master Pro',
+      version: '1.2.0',
+      exportedAt: new Date().toISOString(),
+      player: {
+        name: this.data.playerName || 'Sohel',
+        avatar: this.data.avatar || '👑',
+        level: this.data.level || 1,
+        xp: this.data.xp || 0
+      },
+      wallet: {
+        coins: this.data.coins || 0,
+        gems: this.data.gems || 0,
+        bonusSpins: this.data.bonusSpinsAvailable || 0
+      },
+      sagaProgress: {
+        completedLevels: this.data.completedLevels || {},
+        completedSnakesStages: this.data.completedSnakesStages || {},
+        claimedMilestones: this.data.claimedMilestones || [],
+        claimedSnakesMilestones: this.data.claimedSnakesMilestones || []
+      },
+      inventory: {
+        themes: this.data.inventory?.themes || ['classic_royal'],
+        snakesThemes: this.data.inventory?.snakesThemes || ['snakes_classic'],
+        dice: this.data.inventory?.dice || ['classic'],
+        pawns: this.data.inventory?.pawns || ['crown']
+      },
+      equipped: {
+        theme: this.data.equipped?.theme || 'classic_royal',
+        snakesTheme: this.data.equipped?.snakesTheme || 'snakes_classic',
+        dice: this.data.equipped?.dice || 'classic',
+        pawn: this.data.equipped?.pawn || 'crown'
+      },
+      stats: this.data.stats || {
+        matchesPlayed: 0,
+        matchesWon: 0,
+        snakesWon: 0
+      }
+    };
+    return JSON.stringify(cleanProgress, null, 2);
   }
 
-  // Import Progress from JSON string
+  // Import Progress from JSON string (supports sanitized format and legacy state)
   importBackupJSON(jsonStr) {
     try {
       const parsed = JSON.parse(jsonStr);
       if (typeof parsed !== 'object' || !parsed) return false;
-      this.data = {
-        ...DEFAULT_STATE,
-        ...parsed,
-        inventory: {
-          themes: Array.isArray(parsed.inventory?.themes) ? parsed.inventory.themes : ['classic_royal'],
-          snakesThemes: Array.isArray(parsed.inventory?.snakesThemes) ? parsed.inventory.snakesThemes : ['snakes_classic'],
-          dice: Array.isArray(parsed.inventory?.dice) ? parsed.inventory.dice : ['classic'],
-          pawns: Array.isArray(parsed.inventory?.pawns) ? parsed.inventory.pawns : ['crown']
-        },
-        equipped: {
-          theme: parsed.equipped?.theme || 'classic_royal',
-          snakesTheme: parsed.equipped?.snakesTheme || 'snakes_classic',
-          dice: parsed.equipped?.dice || 'classic',
-          pawn: parsed.equipped?.pawn || 'crown'
-        }
-      };
+
+      // Check if sanitized format
+      if (parsed.player || parsed.sagaProgress) {
+        this.data = {
+          ...DEFAULT_STATE,
+          playerName: parsed.player?.name || this.data.playerName,
+          avatar: parsed.player?.avatar || this.data.avatar,
+          level: parsed.player?.level || this.data.level,
+          xp: parsed.player?.xp || this.data.xp,
+          coins: parsed.wallet?.coins !== undefined ? parsed.wallet.coins : this.data.coins,
+          gems: parsed.wallet?.gems !== undefined ? parsed.wallet.gems : this.data.gems,
+          bonusSpinsAvailable: parsed.wallet?.bonusSpins !== undefined ? parsed.wallet.bonusSpins : this.data.bonusSpinsAvailable,
+          completedLevels: parsed.sagaProgress?.completedLevels || {},
+          completedSnakesStages: parsed.sagaProgress?.completedSnakesStages || {},
+          claimedMilestones: parsed.sagaProgress?.claimedMilestones || [],
+          claimedSnakesMilestones: parsed.sagaProgress?.claimedSnakesMilestones || [],
+          inventory: {
+            themes: Array.isArray(parsed.inventory?.themes) ? parsed.inventory.themes : ['classic_royal'],
+            snakesThemes: Array.isArray(parsed.inventory?.snakesThemes) ? parsed.inventory.snakesThemes : ['snakes_classic'],
+            dice: Array.isArray(parsed.inventory?.dice) ? parsed.inventory.dice : ['classic'],
+            pawns: Array.isArray(parsed.inventory?.pawns) ? parsed.inventory.pawns : ['crown']
+          },
+          equipped: {
+            theme: parsed.equipped?.theme || 'classic_royal',
+            snakesTheme: parsed.equipped?.snakesTheme || 'snakes_classic',
+            dice: parsed.equipped?.dice || 'classic',
+            pawn: parsed.equipped?.pawn || 'crown'
+          },
+          stats: parsed.stats || this.data.stats
+        };
+      } else {
+        // Legacy flat format
+        this.data = {
+          ...DEFAULT_STATE,
+          ...parsed,
+          inventory: {
+            themes: Array.isArray(parsed.inventory?.themes) ? parsed.inventory.themes : ['classic_royal'],
+            snakesThemes: Array.isArray(parsed.inventory?.snakesThemes) ? parsed.inventory.snakesThemes : ['snakes_classic'],
+            dice: Array.isArray(parsed.inventory?.dice) ? parsed.inventory.dice : ['classic'],
+            pawns: Array.isArray(parsed.inventory?.pawns) ? parsed.inventory.pawns : ['crown']
+          },
+          equipped: {
+            theme: parsed.equipped?.theme || 'classic_royal',
+            snakesTheme: parsed.equipped?.snakesTheme || 'snakes_classic',
+            dice: parsed.equipped?.dice || 'classic',
+            pawn: parsed.equipped?.pawn || 'crown'
+          }
+        };
+      }
+
       this.saveState();
       return true;
     } catch (e) {

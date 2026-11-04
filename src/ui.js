@@ -298,10 +298,17 @@ export class UIManager {
     }
   }
 
-  // Match Victory Screen with Differentiated Rewards
-  showVictoryModal(winner, stats, rewardInfo, onReturnHome) {
-    sounds.playVictory();
+  // Match Victory / Defeat Screen with Differentiated Rewards & Retry Option
+  showVictoryModal(winner, stats, rewardInfo, onReturnHome, onRetryMatch) {
     this.modalOverlay.classList.remove('hidden');
+
+    const isDefeat = rewardInfo && rewardInfo.isDefeat;
+
+    if (isDefeat) {
+      sounds.playDefeat();
+    } else {
+      sounds.playVictory();
+    }
 
     let rewardSection = '';
     if (rewardInfo) {
@@ -314,25 +321,26 @@ export class UIManager {
         `;
       } else {
         rewardSection = `
-          <div class="victory-reward-card ${rewardInfo.isLevel ? 'saga-reward' : 'bot-reward'}">
-            <span class="reward-title-badge">${rewardInfo.title || 'VICTORY REWARDS'}</span>
+          <div class="victory-reward-card ${isDefeat ? 'defeat-reward' : (rewardInfo.isLevel ? 'saga-reward' : 'bot-reward')}">
+            <span class="reward-title-badge ${isDefeat ? 'badge-defeat' : ''}">${rewardInfo.title || (isDefeat ? 'DEFEAT' : 'VICTORY REWARDS')}</span>
             <div class="reward-chips-row">
               ${rewardInfo.coins > 0 ? `<div class="reward-chip chip-coins">🪙 +${rewardInfo.coins.toLocaleString()}</div>` : ''}
               ${rewardInfo.gems > 0 ? `<div class="reward-chip chip-gems">💎 +${rewardInfo.gems}</div>` : ''}
               ${rewardInfo.xp > 0 ? `<div class="reward-chip chip-xp">⭐ +${rewardInfo.xp} XP</div>` : ''}
             </div>
             ${rewardInfo.stars ? `<div class="reward-stars-row">${'⭐'.repeat(rewardInfo.stars)}</div>` : ''}
+            ${isDefeat ? `<div class="defeat-tip-text">Level remained uncleared. Re-roll with better tactics!</div>` : ''}
           </div>
         `;
       }
     }
 
     this.modalOverlay.innerHTML = `
-      <div class="modal-card victory-card">
-        <div class="victory-crown">👑</div>
-        <h1 class="victory-title">MATCH VICTORY!</h1>
-        <p class="winner-announcement" style="color: ${winner.color ? winner.color.textColor : '#b78103'}">
-          <strong>${winner.name}</strong> has conquered the board!
+      <div class="modal-card ${isDefeat ? 'defeat-card' : 'victory-card'}">
+        <div class="${isDefeat ? 'defeat-icon' : 'victory-crown'}">${isDefeat ? '💔' : '👑'}</div>
+        <h1 class="${isDefeat ? 'defeat-title' : 'victory-title'}">${isDefeat ? 'MATCH DEFEAT!' : 'MATCH VICTORY!'}</h1>
+        <p class="winner-announcement" style="color: ${isDefeat ? '#cbd5e1' : (winner.color ? winner.color.textColor : '#b78103')}">
+          ${isDefeat ? `<strong>${winner.name}</strong> outplayed you this time!` : `<strong>${winner.name}</strong> has conquered the board!`}
         </p>
 
         ${rewardSection}
@@ -352,9 +360,21 @@ export class UIManager {
           </div>
         </div>
 
-        <button class="btn-win-return" id="btn-win-return">🏠 RETURN TO HOME</button>
+        <div class="match-end-btn-row">
+          ${isDefeat && onRetryMatch ? `<button class="btn-win-retry" id="btn-win-retry">🔄 TRY AGAIN</button>` : ''}
+          <button class="btn-win-return" id="btn-win-return">🏠 RETURN TO HOME</button>
+        </div>
       </div>
     `;
+
+    const retryBtn = document.getElementById('btn-win-retry');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        this.modalOverlay.classList.add('hidden');
+        if (onRetryMatch) onRetryMatch();
+      });
+    }
 
     document.getElementById('btn-win-return').addEventListener('click', () => {
       sounds.playButtonClick();
