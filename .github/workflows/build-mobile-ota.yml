@@ -151,13 +151,16 @@ jobs:
           name: Ludo-3D-Master-Pro-iOS-App
           path: release_assets
 
-      - name: Create or Update GitHub Release v1.3.0 with APK and iOS
+      - name: Create or Update GitHub Release with APK and iOS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Listing release assets:"
           ls -lh release_assets/
-          gh release delete v1.3.0 --yes || true
-          gh release create v1.3.0 release_assets/* \
-            --title "Ludo 3D Master Pro - Release v1.3.0 (Commercial Android & iOS)" \
-            --notes "Official Commercial Release v1.3.0 featuring: Symmetrical ergonomic HUD margins with zero overlaps, 2v2 Cooperative Team Battle for both Ludo and Snakes & Ladders, Olympic Leaderboard podium with distinct Defeated rank badge, in-drawer manual update checker with direct binary downloads, 12 new single-currency themes, dice & pawns in Royal Store, and persistent Android signing for seamless in-place updates without uninstalling. Developer: Sohel | Raebareli, UP - 229001"
+          APP_VER=$(node -p "require('./package.json').version")
+          TAG="v$APP_VER"
+          echo "Processing release tag: $TAG"
+          gh release delete "$TAG" --yes || true
+          gh release create "$TAG" release_assets/* \
+            --title "Ludo 3D Master Pro - Release $TAG (Commercial Android & iOS)" \
+            --notes "Official Commercial Release $TAG featuring: 3D physics dice placed in exact center of board, clean home screen with copyright removed, dedicated full-screen drawer pages with prominent ← Back navigation, full-screen System Update page with direct APK & iOS download links, luxury royal backup export dialog, and teammate/pass-and-play Player 1-4 naming convention. Developer: Sohel | Raebareli, UP - 229001"
