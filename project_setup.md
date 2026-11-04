@@ -117,7 +117,7 @@ gh run watch <run-id> --repo OrbitSyncAI/ludo-3d-master-pro
 gh run download <run-id> --name Ludo-3D-Master-Pro-Android-APK --dir ./downloaded_artifacts
 
 # View latest release
-gh release view v1.1.0 --repo OrbitSyncAI/ludo-3d-master-pro
+gh release view v1.2.0 --repo OrbitSyncAI/ludo-3d-master-pro
 ```
 
 ---
