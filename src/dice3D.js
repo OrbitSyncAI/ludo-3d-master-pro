@@ -222,7 +222,7 @@ export class Dice3D {
 
     const startY = this.basePosition.y;
     const peakY = startY + 2.0;
-    const duration = 680; // Optimal commercial roll duration (neither too fast nor too slow)
+    const duration = 820; // Relaxed, smooth organic 3D roll (neither too fast nor sluggish)
     const startTime = performance.now();
 
     return new Promise((resolve) => {

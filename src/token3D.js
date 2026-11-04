@@ -176,8 +176,8 @@ export class Token3D {
     this.isMoving = false;
   }
 
-  // Smooth arc hop animation from point A to B (Commercial 165ms - neither too fast nor too slow)
-  animateSingleHop(start, end, duration = 165) {
+  // Smooth arc hop animation from point A to B (Relaxed & buttery smooth 230ms)
+  animateSingleHop(start, end, duration = 230) {
     return new Promise((resolve) => {
       const startTime = performance.now();
       const hopHeight = 0.58;
@@ -213,8 +213,8 @@ export class Token3D {
     });
   }
 
-  // Dramatic Arc out of Yard onto Start Square (Smooth 320ms)
-  animateYardSpawn(duration = 320) {
+  // Dramatic Arc out of Yard onto Start Square (Smooth 420ms)
+  animateYardSpawn(duration = 420) {
     return new Promise((resolve) => {
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);

@@ -652,6 +652,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: false,
           isLevel: true,
+          hasNextLevel: (this.currentLevelNum < 300),
           rankings,
           title: `LUDO SAGA LEVEL ${this.currentLevelNum} CLEARED!`,
           coins: 1500,
@@ -665,6 +666,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: true,
           isLevel: true,
+          hasNextLevel: false,
           rankings,
           title: `LEVEL ${this.currentLevelNum} FAILED`,
           coins: 40,
@@ -681,6 +683,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: false,
           isLevel: true,
+          hasNextLevel: (this.currentSnakesLevelNum < 300),
           rankings,
           title: `SNAKES STAGE ${this.currentSnakesLevelNum} CONQUERED!`,
           coins: 1200,
@@ -694,6 +697,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: true,
           isLevel: true,
+          hasNextLevel: false,
           rankings,
           title: `STAGE ${this.currentSnakesLevelNum} FAILED`,
           coins: 30,
@@ -764,6 +768,22 @@ class LudoApp {
       },
       () => {
         this.restartMatch();
+      },
+      () => {
+        // Advance to next level
+        if (this.currentSnakesLevelNum && this.currentSnakesLevelNum < 300) {
+          const nextStage = this.currentSnakesLevelNum + 1;
+          this.currentSnakesLevelNum = nextStage;
+          this.cleanupBoards();
+          this.startSnakesMatch({ mode: 'snakes', isAI: true, levelNumber: nextStage });
+        } else if (this.currentLevelNum && this.currentLevelNum < 300) {
+          const nextLvl = this.currentLevelNum + 1;
+          this.currentLevelNum = nextLvl;
+          this.cleanupBoards();
+          this.startLudoMatch({ mode: 'level', isAI: true, levelNumber: nextLvl });
+        } else {
+          this.exitToHome();
+        }
       }
     );
   }

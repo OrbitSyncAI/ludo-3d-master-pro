@@ -311,8 +311,8 @@ export class UIManager {
     }
   }
 
-  // Match Victory / Defeat Screen with Differentiated Rewards & Retry Option
-  showVictoryModal(winner, stats, rewardInfo, onReturnHome, onRetryMatch) {
+  // Match Victory / Defeat Screen with Differentiated Rewards, Retry & Next Level Options
+  showVictoryModal(winner, stats, rewardInfo, onReturnHome, onRetryMatch, onNextLevel) {
     this.modalOverlay.classList.remove('hidden');
 
     const isDefeat = rewardInfo && rewardInfo.isDefeat;
@@ -416,8 +416,9 @@ export class UIManager {
         </div>
 
         <div class="match-end-btn-row">
-          ${isDefeat && onRetryMatch ? `<button class="btn-win-retry" id="btn-win-retry">🔄 TRY AGAIN</button>` : ''}
-          <button class="btn-win-return" id="btn-win-return">🏠 RETURN TO HOME</button>
+          <button class="btn-win-return" id="btn-win-return">🏠 HOME</button>
+          ${onRetryMatch ? `<button class="btn-win-retry" id="btn-win-retry">🔄 ${isDefeat ? 'TRY AGAIN' : 'RETRY'}</button>` : ''}
+          ${(!isDefeat && onNextLevel && rewardInfo?.hasNextLevel) ? `<button class="btn-win-next" id="btn-win-next">▶️ NEXT LEVEL</button>` : ''}
         </div>
       </div>
     `;
@@ -428,6 +429,15 @@ export class UIManager {
         sounds.playButtonClick();
         this.modalOverlay.classList.add('hidden');
         if (onRetryMatch) onRetryMatch();
+      });
+    }
+
+    const nextBtn = document.getElementById('btn-win-next');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        this.modalOverlay.classList.add('hidden');
+        if (onNextLevel) onNextLevel();
       });
     }
 

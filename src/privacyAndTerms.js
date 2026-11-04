@@ -10,7 +10,7 @@ export const PUBLISHER_INFO = {
   email: "sk9026053036@gmail.com",
   phone: "+91 9026053036",
   appName: "Ludo 3D Master Pro",
-  version: "1.3.2 (Commercial Android & iOS)"
+  version: "1.3.3 (Commercial Android & iOS)"
 };
 
 export const PRIVACY_POLICY_TEXT = `

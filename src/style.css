@@ -1998,16 +1998,35 @@ html, body {
 }
 
 .btn-win-return {
-  padding: 12px 24px;
+  padding: 12px 20px;
   background: linear-gradient(180deg, #ffcf33 0%, #ff8800 100%);
   border: none;
   border-bottom: 3px solid #d97706;
   border-radius: 20px;
-  font-size: 0.92rem;
+  font-size: 0.90rem;
   font-weight: 900;
   color: #1a2536;
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(255, 136, 0, 0.4);
+}
+
+.btn-win-next {
+  padding: 12px 22px;
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-bottom: 3px solid #047857;
+  border-radius: 20px;
+  font-size: 0.90rem;
+  font-weight: 900;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+  transition: all 0.12s ease;
+}
+
+.btn-win-next:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
 }
 
 /* Tournament Podium & Standings (Olympic Leaderboard) */

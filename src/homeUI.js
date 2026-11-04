@@ -1413,7 +1413,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.2';
+    const CURRENT_VERSION = '1.3.3';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1468,10 +1468,10 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.2').replace(/^v/, '');
+      const latestTag = (release.tag_name || 'v1.3.3').replace(/^v/, '');
 
-      let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/app-debug.apk`;
-      let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro-iOS.ipa`;
+      let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.apk`;
+      let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.ipa`;
 
       if (Array.isArray(release.assets)) {
         const apkAsset = release.assets.find(a => a.name && a.name.endsWith('.apk'));
@@ -1503,14 +1503,14 @@ export class HomeUIManager {
           </div>
 
           <div class="update-dl-buttons-group" style="margin-top: 18px;">
-            <a href="${apkUrl}" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+            <a href="${apkUrl}" download="Ludo-3D-Master-Pro.apk" target="_blank" class="btn-update-dl btn-dl-apk">
               <span class="dl-icon">🤖</span>
               <div class="dl-meta">
                 <strong>Re-download Android APK</strong>
                 <small>Direct File Download (.apk)</small>
               </div>
             </a>
-            <a href="${iosUrl}" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+            <a href="${iosUrl}" download="Ludo-3D-Master-Pro.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
               <span class="dl-icon">🍏</span>
               <div class="dl-meta">
                 <strong>Re-download iOS Package</strong>
@@ -1532,14 +1532,14 @@ export class HomeUIManager {
           <p class="update-subtitle" style="color: #cbd5e1; font-size: 0.86rem; margin: 8px 0 16px;">A brand-new commercial release with fresh themes & optimizations is available!</p>
 
           <div class="update-dl-buttons-group">
-            <a href="${apkUrl}" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+            <a href="${apkUrl}" download="Ludo-3D-Master-Pro.apk" target="_blank" class="btn-update-dl btn-dl-apk">
               <span class="dl-icon">🤖</span>
               <div class="dl-meta">
                 <strong>Download Android APK</strong>
                 <small>Direct File Download (.apk)</small>
               </div>
             </a>
-            <a href="${iosUrl}" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+            <a href="${iosUrl}" download="Ludo-3D-Master-Pro.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
               <span class="dl-icon">🍏</span>
               <div class="dl-meta">
                 <strong>Download iOS Package</strong>
@@ -1558,14 +1558,14 @@ export class HomeUIManager {
         <h2 class="update-title" style="color: #ffd700; font-size: 1.2rem; font-weight: 900;">APP VERSION: v${CURRENT_VERSION}</h2>
         <p class="update-subtitle" style="color: #cbd5e1; font-size: 0.84rem; margin: 8px 0 16px;">Direct Download Links from GitHub Releases:</p>
         <div class="update-dl-buttons-group">
-          <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/app-debug.apk" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+          <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/Ludo-3D-Master-Pro.apk" download="Ludo-3D-Master-Pro.apk" target="_blank" class="btn-update-dl btn-dl-apk">
             <span class="dl-icon">🤖</span>
             <div class="dl-meta">
               <strong>Download Latest Android APK</strong>
               <small>Direct File Download (.apk)</small>
             </div>
           </a>
-          <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/Ludo-3D-Master-Pro-iOS.ipa" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+          <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/Ludo-3D-Master-Pro.ipa" download="Ludo-3D-Master-Pro.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
             <span class="dl-icon">🍏</span>
             <div class="dl-meta">
               <strong>Download Latest iOS Package</strong>

@@ -37,10 +37,18 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Ensure Consistent Release Signing Key
+      - name: Ensure and Persist Permanent Release Signing Key
         run: |
           if [ ! -f android/app/release-key.jks ]; then
+            echo "Generating permanent cryptographic keystore..."
             keytool -genkeypair -v -keystore android/app/release-key.jks -alias ludokey -keyalg RSA -keysize 2048 -validity 10000 -storepass ludomaster3d -keypass ludomaster3d -dname "CN=Sohel, OU=Gaming, O=Ludo3DMasterPro, L=Raebareli, ST=UP, C=IN"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add android/app/release-key.jks
+            git commit -m "chore: persist permanent android release keystore [skip ci]" || true
+            git push origin HEAD:main || true
+          else
+            echo "Permanent release-key.jks is already locked."
           fi
 
       - name: Build Android Debug APK
@@ -48,23 +56,34 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
+          mkdir -p output_binaries
+          APK_FILE=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
+          echo "Found APK at: $APK_FILE"
+          cp "$APK_FILE" output_binaries/Ludo-3D-Master-Pro.apk
+          ls -lh output_binaries/
 
       - name: Build Android Release AAB (Play Store)
         run: |
           cd android
           ./gradlew bundleRelease --stacktrace || true
+          AAB_FILE=$(find app/build/outputs/bundle -name "*.aab" | head -n 1)
+          if [ -n "$AAB_FILE" ]; then
+            echo "Found AAB at: $AAB_FILE"
+            cp "$AAB_FILE" output_binaries/Ludo-3D-Master-Pro.aab
+          fi
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ludo-3D-Master-Pro-Android-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/output_binaries/Ludo-3D-Master-Pro.apk
 
       - name: Upload Android AAB Bundle
         uses: actions/upload-artifact@v4
         with:
           name: Ludo-3D-Master-Pro-Android-AAB
-          path: android/app/build/outputs/bundle/release/*.aab
+          path: android/output_binaries/Ludo-3D-Master-Pro.aab
+          if-no-files-found: warn
         continue-on-error: true
 
   build-ios:
@@ -99,22 +118,22 @@ jobs:
           mkdir -p ipa_payload/Payload
           cp -R "$APP_DIR" ipa_payload/Payload/
           cd ipa_payload
-          zip -r ../Ludo-3D-Master-Pro-iOS.ipa Payload
+          zip -r ../Ludo-3D-Master-Pro.ipa Payload
           cd ..
-          zip -r Ludo-3D-Master-Pro-iOS-App.zip "$APP_DIR"
-          ls -lh Ludo-3D-Master-Pro-iOS*
+          zip -r Ludo-3D-Master-Pro-iOS.zip "$APP_DIR"
+          ls -lh Ludo-3D-Master-Pro*
 
       - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ludo-3D-Master-Pro-iOS-IPA
-          path: ios/App/Ludo-3D-Master-Pro-iOS.ipa
+          path: ios/App/Ludo-3D-Master-Pro.ipa
 
       - name: Upload iOS App Zip Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Ludo-3D-Master-Pro-iOS-App
-          path: ios/App/Ludo-3D-Master-Pro-iOS-App.zip
+          path: ios/App/Ludo-3D-Master-Pro-iOS.zip
 
   publish-release:
     name: 🚀 Publish GitHub Release with APK & iOS
