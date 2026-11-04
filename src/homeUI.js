@@ -355,12 +355,6 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-action="open-snakes-saga">ADVENTURE</button>
         </div>
       </div>
-
-      <!-- Copyright Notice -->
-      <div class="home-copyright-footer">
-        <p class="copyright-line">© 2026 Ludo 3D Master Pro. All Rights Reserved.</p>
-        <p class="dev-line">Designed & Developed by Sohel</p>
-      </div>
     `;
   }
 
@@ -1136,13 +1130,16 @@ export class HomeUIManager {
   }
 
   showGenericNotice(title, message) {
+    sounds.playButtonClick();
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    const icon = title.includes('EXPORT') ? '💾' : (title.includes('RESTORE') || title.includes('SUCCESS') ? '🎉' : '🛡️');
     modal.innerHTML = `
-      <div class="modal-card legal-modal-card" style="text-align:center;">
-        <h3 style="color:#ffd700; margin-bottom:10px;">${title}</h3>
-        <p style="color:#e2e8f0; font-size:0.88rem; line-height:1.4;">${message}</p>
-        <button class="btn-legal-agree" id="btn-ok-notice" style="margin-top:16px;">OK</button>
+      <div class="modal-card luxury-notice-card">
+        <div class="notice-icon-badge">${icon}</div>
+        <h3 class="notice-gold-title">${title}</h3>
+        <p class="notice-desc-text">${message}</p>
+        <button class="btn-royal-action" id="btn-ok-notice">CONTINUE</button>
       </div>
     `;
     document.getElementById('game-screen').appendChild(modal);
@@ -1220,20 +1217,52 @@ export class HomeUIManager {
     });
   }
 
-  // Manual On-Demand Update Checker (Direct Binary Downloads & Zero Local Storage Loss)
+  // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
-    this.genericNoticeModal.classList.remove('hidden');
-    this.genericNoticeModal.innerHTML = `
-      <div class="modal-card update-modal-card">
-        <div class="update-icon-header spin-icon">🔄</div>
-        <h2 class="update-title">CHECKING FOR UPDATES</h2>
-        <p class="update-subtitle">Contacting GitHub Releases...</p>
-        <div class="checking-spinner-bar"><div class="spinner-line"></div></div>
-      </div>
+    sounds.playButtonClick();
+    const CURRENT_VERSION = '1.3.1';
+    const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
+
+    this.legalModal.className = 'legal-page-screen';
+    this.legalModal.innerHTML = `
+      <header class="legal-page-header">
+        <button class="btn-legal-back" id="btn-close-up-screen" title="Back">
+          <span>← BACK</span>
+        </button>
+        <div class="legal-header-badge">
+          <span>🚀 SYSTEM UPDATE</span>
+        </div>
+        <div style="width: 50px;"></div>
+      </header>
+
+      <main class="legal-page-content">
+        <div class="update-page-card" id="update-dynamic-body">
+          <div class="update-icon-header spin-icon" style="font-size: 38px; margin: 12px 0;">🔄</div>
+          <h2 class="update-title" style="color: #ffd700; font-size: 1.2rem; font-weight: 900;">CHECKING FOR UPDATES...</h2>
+          <p class="update-subtitle" style="color: #cbd5e1; font-size: 0.84rem; margin: 8px 0 16px;">Connecting to GitHub Releases server...</p>
+          <div class="checking-spinner-bar"><div class="spinner-line"></div></div>
+        </div>
+      </main>
+
+      <footer class="legal-page-footer">
+        <button class="btn-royal-return" id="btn-return-up-screen">
+          <span>← RETURN TO HOME</span>
+        </button>
+      </footer>
     `;
 
-    const CURRENT_VERSION = '1.3.0';
-    const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
+    const closeUpdate = () => {
+      sounds.playButtonClick();
+      this.legalModal.className = 'legal-page-screen hidden';
+    };
+
+    const topBack = this.legalModal.querySelector('#btn-close-up-screen');
+    if (topBack) topBack.addEventListener('click', closeUpdate);
+
+    const botBack = this.legalModal.querySelector('#btn-return-up-screen');
+    if (botBack) botBack.addEventListener('click', closeUpdate);
+
+    const updateContainer = this.legalModal.querySelector('#update-dynamic-body');
 
     try {
       const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
@@ -1246,10 +1275,8 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.0').replace(/^v/, '');
-      const releaseName = release.name || `Release v${latestTag}`;
+      const latestTag = (release.tag_name || 'v1.3.1').replace(/^v/, '');
 
-      // Direct download URLs for APK and iOS IPA
       let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/app-debug.apk`;
       let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro-iOS.ipa`;
 
@@ -1267,95 +1294,94 @@ export class HomeUIManager {
       const isNewer = this.compareVersions(latestTag, CURRENT_VERSION) > 0;
 
       if (!isNewer) {
-        // App is already up to date!
-        this.genericNoticeModal.innerHTML = `
-          <div class="modal-card update-modal-card">
-            <div class="update-icon-header">🎉</div>
-            <h2 class="update-title">LATEST VERSION INSTALLED!</h2>
-            <p class="update-subtitle">You are running the newest official release of <strong>Ludo 3D Master Pro</strong>.</p>
-            <div class="update-ver-chip-box">
-              <span class="chip-current">Current Version: <strong>v${CURRENT_VERSION}</strong></span>
-              <span class="chip-status">✅ Up to Date</span>
-            </div>
-            <p class="update-safe-hint">🛡️ Your progress, coins, diamonds, and themes are completely safe in local storage.</p>
-            <div class="update-modal-actions">
-              <button class="btn-setup-start" id="btn-close-up-modal">AWESOME</button>
-            </div>
+        // Up to date!
+        updateContainer.innerHTML = `
+          <div class="update-icon-header" style="font-size: 42px; margin: 10px 0;">🎉</div>
+          <h2 class="update-title" style="color: #ffd700; font-size: 1.25rem; font-weight: 900;">YOU'RE RUNNING THE LATEST VERSION!</h2>
+          <p class="update-subtitle" style="color: #cbd5e1; font-size: 0.86rem; margin: 8px 0 16px;">Your copy of <strong>Ludo 3D Master Pro</strong> is completely up-to-date.</p>
+
+          <div class="update-ver-chip-box" style="margin: 14px 0;">
+            <span class="chip-current" style="background: rgba(15,23,42,0.8); border: 1.5px solid #ffd700; color: #ffd700; padding: 6px 14px; border-radius: 12px; font-weight: 900; font-size: 0.82rem;">Current Version: v${CURRENT_VERSION}</span>
           </div>
-        `;
-      } else {
-        // New version available!
-        this.genericNoticeModal.innerHTML = `
-          <div class="modal-card update-modal-card update-available-glow">
-            <div class="update-icon-header">🚀</div>
-            <h2 class="update-title">NEW UPDATE AVAILABLE!</h2>
-            <div class="update-compare-row">
-              <span class="ver-pill ver-old">v${CURRENT_VERSION}</span>
-              <span class="ver-arrow">➜</span>
-              <span class="ver-pill ver-new">v${latestTag}</span>
-            </div>
-            <p class="update-subtitle">A new release is ready with fresh themes and performance boosts!</p>
-            <div class="update-dl-buttons-group">
-              <a href="${apkUrl}" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
-                <span class="dl-icon">🤖</span>
-                <div class="dl-meta">
-                  <strong>Download Android APK</strong>
-                  <small>Direct File Download (.apk)</small>
-                </div>
-              </a>
-              <a href="${iosUrl}" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
-                <span class="dl-icon">🍏</span>
-                <div class="dl-meta">
-                  <strong>Download iOS Package</strong>
-                  <small>Direct File Download (.ipa)</small>
-                </div>
-              </a>
-            </div>
-            <p class="update-safe-hint">🔒 In-Place Update: Install directly over existing app. Do NOT uninstall — all coins, levels & themes will persist!</p>
-            <div class="update-modal-actions">
-              <button class="btn-setup-cancel" id="btn-close-up-modal">CLOSE</button>
-            </div>
+
+          <div style="background: rgba(15,23,42,0.7); border-radius: 14px; padding: 14px; margin: 16px 0; text-align: left;">
+            <h4 style="color: #67e8f9; margin: 0 0 8px 0; font-size: 0.90rem;">🛡️ Permanent Local Save Guarantee:</h4>
+            <p style="color: #94a3b8; font-size: 0.78rem; margin: 0; line-height: 1.5;">All your unlocked 300 levels, coins, diamonds, and equipped store skins are permanently retained on this device.</p>
           </div>
-        `;
-      }
-    } catch (err) {
-      console.warn('Update check note:', err);
-      // Fallback direct links
-      this.genericNoticeModal.innerHTML = `
-        <div class="modal-card update-modal-card">
-          <div class="update-icon-header">ℹ️</div>
-          <h2 class="update-title">APP VERSION: v${CURRENT_VERSION}</h2>
-          <p class="update-subtitle">Direct Download Links from GitHub Releases:</p>
-          <div class="update-dl-buttons-group">
-            <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/app-debug.apk" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+
+          <div class="update-dl-buttons-group" style="margin-top: 18px;">
+            <a href="${apkUrl}" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
               <span class="dl-icon">🤖</span>
               <div class="dl-meta">
-                <strong>Download Latest Android APK</strong>
+                <strong>Re-download Android APK</strong>
                 <small>Direct File Download (.apk)</small>
               </div>
             </a>
-            <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/Ludo-3D-Master-Pro-iOS.ipa" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+            <a href="${iosUrl}" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
               <span class="dl-icon">🍏</span>
               <div class="dl-meta">
-                <strong>Download Latest iOS App</strong>
+                <strong>Re-download iOS Package</strong>
                 <small>Direct File Download (.ipa)</small>
               </div>
             </a>
           </div>
-          <p class="update-safe-hint">🔒 Safe In-Place Update: Overwrites binary while keeping all user progress safe.</p>
-          <div class="update-modal-actions">
-            <button class="btn-setup-start" id="btn-close-up-modal">GOT IT</button>
+        `;
+      } else {
+        // Newer version available!
+        updateContainer.innerHTML = `
+          <div class="update-icon-header" style="font-size: 42px; margin: 10px 0;">🚀</div>
+          <h2 class="update-title" style="color: #ffd700; font-size: 1.25rem; font-weight: 900;">NEW UPDATE READY!</h2>
+          <div class="update-compare-row" style="margin: 12px 0;">
+            <span class="ver-pill ver-old">v${CURRENT_VERSION}</span>
+            <span class="ver-arrow">➜</span>
+            <span class="ver-pill ver-new">v${latestTag}</span>
           </div>
-        </div>
-      `;
-    }
+          <p class="update-subtitle" style="color: #cbd5e1; font-size: 0.86rem; margin: 8px 0 16px;">A brand-new commercial release with fresh themes & optimizations is available!</p>
 
-    const closeBtn = this.genericNoticeModal.querySelector('#btn-close-up-modal');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        sounds.playButtonClick();
-        this.genericNoticeModal.classList.add('hidden');
-      });
+          <div class="update-dl-buttons-group">
+            <a href="${apkUrl}" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+              <span class="dl-icon">🤖</span>
+              <div class="dl-meta">
+                <strong>Download Android APK</strong>
+                <small>Direct File Download (.apk)</small>
+              </div>
+            </a>
+            <a href="${iosUrl}" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+              <span class="dl-icon">🍏</span>
+              <div class="dl-meta">
+                <strong>Download iOS Package</strong>
+                <small>Direct File Download (.ipa)</small>
+              </div>
+            </a>
+          </div>
+
+          <p class="update-safe-hint" style="margin-top: 14px;">🔒 In-Place Update: Install directly over existing app. Do NOT uninstall — all coins, levels & themes will persist!</p>
+        `;
+      }
+    } catch (err) {
+      console.warn('Update check note:', err);
+      updateContainer.innerHTML = `
+        <div class="update-icon-header" style="font-size: 38px; margin: 10px 0;">ℹ️</div>
+        <h2 class="update-title" style="color: #ffd700; font-size: 1.2rem; font-weight: 900;">APP VERSION: v${CURRENT_VERSION}</h2>
+        <p class="update-subtitle" style="color: #cbd5e1; font-size: 0.84rem; margin: 8px 0 16px;">Direct Download Links from GitHub Releases:</p>
+        <div class="update-dl-buttons-group">
+          <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/app-debug.apk" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+            <span class="dl-icon">🤖</span>
+            <div class="dl-meta">
+              <strong>Download Latest Android APK</strong>
+              <small>Direct File Download (.apk)</small>
+            </div>
+          </a>
+          <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/Ludo-3D-Master-Pro-iOS.ipa" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+            <span class="dl-icon">🍏</span>
+            <div class="dl-meta">
+              <strong>Download Latest iOS Package</strong>
+              <small>Direct File Download (.ipa)</small>
+            </div>
+          </a>
+        </div>
+        <p class="update-safe-hint" style="margin-top: 14px;">🔒 In-Place Update: Overwrites binary while keeping all user progress safe.</p>
+      `;
     }
   }
 
@@ -1371,50 +1397,75 @@ export class HomeUIManager {
     return 0;
   }
 
+  // Dedicated Full-Screen Legal, Privacy & Game Rules Page
   showLegalModal(type) {
+    sounds.playButtonClick();
     let title = "Game Info";
+    let icon = "📜";
     let content = "";
 
     if (type === 'privacy') {
       title = "Privacy Policy";
+      icon = "📜";
       content = PRIVACY_POLICY_TEXT;
     } else if (type === 'terms') {
       title = "Terms of Service";
+      icon = "⚖️";
       content = TERMS_OF_SERVICE_TEXT;
     } else if (type === 'rules') {
-      title = "Rules & How to Play";
+      title = "How to Play & Rules";
+      icon = "📖";
       content = RULES_GUIDE_TEXT;
     } else if (type === 'contact') {
       title = "Developer & Publisher Support";
+      icon = "📞";
       content = `
         <h2>Developer Details</h2>
         <div class="contact-card-box">
-          <p><strong>Name:</strong> ${PUBLISHER_INFO.developerName}</p>
-          <p><strong>Address:</strong> ${PUBLISHER_INFO.address}</p>
-          <p><strong>Email:</strong> <a href="mailto:${PUBLISHER_INFO.email}">${PUBLISHER_INFO.email}</a></p>
-          <p><strong>Phone:</strong> <a href="tel:${PUBLISHER_INFO.phone}">${PUBLISHER_INFO.phone}</a></p>
-          <p><strong>App Version:</strong> ${PUBLISHER_INFO.version}</p>
+          <p><strong>Publisher / Developer:</strong> ${PUBLISHER_INFO.developerName}</p>
+          <p><strong>Official Address:</strong> ${PUBLISHER_INFO.address}</p>
+          <p><strong>Support Email:</strong> <a href="mailto:${PUBLISHER_INFO.email}">${PUBLISHER_INFO.email}</a></p>
+          <p><strong>Official Phone:</strong> <a href="tel:${PUBLISHER_INFO.phone}">${PUBLISHER_INFO.phone}</a></p>
+          <p><strong>Game Version:</strong> ${PUBLISHER_INFO.version}</p>
         </div>
       `;
     }
 
-    this.legalModal.classList.remove('hidden');
+    this.legalModal.className = 'legal-page-screen';
     this.legalModal.innerHTML = `
-      <div class="modal-card legal-modal-card">
-        <div class="legal-modal-header">
-          <h3>${title}</h3>
-          <button class="modal-close-icon" id="btn-close-legal">✕</button>
+      <header class="legal-page-header">
+        <button class="btn-legal-back" id="btn-close-legal" title="Back">
+          <span>← BACK</span>
+        </button>
+        <div class="legal-header-badge">
+          <span>${icon} ${title}</span>
         </div>
-        <div class="legal-modal-content">
+        <div style="width: 50px;"></div>
+      </header>
+
+      <main class="legal-page-content">
+        <div class="legal-content-card">
           ${content}
         </div>
-        <button class="btn-legal-agree" id="btn-agree-legal">UNDERSTOOD</button>
-      </div>
+      </main>
+
+      <footer class="legal-page-footer">
+        <button class="btn-royal-return" id="btn-agree-legal">
+          <span>← RETURN TO HOME</span>
+        </button>
+      </footer>
     `;
 
-    const close = () => this.legalModal.classList.add('hidden');
-    this.legalModal.querySelector('#btn-close-legal').addEventListener('click', close);
-    this.legalModal.querySelector('#btn-agree-legal').addEventListener('click', close);
+    const close = () => {
+      sounds.playButtonClick();
+      this.legalModal.className = 'legal-page-screen hidden';
+    };
+
+    const closeBtn = this.legalModal.querySelector('#btn-close-legal');
+    if (closeBtn) closeBtn.addEventListener('click', close);
+
+    const agreeBtn = this.legalModal.querySelector('#btn-agree-legal');
+    if (agreeBtn) agreeBtn.addEventListener('click', close);
   }
 
   bindContentEvents() {

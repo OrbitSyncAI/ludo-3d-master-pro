@@ -237,18 +237,27 @@ export class UIManager {
       const card = document.createElement('div');
       card.id = `player-hud-${p.id}`;
       card.className = `player-card player-hud-card ${cornerClasses[idx]} ${p.isAI ? 'is-bot' : 'is-human'}`;
-      card.style.borderColor = p.color ? p.color.primary : '#ffd700';
+      card.style.borderColor = p.color ? (p.color.primary || p.color.textColor) : (p.text || '#ffd700');
+
+      // High-contrast, crystal clear readable colors on white card
+      const readableColors = {
+        0: '#dc2626', // Bold Red
+        1: '#15803d', // Bold Emerald Green
+        2: '#b45309', // Bold Royal Amber
+        3: '#0284c7'  // Bold Deep Blue
+      };
+      const nameColor = (p.color && p.color.textColor) ? p.color.textColor : (readableColors[idx] || (p.text || '#0f172a'));
 
       const roleBadge = p.team 
         ? `<span class="type-pill hud-role" style="background: ${p.team === 'A' ? '#fee2e2; color: #dc2626' : '#dcfce7; color: #16a34a'}">${p.team === 'A' ? '🔴 SOLAR' : '🟢 CYBER'}</span>`
         : `<span class="type-pill hud-role">${p.isAI ? 'BOT' : 'YOU'}</span>`;
 
       card.innerHTML = `
-        <div class="player-avatar hud-avatar-box" style="background: ${p.color ? p.color.primary + '22' : '#ffffff22'}">
+        <div class="player-avatar hud-avatar-box" style="background: ${p.color ? (p.color.primary || '#cbd5e1') + '22' : '#ffffff22'}">
           <span class="hud-avatar">${p.isAI ? '🤖' : (economy?.data?.avatar || '👑')}</span>
         </div>
         <div class="player-info hud-player-meta">
-          <strong class="player-name hud-name" style="color: ${p.color ? p.color.textColor : '#ffffff'}">${p.name}</strong>
+          <strong class="player-name hud-name" style="color: ${nameColor}">${p.name}</strong>
           <div class="player-meta">
             ${roleBadge}
             <span class="home-score hud-score-chip" id="hud-score-${p.id}">🏆 0/4</span>

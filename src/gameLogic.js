@@ -50,12 +50,17 @@ export class GameEngine {
       return customPlayers;
     }
     const isBot = this.isAI;
+    const isTeam = this.isTeam;
     const p1Name = economy?.data?.playerName || "Player 1";
+    const p2Name = (isTeam || !isBot) ? "Player 2" : "Cyber Green";
+    const p3Name = (isTeam || !isBot) ? "Player 3" : "Neon Yellow";
+    const p4Name = (isTeam || !isBot) ? "Player 4" : "Alpha Blue";
+
     const basePlayers = [
       { id: 0, name: p1Name, isAI: false, color: PLAYERS_CONFIG[0] },
-      { id: 1, name: isBot ? "Cyber Green" : "Player 2", isAI: isBot, color: PLAYERS_CONFIG[1] },
-      { id: 2, name: isBot ? "Neon Yellow" : "Player 3", isAI: isBot, color: PLAYERS_CONFIG[2] },
-      { id: 3, name: isBot ? "Alpha Blue" : "Player 4", isAI: isBot, color: PLAYERS_CONFIG[3] }
+      { id: 1, name: p2Name, isAI: isBot, color: PLAYERS_CONFIG[1] },
+      { id: 2, name: p3Name, isAI: isBot, color: PLAYERS_CONFIG[2] },
+      { id: 3, name: p4Name, isAI: isBot, color: PLAYERS_CONFIG[3] }
     ].slice(0, this.playerCount);
 
     if (this.isTeam) {

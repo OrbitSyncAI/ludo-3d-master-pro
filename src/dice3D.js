@@ -25,8 +25,8 @@ export class Dice3D {
     };
 
     this.mesh = this.createDiceMesh();
-    // Clean position in bottom right area with no intrusive dark tray covering the board
-    this.basePosition = new THREE.Vector3(7.2, 0.45, 7.2);
+    // Authentic board center placement: dice sits and rolls in the exact center of the board
+    this.basePosition = new THREE.Vector3(0, 0.58, 0);
     this.mesh.position.copy(this.basePosition);
 
     this.scene.add(this.mesh);

@@ -84,7 +84,7 @@ export const PLAYERS_CONFIG = [
     colorName: "red",
     hexColor: 0xff3366,
     glowColor: 0xff1744,
-    textColor: "#ff3366",
+    textColor: "#dc2626",
     yardCenter: { x: 2.5, y: 11.5 },
     yardPositions: [
       { x: 1.5, y: 10.5 },
@@ -109,7 +109,7 @@ export const PLAYERS_CONFIG = [
     colorName: "green",
     hexColor: 0x00e676,
     glowColor: 0x00c853,
-    textColor: "#00e676",
+    textColor: "#15803d",
     yardCenter: { x: 2.5, y: 2.5 },
     yardPositions: [
       { x: 1.5, y: 1.5 },
@@ -134,7 +134,7 @@ export const PLAYERS_CONFIG = [
     colorName: "yellow",
     hexColor: 0xffd600,
     glowColor: 0xffab00,
-    textColor: "#ffd600",
+    textColor: "#b45309",
     yardCenter: { x: 11.5, y: 2.5 },
     yardPositions: [
       { x: 10.5, y: 1.5 },
@@ -159,7 +159,7 @@ export const PLAYERS_CONFIG = [
     colorName: "blue",
     hexColor: 0x00b0ff,
     glowColor: 0x2979ff,
-    textColor: "#00b0ff",
+    textColor: "#0284c7",
     yardCenter: { x: 11.5, y: 11.5 },
     yardPositions: [
       { x: 10.5, y: 10.5 },

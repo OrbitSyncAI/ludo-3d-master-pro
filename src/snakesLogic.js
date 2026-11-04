@@ -53,12 +53,18 @@ export class SnakesEngine {
     this.isAI = config.isAI !== false;
     this.levelNumber = config.levelNumber || null;
 
+    const isBot = this.isAI;
+    const isTeam = this.isTeam;
     const p1Name = economy?.data?.playerName || "Player 1";
+    const p2Name = (isTeam || !isBot) ? "Player 2" : "Cyber Green";
+    const p3Name = (isTeam || !isBot) ? "Player 3" : "Neon Yellow";
+    const p4Name = (isTeam || !isBot) ? "Player 4" : "Alpha Blue";
+
     this.players = [
-      { id: 0, name: p1Name, isAI: false, colorHex: 0xff1744, text: "#ff1744" },
-      { id: 1, name: this.isAI ? "Cyber Green" : "Player 2", isAI: this.isAI, colorHex: 0x00e676, text: "#00e676" },
-      { id: 2, name: this.isAI ? "Neon Yellow" : "Player 3", isAI: this.isAI, colorHex: 0xffc400, text: "#ffc400" },
-      { id: 3, name: this.isAI ? "Alpha Blue" : "Player 4", isAI: this.isAI, colorHex: 0x00b0ff, text: "#00b0ff" }
+      { id: 0, name: p1Name, isAI: false, color: { primary: '#ef4444', textColor: '#dc2626' }, colorHex: 0xff1744, text: "#dc2626" },
+      { id: 1, name: p2Name, isAI: this.isAI, color: { primary: '#10b981', textColor: '#15803d' }, colorHex: 0x00e676, text: "#15803d" },
+      { id: 2, name: p3Name, isAI: this.isAI, color: { primary: '#f59e0b', textColor: '#b45309' }, colorHex: 0xffc400, text: "#b45309" },
+      { id: 3, name: p4Name, isAI: this.isAI, color: { primary: '#06b6d4', textColor: '#0284c7' }, colorHex: 0x00b0ff, text: "#0284c7" }
     ].slice(0, this.playerCount);
 
     if (this.isTeam) {

@@ -188,6 +188,11 @@ class LudoApp {
   // Start Ludo (Classic or Quick)
   startLudoMatch(config) {
     this.currentConfig = config;
+    if (!this.dice3D) {
+      this.dice3D = new Dice3D(this.scene);
+    } else {
+      this.dice3D.applySkin();
+    }
     const curThemeId = economy.data.equipped?.theme || 'classic_royal';
     const themeObj = SHOP_CATALOG.ludoThemes?.find(t => t.id === curThemeId);
     if (this.scene && themeObj && themeObj.sceneBg) {
@@ -209,7 +214,7 @@ class LudoApp {
     this.isProcessingTurn = false;
 
     const label = this.currentLevelNum ? `LEVEL ${this.currentLevelNum}` : 
-      ((config.mode === 'team2v2' || config.isTeam) ? '2v2 TEAM BATTLE' : 
+      ((config.mode === 'team2v2' || config.isTeam) ? '2v2 LUDO' : 
       (this.currentGameMode === 'quick' ? 'LUDO QUICK' : 'LUDO CLASSIC'));
     this.inGameUI.showInGameUI(label);
     this.inGameUI.renderPlayerCards(this.engine.players, this.engine.activePlayerIndex, this.engine.tokens);
@@ -219,6 +224,11 @@ class LudoApp {
   // Start Snakes & Ladders
   startSnakesMatch(config) {
     this.currentConfig = config;
+    if (!this.dice3D) {
+      this.dice3D = new Dice3D(this.scene);
+    } else {
+      this.dice3D.applySkin();
+    }
     const snakesThemeId = economy.data.equipped?.snakesTheme || 'snakes_classic';
     const snakesThemeObj = SHOP_CATALOG.snakesThemes?.find(t => t.id === snakesThemeId);
     if (this.scene && snakesThemeObj && snakesThemeObj.sceneBg) {
@@ -229,7 +239,7 @@ class LudoApp {
     this.snakesBoard3D.createPawns(this.snakesEngine.players);
 
     const title = this.currentSnakesLevelNum ? `STAGE ${this.currentSnakesLevelNum}` : 
-      ((config.mode === 'team2v2' || config.isTeam) ? 'SNAKES 2v2 TEAM BATTLE' : 'SNAKES & LADDERS 3D');
+      ((config.mode === 'team2v2' || config.isTeam) ? '2v2 SNAKES' : 'SNAKES 3D');
     this.inGameUI.showInGameUI(title);
     this.inGameUI.renderPlayerCards(this.snakesEngine.players, this.snakesEngine.activePlayerIndex, null, this.snakesEngine.positions);
     this.updateSnakesTurnUI();
