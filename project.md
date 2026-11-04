@@ -8,21 +8,20 @@
 ## 1. 📌 Executive Summary & Project Identification
 
 - **Project Name:** Ludo 3D Master Pro
-- **Current Version:** `1.3.0` (Production Commercial Release)
+- **Current Version:** `1.3.1` (Production Commercial Release)
 - **Developer / Publisher:** Sohel
 - **Publisher Address:** Bathuwa Khas, Raebareli, Uttar Pradesh - 229001, India
 - **Publisher Email:** `sk9026053036@gmail.com`
 - **Publisher Phone:** `+91 9026053036`
-- **Copyright Notice:** `© 2026 Ludo 3D Master Pro. All Rights Reserved. Designed & Developed by Sohel.`
 - **GitHub Repository:** [`https://github.com/OrbitSyncAI/ludo-3d-master-pro`](https://github.com/OrbitSyncAI/ludo-3d-master-pro)
-- **Current Live Release:** [`v1.3.0 (Commercial Android APK & iOS Bundle)`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.3.0)
+- **Current Live Release:** [`v1.3.1 (Commercial Android APK & iOS Bundle)`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.3.1)
 - **Compiled Artifacts (Android & iOS):**
   - Local Storage Folder: `D:\Download\`
   - Android APK: `D:\Download\app-debug.apk`
   - Android AAB: `D:\Download\app-release.aab`
   - iOS IPA Package: `D:\Download\Ludo-3D-Master-Pro-iOS.ipa`
   - iOS App Zip: `D:\Download\Ludo-3D-Master-Pro-iOS-App.zip`
-  - Cloud Direct Release: [`https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.3.0`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.3.0)
+  - Cloud Direct Release: [`https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.3.1`](https://github.com/OrbitSyncAI/ludo-3d-master-pro/releases/tag/v1.3.1)
 
 ---
 
