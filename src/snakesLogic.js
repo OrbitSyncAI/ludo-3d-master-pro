@@ -48,7 +48,8 @@ export function tileToGrid(tileNum) {
 
 export class SnakesEngine {
   constructor(config = {}) {
-    this.playerCount = config.playerCount || 2;
+    this.isTeam = (config.mode === 'team2v2' || config.isTeam === true);
+    this.playerCount = this.isTeam ? 4 : (config.playerCount || 2);
     this.isAI = config.isAI !== false;
     this.levelNumber = config.levelNumber || null;
 
@@ -59,6 +60,13 @@ export class SnakesEngine {
       { id: 2, name: this.isAI ? "Neon Yellow" : "Player 3", isAI: this.isAI, colorHex: 0xffc400, text: "#ffc400" },
       { id: 3, name: this.isAI ? "Alpha Blue" : "Player 4", isAI: this.isAI, colorHex: 0x00b0ff, text: "#00b0ff" }
     ].slice(0, this.playerCount);
+
+    if (this.isTeam) {
+      this.players.forEach(p => {
+        p.team = (p.id % 2 === 0) ? 'A' : 'B';
+        p.teamName = (p.id % 2 === 0) ? 'Team Solar 🔴🟡' : 'Team Cyber 🟢🔵';
+      });
+    }
 
     this.activePlayerIndex = 0;
     this.positions = Array(this.playerCount).fill(1); // all start at square 1
@@ -121,9 +129,13 @@ export class SnakesEngine {
     if (finalPos === 100) {
       this.isOver = true;
       this.winner = this.getCurrentPlayer();
+      const winningTeamMembers = this.isTeam ? this.players.filter(p => p.team === this.winner.team) : null;
       return {
         action: 'GAME_OVER',
         winner: this.winner,
+        isTeam: this.isTeam,
+        winningTeam: this.winner.teamName,
+        winningTeamMembers,
         startPos,
         landedPos,
         finalPos: 100,

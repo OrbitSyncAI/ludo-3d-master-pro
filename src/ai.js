@@ -33,6 +33,7 @@ export class LudoAI {
           // Check if opponent is sitting on this tile
           engine.players.forEach((opp) => {
             if (opp.id !== pId) {
+              if (engine.isTeam && opp.team === engine.getCurrentPlayer().team) return;
               engine.tokens[opp.id].forEach((oppStep) => {
                 if (oppStep >= 0 && oppStep <= 50) {
                   const oppTile = engine.getCommonTileIndex(opp.id, oppStep);
@@ -66,6 +67,7 @@ export class LudoAI {
           let inDanger = false;
           engine.players.forEach((opp) => {
             if (opp.id !== pId) {
+              if (engine.isTeam && opp.team === engine.getCurrentPlayer().team) return;
               engine.tokens[opp.id].forEach((oppStep) => {
                 if (oppStep >= 0 && oppStep <= 50) {
                   const oppTile = engine.getCommonTileIndex(opp.id, oppStep);

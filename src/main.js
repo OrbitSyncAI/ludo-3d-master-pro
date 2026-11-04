@@ -208,7 +208,9 @@ class LudoApp {
     this.validMoves = [];
     this.isProcessingTurn = false;
 
-    const label = this.currentLevelNum ? `LEVEL ${this.currentLevelNum}` : (this.currentGameMode === 'quick' ? 'LUDO QUICK' : 'LUDO CLASSIC');
+    const label = this.currentLevelNum ? `LEVEL ${this.currentLevelNum}` : 
+      ((config.mode === 'team2v2' || config.isTeam) ? '2v2 TEAM BATTLE' : 
+      (this.currentGameMode === 'quick' ? 'LUDO QUICK' : 'LUDO CLASSIC'));
     this.inGameUI.showInGameUI(label);
     this.inGameUI.renderPlayerCards(this.engine.players, this.engine.activePlayerIndex, this.engine.tokens);
     this.updateTurnUI();
@@ -226,7 +228,8 @@ class LudoApp {
     this.snakesEngine = new SnakesEngine(config);
     this.snakesBoard3D.createPawns(this.snakesEngine.players);
 
-    const title = this.currentSnakesLevelNum ? `STAGE ${this.currentSnakesLevelNum}` : "SNAKES & LADDERS 3D";
+    const title = this.currentSnakesLevelNum ? `STAGE ${this.currentSnakesLevelNum}` : 
+      ((config.mode === 'team2v2' || config.isTeam) ? 'SNAKES 2v2 TEAM BATTLE' : 'SNAKES & LADDERS 3D');
     this.inGameUI.showInGameUI(title);
     this.inGameUI.renderPlayerCards(this.snakesEngine.players, this.snakesEngine.activePlayerIndex, null, this.snakesEngine.positions);
     this.updateSnakesTurnUI();
@@ -538,10 +541,71 @@ class LudoApp {
     this.updateSnakesTurnUI();
   }
 
+  // Compute Olympic Podium / Tournament Standings
+  computeMatchRankings(winner) {
+    if (this.currentConfig && (this.currentConfig.mode === 'snakes' || this.snakesEngine)) {
+      const players = this.snakesEngine.players;
+      const positions = this.snakesEngine.positions;
+      const list = players.map(p => ({
+        id: p.id,
+        name: p.name,
+        colorHex: p.colorHex,
+        text: p.text,
+        isAI: p.isAI,
+        team: p.team,
+        scoreVal: (p.id === winner.id ? 1000 : (positions[p.id] || 1)),
+        scoreLabel: `Tile ${positions[p.id] || 1}`
+      }));
+      list.sort((a, b) => b.scoreVal - a.scoreVal);
+      return list.map((item, idx) => ({
+        ...item,
+        rank: idx + 1,
+        isWinner: idx === 0,
+        isRunnerUp: idx === 1 && list.length > 2,
+        isDefeated: idx === list.length - 1 && list.length >= 2
+      }));
+    } else if (this.engine) {
+      const players = this.engine.players;
+      const tokens = this.engine.tokens;
+      const list = players.map(p => {
+        const pTokens = tokens[p.id] || [];
+        const homeCount = pTokens.filter(s => s === 56).length;
+        const totalSteps = pTokens.reduce((sum, s) => sum + (s >= 0 ? s : 0), 0);
+        const scoreVal = (p.id === winner.id ? 10000 : (homeCount * 1000 + totalSteps));
+        return {
+          id: p.id,
+          name: p.name,
+          color: p.color,
+          isAI: p.isAI,
+          team: p.team,
+          homeCount,
+          scoreVal,
+          scoreLabel: `🏆 ${homeCount}/4 Home (${totalSteps} steps)`
+        };
+      });
+      list.sort((a, b) => b.scoreVal - a.scoreVal);
+      return list.map((item, idx) => ({
+        ...item,
+        rank: idx + 1,
+        isWinner: idx === 0,
+        isRunnerUp: idx === 1 && list.length > 2,
+        isDefeated: idx === list.length - 1 && list.length >= 2
+      }));
+    }
+    return [];
+  }
+
   // 8. Victory & Defeat Handler (Strict: Only User Wins Award Stars & Progress)
   onMatchVictory(winner) {
     let rewardInfo = null;
     const isUserWinner = (winner.id === 0);
+    const isTeamMode = (this.engine && this.engine.isTeam) || (this.snakesEngine && this.snakesEngine.isTeam);
+    const rankings = this.computeMatchRankings(winner);
+    const winningTeam = winner.teamName || (this.engine?.winningTeam) || (winner.team === 'A' ? 'Team Solar 🔴🟡' : 'Team Cyber 🟢🔵');
+    const winningTeamMembers = (this.engine?.winningTeamMembers) || 
+      (this.engine ? this.engine.players.filter(p => p.team === winner.team) : 
+      (this.snakesEngine ? this.snakesEngine.players.filter(p => p.team === winner.team) : []));
+    const isUserTeamWinner = (winner.team === 'A');
 
     if (this.currentLevelNum) {
       // 1. Ludo 300 Saga Mode
@@ -551,6 +615,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: false,
           isLevel: true,
+          rankings,
           title: `LUDO SAGA LEVEL ${this.currentLevelNum} CLEARED!`,
           coins: 1500,
           gems: 10,
@@ -563,6 +628,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: true,
           isLevel: true,
+          rankings,
           title: `LEVEL ${this.currentLevelNum} FAILED`,
           coins: 40,
           gems: 0,
@@ -578,6 +644,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: false,
           isLevel: true,
+          rankings,
           title: `SNAKES STAGE ${this.currentSnakesLevelNum} CONQUERED!`,
           coins: 1200,
           gems: 8,
@@ -590,6 +657,7 @@ class LudoApp {
         rewardInfo = {
           isDefeat: true,
           isLevel: true,
+          rankings,
           title: `STAGE ${this.currentSnakesLevelNum} FAILED`,
           coins: 30,
           gems: 0,
@@ -598,18 +666,23 @@ class LudoApp {
         };
       }
     } else if (this.currentConfig && this.currentConfig.isAI) {
-      // 3. Match vs AI Bot
-      if (isUserWinner) {
-        economy.addCoins(250);
-        economy.addGems(2);
-        economy.addXP(60);
+      // 3. Match vs AI Bot (Solo or Team)
+      const userWon = isTeamMode ? isUserTeamWinner : isUserWinner;
+      if (userWon) {
+        economy.addCoins(300);
+        economy.addGems(3);
+        economy.addXP(70);
         rewardInfo = {
           isDefeat: false,
           isLevel: false,
-          title: 'VICTORY OVER CYBER BOT!',
-          coins: 250,
-          gems: 2,
-          xp: 60
+          isTeam: isTeamMode,
+          winningTeam,
+          teamMembers: winningTeamMembers,
+          rankings,
+          title: isTeamMode ? `${winningTeam} WINS!` : 'VICTORY OVER CYBER BOT!',
+          coins: 300,
+          gems: 3,
+          xp: 70
         };
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       } else {
@@ -618,7 +691,11 @@ class LudoApp {
         rewardInfo = {
           isDefeat: true,
           isLevel: false,
-          title: 'DEFEAT - BOT WON',
+          isTeam: isTeamMode,
+          winningTeam,
+          teamMembers: winningTeamMembers,
+          rankings,
+          title: isTeamMode ? `${winningTeam} WON` : 'DEFEAT - BOT WON',
           coins: 40,
           gems: 0,
           xp: 15,
@@ -626,11 +703,15 @@ class LudoApp {
         };
       }
     } else {
-      // 4. Pass & Play (Human Friends on same device) -> Zero farming
+      // 4. Pass & Play (Human Friends on same device) -> Zero wallet farming
       rewardInfo = {
         isDefeat: false,
         isFriendly: true,
-        title: `${winner.name} WINS!`
+        isTeam: isTeamMode,
+        winningTeam,
+        teamMembers: winningTeamMembers,
+        rankings,
+        title: isTeamMode ? `${winningTeam} WINS!` : `${winner.name} WINS!`
       };
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }

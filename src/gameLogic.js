@@ -16,12 +16,13 @@ export const GAME_STATES = {
 
 export class GameEngine {
   constructor(config = {}) {
-    // Mode: 'classic' (all 4 tokens home) or 'quick' (1st token home)
+    // Mode: 'classic', 'quick', or 'team2v2' (2v2 Team Battle)
     this.mode = config.mode || 'classic';
-    this.playerCount = config.playerCount || 4; // 2, 3, or 4
+    this.isTeam = (this.mode === 'team2v2' || config.isTeam === true);
+    this.playerCount = this.isTeam ? 4 : (config.playerCount || 4); // 2v2 requires strictly 4 players
     this.isAI = config.isAI !== false;
     
-    // Players setup: [{ id, name, isAI, difficulty: 'medium' }]
+    // Players setup: [{ id, name, isAI, difficulty: 'medium', team, teamName }]
     this.players = this.initPlayers(config.players);
     this.activePlayerIndex = 0;
     this.state = GAME_STATES.WAITING_FOR_ROLL;
@@ -50,12 +51,21 @@ export class GameEngine {
     }
     const isBot = this.isAI;
     const p1Name = economy?.data?.playerName || "Player 1";
-    return [
+    const basePlayers = [
       { id: 0, name: p1Name, isAI: false, color: PLAYERS_CONFIG[0] },
       { id: 1, name: isBot ? "Cyber Green" : "Player 2", isAI: isBot, color: PLAYERS_CONFIG[1] },
       { id: 2, name: isBot ? "Neon Yellow" : "Player 3", isAI: isBot, color: PLAYERS_CONFIG[2] },
       { id: 3, name: isBot ? "Alpha Blue" : "Player 4", isAI: isBot, color: PLAYERS_CONFIG[3] }
     ].slice(0, this.playerCount);
+
+    if (this.isTeam) {
+      basePlayers.forEach(p => {
+        p.team = (p.id % 2 === 0) ? 'A' : 'B';
+        p.teamName = (p.id % 2 === 0) ? 'Team Solar 🔴🟡' : 'Team Cyber 🟢🔵';
+      });
+    }
+
+    return basePlayers;
   }
 
   getCurrentPlayer() {
@@ -181,6 +191,11 @@ export class GameEngine {
         // Check if any opponent is sitting on this tile
         this.players.forEach((opp) => {
           if (opp.id !== pId) {
+            // In 2v2 Team Battle: Teammates never capture each other (Cooperative safe sharing)
+            if (this.isTeam && opp.team === this.getCurrentPlayer().team) {
+              return;
+            }
+
             this.tokens[opp.id].forEach((oppStep, oppTokenIdx) => {
               if (oppStep >= 0 && oppStep <= 50) {
                 const oppCommonTile = this.getCommonTileIndex(opp.id, oppStep);
@@ -204,10 +219,14 @@ export class GameEngine {
     const hasWon = this.checkWin(pId);
     if (hasWon) {
       this.winner = this.getCurrentPlayer();
+      const winningTeamMembers = this.isTeam ? this.players.filter(p => p.team === this.winner.team) : null;
       this.state = GAME_STATES.GAME_OVER;
       return {
         action: 'GAME_OVER',
         winner: this.winner,
+        isTeam: this.isTeam,
+        winningTeam: this.winningTeam,
+        winningTeamMembers,
         capturedOpponent
       };
     }
@@ -242,6 +261,22 @@ export class GameEngine {
 
   // Check if player has satisfied victory criteria
   checkWin(playerId) {
+    if (this.isTeam) {
+      const p = this.players.find(x => x.id === playerId);
+      if (!p) return false;
+      const myTeam = p.team;
+      let teamCompletedTokens = 0;
+      this.players.filter(x => x.team === myTeam).forEach(tp => {
+        teamCompletedTokens += this.tokens[tp.id].filter(s => s === 56).length;
+      });
+      if (teamCompletedTokens >= 4) {
+        this.winningTeam = p.teamName;
+        this.winningTeamId = myTeam;
+        return true;
+      }
+      return false;
+    }
+
     const tokens = this.tokens[playerId];
     const completed = tokens.filter(s => s === 56).length;
 

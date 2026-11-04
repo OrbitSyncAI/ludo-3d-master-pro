@@ -168,6 +168,13 @@ export class HomeUIManager {
           </div>
 
           <div class="drawer-nav-list">
+            <button class="drawer-nav-item drawer-update-item" data-drawer-action="check-update">
+              <span class="item-icon">🔄</span>
+              <div class="item-update-row">
+                <span>Check for Updates</span>
+                <span class="version-chip">v1.3.0</span>
+              </div>
+            </button>
             <button class="drawer-nav-item" data-drawer-action="profile">
               <span class="item-icon">👤</span>
               <span>Edit Player Profile</span>
@@ -226,16 +233,22 @@ export class HomeUIManager {
       }
     }
 
-    // Smoothly scroll to current level node when Ludo or Snakes Saga opens
+    // Instantly anchor to current level node without any jarring top-to-bottom falling animation
     if (this.activeTab === 'ludo_saga' || this.activeTab === 'snakes_saga') {
-      setTimeout(() => {
+      const scrollBody = this.container.querySelector('#home-content-body');
+      if (scrollBody) {
+        scrollBody.style.scrollBehavior = 'auto';
+        scrollBody.scrollTop = scrollBody.scrollHeight;
         const activeNode = this.container.querySelector('.saga-node.current') || 
                            this.container.querySelector('[data-level="1"]') ||
                            this.container.querySelector('[data-snakes-stage="1"]');
         if (activeNode) {
-          activeNode.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          activeNode.scrollIntoView({ block: 'center', behavior: 'auto' });
         }
-      }, 60);
+        requestAnimationFrame(() => {
+          scrollBody.style.scrollBehavior = 'smooth';
+        });
+      }
     }
   }
 
@@ -287,7 +300,18 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-mode-setup="quick">PLAY</button>
         </div>
 
-        <!-- 3. Ludo 300 Saga -->
+        <!-- 3. 2v2 Team Battle (Ludo) -->
+        <div class="game-mode-card card-team" data-mode-setup="team2v2">
+          <div class="mode-icon">👥</div>
+          <div class="mode-info">
+            <h4>2v2 Team Battle (Ludo)</h4>
+            <p>Red + Yellow vs Green + Blue! Cooperative partner immunity</p>
+            <span class="mode-tag tag-team">2v2 COOPERATIVE</span>
+          </div>
+          <button class="btn-play-mode" data-mode-setup="team2v2">PLAY 2v2</button>
+        </div>
+
+        <!-- 4. Ludo 300 Saga -->
         <div class="game-mode-card card-saga" data-action="open-saga">
           <div class="mode-icon">🗺️</div>
           <div class="mode-info">
@@ -298,7 +322,7 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-action="open-saga">JOURNEY</button>
         </div>
 
-        <!-- 4. Snakes & Ladders 3D -->
+        <!-- 5. Snakes & Ladders 3D -->
         <div class="game-mode-card card-snakes" data-mode-setup="snakes">
           <div class="mode-icon">🐍</div>
           <div class="mode-info">
@@ -309,7 +333,18 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-mode-setup="snakes">PLAY</button>
         </div>
 
-        <!-- 5. Snakes 300 Stages Adventure -->
+        <!-- 6. 2v2 Snakes Team Battle -->
+        <div class="game-mode-card card-team-snakes" data-mode-setup="team_snakes">
+          <div class="mode-icon">🤝</div>
+          <div class="mode-info">
+            <h4>2v2 Snakes Team Battle</h4>
+            <p>Duo race to 100! Team Solar vs Team Cyber</p>
+            <span class="mode-tag tag-team">2v2 COOPERATIVE</span>
+          </div>
+          <button class="btn-play-mode" data-mode-setup="team_snakes">PLAY 2v2</button>
+        </div>
+
+        <!-- 7. Snakes 300 Stages Adventure -->
         <div class="game-mode-card card-snakes-adventure" data-action="open-snakes-saga">
           <div class="mode-icon">🧗</div>
           <div class="mode-info">
@@ -1176,11 +1211,164 @@ export class HomeUIManager {
           this.exportBackup();
         } else if (action === 'import-backup') {
           this.openImportModal();
+        } else if (action === 'check-update') {
+          this.checkForUpdatesManual();
         } else {
           this.showLegalModal(action);
         }
       });
     });
+  }
+
+  // Manual On-Demand Update Checker (Direct Binary Downloads & Zero Local Storage Loss)
+  async checkForUpdatesManual() {
+    this.genericNoticeModal.classList.remove('hidden');
+    this.genericNoticeModal.innerHTML = `
+      <div class="modal-card update-modal-card">
+        <div class="update-icon-header spin-icon">🔄</div>
+        <h2 class="update-title">CHECKING FOR UPDATES</h2>
+        <p class="update-subtitle">Contacting GitHub Releases...</p>
+        <div class="checking-spinner-bar"><div class="spinner-line"></div></div>
+      </div>
+    `;
+
+    const CURRENT_VERSION = '1.3.0';
+    const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
+
+    try {
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+        headers: { 'Accept': 'application/vnd.github.v3+json' },
+        cache: 'no-cache'
+      });
+
+      if (!res.ok) {
+        throw new Error(`GitHub responded with ${res.status}`);
+      }
+
+      const release = await res.json();
+      const latestTag = (release.tag_name || 'v1.3.0').replace(/^v/, '');
+      const releaseName = release.name || `Release v${latestTag}`;
+
+      // Direct download URLs for APK and iOS IPA
+      let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/app-debug.apk`;
+      let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro-iOS.ipa`;
+
+      if (Array.isArray(release.assets)) {
+        const apkAsset = release.assets.find(a => a.name && a.name.endsWith('.apk'));
+        if (apkAsset && apkAsset.browser_download_url) {
+          apkUrl = apkAsset.browser_download_url;
+        }
+        const iosAsset = release.assets.find(a => a.name && (a.name.endsWith('.ipa') || a.name.endsWith('.zip')));
+        if (iosAsset && iosAsset.browser_download_url) {
+          iosUrl = iosAsset.browser_download_url;
+        }
+      }
+
+      const isNewer = this.compareVersions(latestTag, CURRENT_VERSION) > 0;
+
+      if (!isNewer) {
+        // App is already up to date!
+        this.genericNoticeModal.innerHTML = `
+          <div class="modal-card update-modal-card">
+            <div class="update-icon-header">🎉</div>
+            <h2 class="update-title">LATEST VERSION INSTALLED!</h2>
+            <p class="update-subtitle">You are running the newest official release of <strong>Ludo 3D Master Pro</strong>.</p>
+            <div class="update-ver-chip-box">
+              <span class="chip-current">Current Version: <strong>v${CURRENT_VERSION}</strong></span>
+              <span class="chip-status">✅ Up to Date</span>
+            </div>
+            <p class="update-safe-hint">🛡️ Your progress, coins, diamonds, and themes are completely safe in local storage.</p>
+            <div class="update-modal-actions">
+              <button class="btn-setup-start" id="btn-close-up-modal">AWESOME</button>
+            </div>
+          </div>
+        `;
+      } else {
+        // New version available!
+        this.genericNoticeModal.innerHTML = `
+          <div class="modal-card update-modal-card update-available-glow">
+            <div class="update-icon-header">🚀</div>
+            <h2 class="update-title">NEW UPDATE AVAILABLE!</h2>
+            <div class="update-compare-row">
+              <span class="ver-pill ver-old">v${CURRENT_VERSION}</span>
+              <span class="ver-arrow">➜</span>
+              <span class="ver-pill ver-new">v${latestTag}</span>
+            </div>
+            <p class="update-subtitle">A new release is ready with fresh themes and performance boosts!</p>
+            <div class="update-dl-buttons-group">
+              <a href="${apkUrl}" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+                <span class="dl-icon">🤖</span>
+                <div class="dl-meta">
+                  <strong>Download Android APK</strong>
+                  <small>Direct File Download (.apk)</small>
+                </div>
+              </a>
+              <a href="${iosUrl}" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+                <span class="dl-icon">🍏</span>
+                <div class="dl-meta">
+                  <strong>Download iOS Package</strong>
+                  <small>Direct File Download (.ipa)</small>
+                </div>
+              </a>
+            </div>
+            <p class="update-safe-hint">🔒 In-Place Update: Install directly over existing app. Do NOT uninstall — all coins, levels & themes will persist!</p>
+            <div class="update-modal-actions">
+              <button class="btn-setup-cancel" id="btn-close-up-modal">CLOSE</button>
+            </div>
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.warn('Update check note:', err);
+      // Fallback direct links
+      this.genericNoticeModal.innerHTML = `
+        <div class="modal-card update-modal-card">
+          <div class="update-icon-header">ℹ️</div>
+          <h2 class="update-title">APP VERSION: v${CURRENT_VERSION}</h2>
+          <p class="update-subtitle">Direct Download Links from GitHub Releases:</p>
+          <div class="update-dl-buttons-group">
+            <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/app-debug.apk" download="app-debug.apk" target="_blank" class="btn-update-dl btn-dl-apk">
+              <span class="dl-icon">🤖</span>
+              <div class="dl-meta">
+                <strong>Download Latest Android APK</strong>
+                <small>Direct File Download (.apk)</small>
+              </div>
+            </a>
+            <a href="https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}/Ludo-3D-Master-Pro-iOS.ipa" download="Ludo-3D-Master-Pro-iOS.ipa" target="_blank" class="btn-update-dl btn-dl-ios">
+              <span class="dl-icon">🍏</span>
+              <div class="dl-meta">
+                <strong>Download Latest iOS App</strong>
+                <small>Direct File Download (.ipa)</small>
+              </div>
+            </a>
+          </div>
+          <p class="update-safe-hint">🔒 Safe In-Place Update: Overwrites binary while keeping all user progress safe.</p>
+          <div class="update-modal-actions">
+            <button class="btn-setup-start" id="btn-close-up-modal">GOT IT</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const closeBtn = this.genericNoticeModal.querySelector('#btn-close-up-modal');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        this.genericNoticeModal.classList.add('hidden');
+      });
+    }
+  }
+
+  compareVersions(v1, v2) {
+    const p1 = (v1 || '').split('.').map(n => parseInt(n) || 0);
+    const p2 = (v2 || '').split('.').map(n => parseInt(n) || 0);
+    for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+      const a = p1[i] || 0;
+      const b = p2[i] || 0;
+      if (a > b) return 1;
+      if (a < b) return -1;
+    }
+    return 0;
   }
 
   showLegalModal(type) {
@@ -1457,14 +1645,38 @@ export class HomeUIManager {
   }
 
   openMatchSetupModal(mode) {
+    const isTeamMode = (mode === 'team2v2' || mode === 'team_snakes');
     let selectedPlayerCount = 4;
     let selectedOpponentType = 'ai'; // 'ai' or 'pass_play'
 
     const modeTitles = {
       classic: 'Classic Ludo (4 Tokens Home)',
       quick: 'Quick Ludo (1st Token Wins)',
+      team2v2: '2v2 Ludo Team Battle (Cooperative)',
+      team_snakes: '2v2 Snakes Team Battle (Cooperative)',
       snakes: 'Snakes & Ladders 3D'
     };
+
+    const playerSelectionHtml = isTeamMode ? `
+      <div class="setup-section">
+        <label>TEAM FORMATION (4 PLAYERS)</label>
+        <div class="team-setup-pairing-box">
+          <div class="pairing-badge solar-pairing">🔴 Team Solar: Red (P1) + 🟡 Yellow (P3)</div>
+          <div class="vs-pairing-badge">⚔️ VS ⚔️</div>
+          <div class="pairing-badge cyber-pairing">🟢 Team Cyber: Green (P2) + 🔵 Blue (P4)</div>
+        </div>
+        <small class="team-info-hint">🛡️ Cooperative: Teammates never knock out each other!</small>
+      </div>
+    ` : `
+      <div class="setup-section">
+        <label>SELECT PLAYERS</label>
+        <div class="setup-btn-group" id="group-player-count">
+          <button class="setup-player-count-btn" data-count="2">2 PLAYERS</button>
+          <button class="setup-player-count-btn" data-count="3">3 PLAYERS</button>
+          <button class="setup-player-count-btn active" data-count="4">4 PLAYERS</button>
+        </div>
+      </div>
+    `;
 
     this.setupModal.classList.remove('hidden');
     this.setupModal.innerHTML = `
@@ -1474,14 +1686,7 @@ export class HomeUIManager {
           <span class="setup-sub">${modeTitles[mode] || 'Match Config'}</span>
         </div>
 
-        <div class="setup-section">
-          <label>SELECT PLAYERS</label>
-          <div class="setup-btn-group" id="group-player-count">
-            <button class="setup-player-count-btn" data-count="2">2 PLAYERS</button>
-            <button class="setup-player-count-btn" data-count="3">3 PLAYERS</button>
-            <button class="setup-player-count-btn active" data-count="4">4 PLAYERS</button>
-          </div>
-        </div>
+        ${playerSelectionHtml}
 
         <div class="setup-section">
           <label>OPPONENT MODE</label>
@@ -1498,16 +1703,18 @@ export class HomeUIManager {
       </div>
     `;
 
-    // Handle Player Count selection
-    const countBtns = this.setupModal.querySelectorAll('.setup-player-count-btn');
-    countBtns.forEach(b => {
-      b.addEventListener('click', () => {
-        sounds.playButtonClick();
-        countBtns.forEach(btn => btn.classList.remove('active'));
-        b.classList.add('active');
-        selectedPlayerCount = parseInt(b.dataset.count);
+    // Handle Player Count selection (if not team mode)
+    if (!isTeamMode) {
+      const countBtns = this.setupModal.querySelectorAll('.setup-player-count-btn');
+      countBtns.forEach(b => {
+        b.addEventListener('click', () => {
+          sounds.playButtonClick();
+          countBtns.forEach(btn => btn.classList.remove('active'));
+          b.classList.add('active');
+          selectedPlayerCount = parseInt(b.dataset.count);
+        });
       });
-    });
+    }
 
     // Handle Opponent selection
     const oppBtns = this.setupModal.querySelectorAll('.setup-opp-btn');
@@ -1530,11 +1737,27 @@ export class HomeUIManager {
       this.setupModal.classList.add('hidden');
       this.hide();
       if (this.callbacks.onStartGame) {
-        this.callbacks.onStartGame({
-          mode,
-          playerCount: selectedPlayerCount,
-          isAI: selectedOpponentType === 'ai'
-        });
+        if (mode === 'team_snakes') {
+          this.callbacks.onStartGame({
+            mode: 'snakes',
+            isTeam: true,
+            playerCount: 4,
+            isAI: selectedOpponentType === 'ai'
+          });
+        } else if (mode === 'team2v2') {
+          this.callbacks.onStartGame({
+            mode: 'team2v2',
+            isTeam: true,
+            playerCount: 4,
+            isAI: selectedOpponentType === 'ai'
+          });
+        } else {
+          this.callbacks.onStartGame({
+            mode,
+            playerCount: selectedPlayerCount,
+            isAI: selectedOpponentType === 'ai'
+          });
+        }
       }
     });
   }

@@ -239,6 +239,10 @@ export class UIManager {
       card.className = `player-card player-hud-card ${cornerClasses[idx]} ${p.isAI ? 'is-bot' : 'is-human'}`;
       card.style.borderColor = p.color ? p.color.primary : '#ffd700';
 
+      const roleBadge = p.team 
+        ? `<span class="type-pill hud-role" style="background: ${p.team === 'A' ? '#fee2e2; color: #dc2626' : '#dcfce7; color: #16a34a'}">${p.team === 'A' ? '🔴 SOLAR' : '🟢 CYBER'}</span>`
+        : `<span class="type-pill hud-role">${p.isAI ? 'BOT' : 'YOU'}</span>`;
+
       card.innerHTML = `
         <div class="player-avatar hud-avatar-box" style="background: ${p.color ? p.color.primary + '22' : '#ffffff22'}">
           <span class="hud-avatar">${p.isAI ? '🤖' : (economy?.data?.avatar || '👑')}</span>
@@ -246,7 +250,7 @@ export class UIManager {
         <div class="player-info hud-player-meta">
           <strong class="player-name hud-name" style="color: ${p.color ? p.color.textColor : '#ffffff'}">${p.name}</strong>
           <div class="player-meta">
-            <span class="type-pill hud-role">${p.isAI ? 'BOT' : 'YOU'}</span>
+            ${roleBadge}
             <span class="home-score hud-score-chip" id="hud-score-${p.id}">🏆 0/4</span>
           </div>
         </div>
@@ -316,7 +320,7 @@ export class UIManager {
         rewardSection = `
           <div class="victory-reward-card friendly-reward">
             <span>👥 Friendly Pass & Play Match</span>
-            <small>Play 300-Level Saga or vs Bot to earn Coins & Diamonds!</small>
+            <small>Casual match between friends — Play 300 Saga to earn Coins & Diamonds!</small>
           </div>
         `;
       } else {
@@ -335,6 +339,46 @@ export class UIManager {
       }
     }
 
+    let teamSection = '';
+    if (rewardInfo && rewardInfo.isTeam) {
+      teamSection = `
+        <div class="team-victory-banner">
+          <div class="team-banner-title">👥 ${rewardInfo.winningTeam || 'TEAM BATTLE'} WINS!</div>
+          <div class="team-partner-row">
+            ${(rewardInfo.teamMembers || []).map(m => `
+              <div class="team-partner-badge">
+                <span>${m.id === 0 ? (economy?.data?.avatar || '👑') : '🤖'}</span>
+                <strong>${m.name}</strong>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    let podiumSection = '';
+    if (rewardInfo && rewardInfo.rankings && rewardInfo.rankings.length > 0) {
+      podiumSection = `
+        <div class="tournament-podium-section">
+          <div class="podium-header-bar">🏆 MATCH STANDINGS & LEADERBOARD</div>
+          <div class="podium-list">
+            ${rewardInfo.rankings.map(r => `
+              <div class="podium-row rank-${r.rank} ${r.isWinner ? 'podium-winner' : ''} ${r.isDefeated ? 'podium-defeated' : ''}">
+                <span class="rank-badge">${r.rank === 1 ? '🥇 1st' : (r.rank === 2 ? '🥈 2nd' : (r.rank === 3 ? '🥉 3rd' : '💔 4th'))}</span>
+                <div class="rank-player-details">
+                  <strong class="rank-player-name">${r.name} ${r.team ? `(${r.team === 'A' ? 'Solar' : 'Cyber'})` : ''}</strong>
+                  <span class="rank-player-score">${r.scoreLabel || ''}</span>
+                </div>
+                <span class="rank-status-tag ${r.isWinner ? 'tag-winner' : (r.isDefeated ? 'tag-defeated' : 'tag-position')}">
+                  ${r.isWinner ? '👑 WINNER' : (r.isDefeated ? '💔 DEFEATED' : (r.rank === 2 ? 'RUNNER UP' : '3RD'))}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     this.modalOverlay.innerHTML = `
       <div class="modal-card ${isDefeat ? 'defeat-card' : 'victory-card'}">
         <div class="${isDefeat ? 'defeat-icon' : 'victory-crown'}">${isDefeat ? '💔' : '👑'}</div>
@@ -343,7 +387,9 @@ export class UIManager {
           ${isDefeat ? `<strong>${winner.name}</strong> outplayed you this time!` : `<strong>${winner.name}</strong> has conquered the board!`}
         </p>
 
+        ${teamSection}
         ${rewardSection}
+        ${podiumSection}
 
         <div class="victory-stats-grid">
           <div class="stat-box">
