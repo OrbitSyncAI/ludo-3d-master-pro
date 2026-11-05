@@ -1023,10 +1023,10 @@ export class HomeUIManager {
       <div class="modal-card backup-restore-card">
         <div class="backup-modal-header">
           <div class="backup-header-title">
-            <span class="backup-header-icon">💾</span>
+            <span class="backup-header-icon">📋</span>
             <div>
-              <h3>EXPORT GAME PROGRESS (JSON)</h3>
-              <p>1-Click Copy or Download your complete JSON game save</p>
+              <h3>EXPORT GAME PROGRESS</h3>
+              <p>1-Click Copy your game save code</p>
             </div>
           </div>
           <button class="modal-close-icon" id="btn-close-export">✕</button>
@@ -1034,43 +1034,25 @@ export class HomeUIManager {
 
         <div class="backup-modal-body">
           <div class="backup-preview-badge" style="background: #f0fdf4; border-color: #22c55e; color: #15803d;">
-            <span class="preview-badge-title">✨ PROGRESS SECURED IN JSON:</span>
+            <span class="preview-badge-title">✨ PROGRESS SECURED:</span>
             <div class="preview-badge-details">
               <strong>${name}</strong> (LVL ${lvl}) • 🪙 ${coins.toLocaleString()} Coins • 💎 ${gems.toLocaleString()} Diamonds • 🏆 ${ludoCount} Levels • 🐍 ${snakesCount} Stages • 🎨 ${themesCount} Themes
             </div>
           </div>
 
-          <!-- Primary: 1-Click Copy Button -->
-          <button class="btn-backup-action btn-purple-copy" id="btn-trigger-copy" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.45);">
+          <!-- ONLY 1-Click Copy Button -->
+          <button class="btn-backup-action btn-purple-copy" id="btn-trigger-copy" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.45); margin: 6px 0 10px;">
             <span class="action-icon">📋</span>
             <div class="action-text">
-              <strong style="font-size: 0.95rem;">COPY JSON CODE (1-CLICK)</strong>
-              <small>Instantly copies complete JSON to clipboard</small>
-            </div>
-          </button>
-
-          <!-- Secondary Download Button -->
-          <button class="btn-backup-action btn-gold-download" id="btn-trigger-download">
-            <span class="action-icon">📥</span>
-            <div class="action-text">
-              <strong>DOWNLOAD .JSON FILE</strong>
-              <small>Direct file download to device storage</small>
-            </div>
-          </button>
-
-          <!-- Share via Apps -->
-          <button class="btn-backup-action btn-blue-share" id="btn-trigger-share">
-            <span class="action-icon">📤</span>
-            <div class="action-text">
-              <strong>SHARE .JSON FILE VIA APPS</strong>
-              <small>Send JSON to Drive, WhatsApp or Email</small>
+              <strong style="font-size: 1rem;">COPY BACKUP CODE (1-CLICK)</strong>
+              <small style="color: #ede9fe;">Instantly copy your full game save to clipboard</small>
             </div>
           </button>
 
           <div id="export-status-alert" class="backup-live-alert hidden"></div>
 
-          <div class="backup-divider"><span>OR VIEW RAW JSON DATA</span></div>
-          <textarea id="export-text-view" class="backup-textarea" readonly>${jsonStr}</textarea>
+          <div class="backup-divider"><span>OR VIEW / SELECT RAW SAVE CODE</span></div>
+          <textarea id="export-text-view" class="backup-textarea" readonly style="min-height: 140px;">${jsonStr}</textarea>
         </div>
 
         <div class="backup-modal-actions" style="justify-content: flex-end;">
@@ -1092,108 +1074,34 @@ export class HomeUIManager {
       alertBox.classList.remove('hidden');
     };
 
-    const filename = `ludo_3d_master_pro_backup_${Date.now()}.json`;
-
-    // 1. Copy JSON Code action (Primary)
+    // 1-Click Copy Code action
     modal.querySelector('#btn-trigger-copy').addEventListener('click', () => {
       sounds.playButtonClick();
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(jsonStr).then(() => {
-            showAlert('✅ 100% JSON Code copied to clipboard!');
+            showAlert('✅ 100% Save Code copied to clipboard!');
           }).catch(() => {
             const ta = modal.querySelector('#export-text-view');
             ta.select();
             document.execCommand('copy');
-            showAlert('✅ JSON Code copied to clipboard!');
+            showAlert('✅ Save Code copied to clipboard!');
           });
         } else {
           const ta = modal.querySelector('#export-text-view');
           ta.select();
           document.execCommand('copy');
-          showAlert('✅ JSON Code copied to clipboard!');
+          showAlert('✅ Save Code copied to clipboard!');
         }
       } catch (e) {
         const ta = modal.querySelector('#export-text-view');
         ta.select();
-        showAlert('📋 JSON selected. Long-press to copy.');
-      }
-    });
-
-    // 2. Download action
-    modal.querySelector('#btn-trigger-download').addEventListener('click', () => {
-      sounds.playButtonClick();
-      try {
-        const encodedData = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonStr);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const blobUrl = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = encodedData;
-        a.download = filename;
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-
-        // Also trigger blob fallback for mobile webviews
-        setTimeout(() => {
-          try {
-            const a2 = document.createElement('a');
-            a2.href = blobUrl;
-            a2.download = filename;
-            document.body.appendChild(a2);
-            a2.click();
-            setTimeout(() => a2.remove(), 2000);
-          } catch (e) {}
-        }, 150);
-
-        setTimeout(() => {
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
-        }, 1000);
-
-        showAlert(`✅ Download started! File "${filename}" saved.`);
-      } catch (e) {
-        showAlert('⚠️ Direct download blocked. Please use Copy JSON button above.', false);
-      }
-    });
-
-    // 3. Share action
-    modal.querySelector('#btn-trigger-share').addEventListener('click', async () => {
-      sounds.playButtonClick();
-      try {
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const file = new File([blob], filename, { type: 'application/json' });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: 'Ludo 3D Master Pro Backup',
-            text: `Backup for ${name} (Coins: ${coins})`
-          });
-          showAlert('✅ JSON file shared successfully!');
-          return;
-        }
-
-        if (navigator.share) {
-          await navigator.share({
-            title: 'Ludo 3D Master Pro Backup',
-            text: jsonStr
-          });
-          showAlert('✅ JSON backup text shared successfully!');
-          return;
-        }
-
-        showAlert('⚠️ Native share not supported on this device. Use Copy JSON Code above.', false);
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          showAlert('⚠️ Share sheet closed or cancelled.', false);
-        }
+        showAlert('📋 Code selected. Long-press to copy.');
       }
     });
   }
 
-  // Backup Import: strictly JSON Upload File or Paste JSON
+  // Backup Import: strictly Paste Code
   openImportModal() {
     sounds.playButtonClick();
     const modal = document.createElement('div');
@@ -1204,8 +1112,8 @@ export class HomeUIManager {
           <div class="backup-header-title">
             <span class="backup-header-icon">📥</span>
             <div>
-              <h3>RESTORE GAME PROGRESS (JSON)</h3>
-              <p>Restore your saved coins, diamonds, levels & skins from JSON</p>
+              <h3>RESTORE GAME PROGRESS</h3>
+              <p>Paste your saved game code to restore progress</p>
             </div>
           </div>
           <button class="modal-close-icon" id="btn-close-import">✕</button>
@@ -1213,34 +1121,27 @@ export class HomeUIManager {
 
         <div class="backup-modal-body">
           <!-- Primary: 1-Click Paste Button -->
-          <button class="btn-backup-action btn-gold-restore-action" id="btn-quick-paste" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; border: 1.5px solid #34d399 !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.45); margin-bottom: 12px;">
+          <button class="btn-backup-action btn-gold-restore-action" id="btn-quick-paste" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; border: 1.5px solid #34d399 !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.45); margin: 6px 0 10px;">
             <span class="action-icon">📋</span>
             <div class="action-text">
-              <strong style="color: white; font-size: 0.95rem;">PASTE JSON CODE (1-CLICK)</strong>
-              <small style="color: #d1fae5;">Instantly paste copied JSON from clipboard</small>
+              <strong style="color: white; font-size: 1rem;">PASTE SAVE CODE (1-CLICK)</strong>
+              <small style="color: #d1fae5;">Instantly paste copied save code from clipboard</small>
             </div>
           </button>
 
-          <!-- Secondary: .json file drop -->
-          <div class="file-drop-zone" id="file-drop-zone">
-            <span class="drop-zone-icon">📁</span>
-            <span class="drop-zone-text">Tap to select your backup <strong>.json</strong> file</span>
-            <input type="file" id="backup-file-input" accept=".json,application/json" class="hidden-file-input">
-          </div>
+          <div class="backup-divider"><span>OR PASTE CODE MANUALLY</span></div>
 
-          <div class="backup-divider"><span>OR PASTE RAW JSON BELOW</span></div>
-
-          <textarea id="backup-text-input" class="backup-textarea" placeholder="Paste your saved JSON progress text here..."></textarea>
+          <textarea id="backup-text-input" class="backup-textarea" placeholder="Paste your saved game code here..." style="min-height: 140px;"></textarea>
 
           <div id="backup-preview-badge" class="backup-preview-badge hidden">
-            <span class="preview-badge-title">✨ VALID JSON BACKUP DETECTED:</span>
+            <span class="preview-badge-title">✨ VALID PROGRESS DETECTED:</span>
             <div class="preview-badge-details" id="preview-badge-details"></div>
           </div>
         </div>
 
         <div class="backup-modal-actions">
           <button class="btn-setup-cancel" id="btn-cancel-import">CANCEL</button>
-          <button class="btn-setup-start btn-gold-restore" id="btn-confirm-import">RESTORE FROM JSON</button>
+          <button class="btn-setup-start btn-gold-restore" id="btn-confirm-import">RESTORE PROGRESS</button>
         </div>
       </div>
     `;
@@ -1251,7 +1152,6 @@ export class HomeUIManager {
     modal.querySelector('#btn-close-import').addEventListener('click', close);
     modal.querySelector('#btn-cancel-import').addEventListener('click', close);
 
-    const fileInput = modal.querySelector('#backup-file-input');
     const textInput = modal.querySelector('#backup-text-input');
     const previewBox = modal.querySelector('#backup-preview-badge');
     const previewDetails = modal.querySelector('#preview-badge-details');
@@ -1304,23 +1204,11 @@ export class HomeUIManager {
       });
     }
 
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          textInput.value = event.target.result;
-          updatePreview(event.target.result);
-        };
-        reader.readAsText(file);
-      }
-    });
-
     modal.querySelector('#btn-confirm-import').addEventListener('click', () => {
       sounds.playButtonClick();
       const content = textInput.value.trim();
       if (!content) {
-        this.showGenericNotice('EMPTY BACKUP', 'Please choose a .json backup file or paste valid JSON text.');
+        this.showGenericNotice('EMPTY CODE', 'Please paste your saved game code first.');
         return;
       }
       const success = economy.importBackupJSON(content);
@@ -1328,10 +1216,10 @@ export class HomeUIManager {
       if (success) {
         sounds.playVictory();
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
-        this.showGenericNotice('RESTORE SUCCESSFUL', 'Your game progress, coins, diamonds, and inventory have been successfully restored from JSON!');
+        this.showGenericNotice('RESTORE SUCCESSFUL', 'Your game progress, coins, diamonds, and inventory have been successfully restored!');
         this.render();
       } else {
-        this.showGenericNotice('INVALID JSON BACKUP', 'The backup format was invalid JSON. Please ensure you copied or uploaded valid JSON.');
+        this.showGenericNotice('INVALID CODE', 'The save code format was invalid. Please ensure you copied the full code.');
       }
     });
   }
