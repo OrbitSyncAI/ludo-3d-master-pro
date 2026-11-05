@@ -156,7 +156,8 @@ export class SnakesEngine {
       };
     }
 
-    const bonus = roll === 6;
+    // BONUS TURN RULE: Rolling a 6 OR climbing a Ladder awards a Bonus Roll!
+    const bonus = (roll === 6 || climbedLadder);
     if (!bonus) {
       this.activePlayerIndex = (this.activePlayerIndex + 1) % this.playerCount;
     }
@@ -169,6 +170,8 @@ export class SnakesEngine {
       climbedLadder,
       bittenBySnake,
       bonusTurn: bonus,
+      ladderBonus: climbedLadder,
+      sixBonus: (roll === 6),
       nextPlayer: this.getCurrentPlayer()
     };
   }

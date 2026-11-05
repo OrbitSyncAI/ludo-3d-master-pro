@@ -20,6 +20,8 @@ import { calculateLudoKingCamera } from './cameraHelper.js';
 import { economy } from './economyState.js';
 import { SHOP_CATALOG } from './shopData.js';
 import { liveUpdater } from './liveUpdater.js';
+import { LEVELS } from './levelsData.js';
+import { SNAKES_STAGES } from './snakesLevelsData.js';
 
 class LudoApp {
   constructor() {
@@ -143,18 +145,20 @@ class LudoApp {
     });
   }
 
-  // 4. Start a Match from Home
+  // 4. Start a Match from Home or Progression
   startMatch(config) {
     this.currentGameMode = config.mode || 'classic';
     this.currentLevelNum = (this.currentGameMode !== 'snakes') ? (config.levelNumber || null) : null;
     this.currentSnakesLevelNum = (this.currentGameMode === 'snakes') ? (config.levelNumber || null) : null;
+    this.currentConfig = { ...config };
 
-    // Clear old boards if any
+    // Clear old boards and reset state cleanly
     this.cleanupBoards();
 
     if (!this.dice3D) {
       this.dice3D = new Dice3D(this.scene);
     } else {
+      this.dice3D.isRolling = false;
       this.dice3D.applySkin();
     }
 
@@ -166,6 +170,10 @@ class LudoApp {
   }
 
   cleanupBoards() {
+    this.isProcessingTurn = false;
+    if (this.dice3D) {
+      this.dice3D.isRolling = false;
+    }
     if (this.board3D) {
       this.board3D.destroy();
       this.board3D = null;
@@ -183,14 +191,21 @@ class LudoApp {
       });
       this.tokens = [];
     }
+    this.engine = null;
+    this.snakesEngine = null;
+    this.validMoves = [];
   }
 
   // Start Ludo (Classic or Quick)
   startLudoMatch(config) {
+    this.currentGameMode = (config.mode === 'quick' ? 'quick' : (config.mode === 'team2v2' ? 'team2v2' : 'classic'));
     this.currentConfig = config;
+    this.isProcessingTurn = false;
+
     if (!this.dice3D) {
       this.dice3D = new Dice3D(this.scene);
     } else {
+      this.dice3D.isRolling = false;
       this.dice3D.applySkin();
     }
     const curThemeId = economy.data.equipped?.theme || 'classic_royal';
@@ -223,10 +238,14 @@ class LudoApp {
 
   // Start Snakes & Ladders
   startSnakesMatch(config) {
+    this.currentGameMode = 'snakes';
     this.currentConfig = config;
+    this.isProcessingTurn = false;
+
     if (!this.dice3D) {
       this.dice3D = new Dice3D(this.scene);
     } else {
+      this.dice3D.isRolling = false;
       this.dice3D.applySkin();
     }
     const snakesThemeId = economy.data.equipped?.snakesTheme || 'snakes_classic';
@@ -247,17 +266,7 @@ class LudoApp {
 
   restartMatch() {
     if (this.currentConfig) {
-      const cfg = { ...this.currentConfig };
-      const levelNum = this.currentLevelNum;
-      const snakesLevelNum = this.currentSnakesLevelNum;
-      this.cleanupBoards();
-      this.currentLevelNum = levelNum;
-      this.currentSnakesLevelNum = snakesLevelNum;
-      if (cfg.mode === 'snakes') {
-        this.startSnakesMatch(cfg);
-      } else {
-        this.startLudoMatch(cfg);
-      }
+      this.startMatch({ ...this.currentConfig });
     } else {
       this.exitToHome();
     }
@@ -341,6 +350,8 @@ class LudoApp {
     if (curPlayer.isAI) {
       this.inGameUI.setRollButtonEnabled(false);
       this.inGameUI.updateStatus(`${curPlayer.name} is rolling...`);
+      await this.sleep(450); // Natural, smooth delay before AI roll
+      if (this.engine.state === GAME_STATES.GAME_OVER) return;
       this.scheduleLudoAITurn();
     } else {
       this.inGameUI.setRollButtonEnabled(true);
@@ -461,16 +472,16 @@ class LudoApp {
     if (result.bonusTurn) {
       const reason = result.capturedOpponent ? 'Capture' : (this.engine.currentRoll === 6 ? 'Six' : 'Goal');
       this.inGameUI.updateStatus(`🎉 ${reason}! Bonus turn!`, true);
-      await this.sleep(220);
+      await this.sleep(300);
     }
 
     this.validMoves = [];
+    await this.sleep(380); // Natural delay before switching turn to next player
     this.isProcessingTurn = false;
     this.updateTurnUI();
   }
 
   async scheduleLudoAITurn() {
-    await this.sleep(200);
     if (this.engine.state === GAME_STATES.GAME_OVER) return;
 
     this.isProcessingTurn = true;
@@ -484,8 +495,9 @@ class LudoApp {
 
     if (result.action === 'FORFEIT_THREE_SIXES') {
       this.inGameUI.updateStatus(`3 Sixes! Turn forfeited!`);
-      await this.sleep(250);
+      await this.sleep(400);
       this.engine.nextPlayer();
+      await this.sleep(350);
       this.isProcessingTurn = false;
       this.updateTurnUI();
       return;
@@ -493,15 +505,16 @@ class LudoApp {
 
     if (result.action === 'NO_MOVES') {
       this.inGameUI.updateStatus(`${this.engine.getCurrentPlayer().name} rolled ${rollValue} - No moves`);
-      await this.sleep(220);
+      await this.sleep(380);
       this.engine.nextPlayer();
+      await this.sleep(350);
       this.isProcessingTurn = false;
       this.updateTurnUI();
       return;
     }
 
     const bestMove = LudoAI.chooseBestMove(this.engine, result.validMoves);
-    await this.sleep(140);
+    await this.sleep(220);
     await this.executeLudoMove(bestMove);
   }
 
@@ -514,7 +527,8 @@ class LudoApp {
     if (curP.isAI) {
       this.inGameUI.setRollButtonEnabled(false);
       this.inGameUI.updateStatus(`${curP.name} is rolling...`);
-      await this.sleep(220);
+      await this.sleep(450); // Natural, smooth delay before AI roll
+      if (this.snakesEngine.isOver) return;
       this.handleSnakesRoll();
     } else {
       this.inGameUI.setRollButtonEnabled(true);
@@ -554,13 +568,13 @@ class LudoApp {
     // Step 2: Now the pawn is standing on landedPos - trigger Ladder or Snake if hit!
     if (result.climbedLadder) {
       sounds.playSafeZone();
-      this.inGameUI.updateStatus(`🪜 Ladder climb: ${curP.name} climbed to tile ${result.finalPos}`, true);
-      await this.sleep(150);
+      this.inGameUI.updateStatus(`🪜 Ladder bonus: ${curP.name} climbed to tile ${result.finalPos} and earned a BONUS ROLL`, true);
+      await this.sleep(200);
       await this.snakesBoard3D.animateLadderClimb(curPIdx, result.landedPos, result.finalPos);
     } else if (result.bittenBySnake) {
       sounds.playTokenCapture();
       this.inGameUI.updateStatus(`🐍 Snake bite: ${curP.name} slid down to tile ${result.finalPos}`, true);
-      await this.sleep(150);
+      await this.sleep(200);
       await this.snakesBoard3D.animateSnakeSlide(curPIdx, result.landedPos, result.finalPos);
     }
 
@@ -570,10 +584,17 @@ class LudoApp {
     }
 
     if (result.bonusTurn) {
-      this.inGameUI.updateStatus(`🎲 Rolled 6 - ${curP.name} gets a bonus roll`, true);
-      await this.sleep(200);
+      if (result.ladderBonus && result.sixBonus) {
+        this.inGameUI.updateStatus(`🎉 Rolled 6 & climbed ladder: ${curP.name} gets a bonus roll`, true);
+      } else if (result.ladderBonus) {
+        this.inGameUI.updateStatus(`🪜 Ladder bonus: ${curP.name} earned an extra roll`, true);
+      } else {
+        this.inGameUI.updateStatus(`🎲 Rolled 6: ${curP.name} gets a bonus roll`, true);
+      }
+      await this.sleep(300);
     }
 
+    await this.sleep(380); // Natural delay before switching to next player
     this.isProcessingTurn = false;
     this.updateSnakesTurnUI();
   }
@@ -770,17 +791,25 @@ class LudoApp {
         this.restartMatch();
       },
       () => {
-        // Advance to next level
+        // Advance to next level directly and seamlessly
         if (this.currentSnakesLevelNum && this.currentSnakesLevelNum < 300) {
           const nextStage = this.currentSnakesLevelNum + 1;
-          this.currentSnakesLevelNum = nextStage;
-          this.cleanupBoards();
-          this.startSnakesMatch({ mode: 'snakes', isAI: true, levelNumber: nextStage });
+          const stageData = SNAKES_STAGES[nextStage - 1] || SNAKES_STAGES[0];
+          this.startMatch({
+            mode: 'snakes',
+            playerCount: stageData.botCount + 1,
+            levelNumber: nextStage,
+            isAI: true
+          });
         } else if (this.currentLevelNum && this.currentLevelNum < 300) {
           const nextLvl = this.currentLevelNum + 1;
-          this.currentLevelNum = nextLvl;
-          this.cleanupBoards();
-          this.startLudoMatch({ mode: 'level', isAI: true, levelNumber: nextLvl });
+          const levelData = LEVELS[nextLvl - 1] || LEVELS[0];
+          this.startMatch({
+            mode: levelData.isQuick ? 'quick' : 'classic',
+            playerCount: levelData.botCount + 1,
+            levelNumber: nextLvl,
+            isAI: true
+          });
         } else {
           this.exitToHome();
         }

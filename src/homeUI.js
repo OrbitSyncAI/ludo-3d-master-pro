@@ -1025,8 +1025,8 @@ export class HomeUIManager {
           <div class="backup-header-title">
             <span class="backup-header-icon">💾</span>
             <div>
-              <h3>EXPORT GAME PROGRESS</h3>
-              <p>Safely download or share your coins, levels & themes</p>
+              <h3>EXPORT GAME PROGRESS (JSON)</h3>
+              <p>1-Click Copy or Download your complete JSON game save</p>
             </div>
           </div>
           <button class="modal-close-icon" id="btn-close-export">✕</button>
@@ -1034,42 +1034,42 @@ export class HomeUIManager {
 
         <div class="backup-modal-body">
           <div class="backup-preview-badge" style="background: #f0fdf4; border-color: #22c55e; color: #15803d;">
-            <span class="preview-badge-title">✨ CURRENT SAFEGUARDED PROGRESS:</span>
+            <span class="preview-badge-title">✨ PROGRESS SECURED IN JSON:</span>
             <div class="preview-badge-details">
               <strong>${name}</strong> (LVL ${lvl}) • 🪙 ${coins.toLocaleString()} Coins • 💎 ${gems.toLocaleString()} Diamonds • 🏆 ${ludoCount} Levels • 🐍 ${snakesCount} Stages • 🎨 ${themesCount} Themes
             </div>
           </div>
 
-          <!-- Download Button -->
+          <!-- Primary: 1-Click Copy Button -->
+          <button class="btn-backup-action btn-purple-copy" id="btn-trigger-copy" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.45);">
+            <span class="action-icon">📋</span>
+            <div class="action-text">
+              <strong style="font-size: 0.95rem;">COPY JSON CODE (1-CLICK)</strong>
+              <small>Instantly copies complete JSON to clipboard</small>
+            </div>
+          </button>
+
+          <!-- Secondary Download Button -->
           <button class="btn-backup-action btn-gold-download" id="btn-trigger-download">
             <span class="action-icon">📥</span>
             <div class="action-text">
-              <strong>DOWNLOAD BACKUP FILE (.json)</strong>
-              <small>Direct file download to your device storage</small>
+              <strong>DOWNLOAD .JSON FILE</strong>
+              <small>Direct file download to device storage</small>
             </div>
           </button>
 
-          <!-- Native Share / Save to Drive / WhatsApp -->
+          <!-- Share via Apps -->
           <button class="btn-backup-action btn-blue-share" id="btn-trigger-share">
             <span class="action-icon">📤</span>
             <div class="action-text">
-              <strong>SAVE TO FILES / SHARE VIA APPS</strong>
-              <small>Save to Files, Google Drive, WhatsApp or Notes</small>
-            </div>
-          </button>
-
-          <!-- 1-Tap Copy Button -->
-          <button class="btn-backup-action btn-purple-copy" id="btn-trigger-copy">
-            <span class="action-icon">📋</span>
-            <div class="action-text">
-              <strong>COPY BACKUP CODE (1-TAP)</strong>
-              <small>Copy raw text to clipboard to save anywhere</small>
+              <strong>SHARE .JSON FILE VIA APPS</strong>
+              <small>Send JSON to Drive, WhatsApp or Email</small>
             </div>
           </button>
 
           <div id="export-status-alert" class="backup-live-alert hidden"></div>
 
-          <div class="backup-divider"><span>OR VIEW RAW BACKUP TEXT</span></div>
+          <div class="backup-divider"><span>OR VIEW RAW JSON DATA</span></div>
           <textarea id="export-text-view" class="backup-textarea" readonly>${jsonStr}</textarea>
         </div>
 
@@ -1094,7 +1094,33 @@ export class HomeUIManager {
 
     const filename = `ludo_3d_master_pro_backup_${Date.now()}.json`;
 
-    // 1. Download action
+    // 1. Copy JSON Code action (Primary)
+    modal.querySelector('#btn-trigger-copy').addEventListener('click', () => {
+      sounds.playButtonClick();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(jsonStr).then(() => {
+            showAlert('✅ 100% JSON Code copied to clipboard!');
+          }).catch(() => {
+            const ta = modal.querySelector('#export-text-view');
+            ta.select();
+            document.execCommand('copy');
+            showAlert('✅ JSON Code copied to clipboard!');
+          });
+        } else {
+          const ta = modal.querySelector('#export-text-view');
+          ta.select();
+          document.execCommand('copy');
+          showAlert('✅ JSON Code copied to clipboard!');
+        }
+      } catch (e) {
+        const ta = modal.querySelector('#export-text-view');
+        ta.select();
+        showAlert('📋 JSON selected. Long-press to copy.');
+      }
+    });
+
+    // 2. Download action
     modal.querySelector('#btn-trigger-download').addEventListener('click', () => {
       sounds.playButtonClick();
       try {
@@ -1128,11 +1154,11 @@ export class HomeUIManager {
 
         showAlert(`✅ Download started! File "${filename}" saved.`);
       } catch (e) {
-        showAlert('⚠️ Direct download blocked. Please use Copy or Share buttons below.', false);
+        showAlert('⚠️ Direct download blocked. Please use Copy JSON button above.', false);
       }
     });
 
-    // 2. Share action
+    // 3. Share action
     modal.querySelector('#btn-trigger-share').addEventListener('click', async () => {
       sounds.playButtonClick();
       try {
@@ -1145,7 +1171,7 @@ export class HomeUIManager {
             title: 'Ludo 3D Master Pro Backup',
             text: `Backup for ${name} (Coins: ${coins})`
           });
-          showAlert('✅ Backup shared successfully!');
+          showAlert('✅ JSON file shared successfully!');
           return;
         }
 
@@ -1154,41 +1180,20 @@ export class HomeUIManager {
             title: 'Ludo 3D Master Pro Backup',
             text: jsonStr
           });
-          showAlert('✅ Backup text shared successfully!');
+          showAlert('✅ JSON backup text shared successfully!');
           return;
         }
 
-        showAlert('⚠️ Native share not supported on this device. Use Copy Code below.', false);
+        showAlert('⚠️ Native share not supported on this device. Use Copy JSON Code above.', false);
       } catch (err) {
         if (err.name !== 'AbortError') {
           showAlert('⚠️ Share sheet closed or cancelled.', false);
         }
       }
     });
-
-    // 3. Copy Code action
-    modal.querySelector('#btn-trigger-copy').addEventListener('click', () => {
-      sounds.playButtonClick();
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(jsonStr).then(() => {
-            showAlert('✅ 100% Copied! You can now paste this backup anywhere.');
-          });
-        } else {
-          const ta = modal.querySelector('#export-text-view');
-          ta.select();
-          document.execCommand('copy');
-          showAlert('✅ Copied to clipboard! You can now paste this backup anywhere.');
-        }
-      } catch (e) {
-        const ta = modal.querySelector('#export-text-view');
-        ta.select();
-        showAlert('📋 Selected text. Long press to copy.');
-      }
-    });
   }
 
-  // Backup Import: Upload File or Paste JSON (Luxury Redesign with Live Progress Preview)
+  // Backup Import: strictly JSON Upload File or Paste JSON
   openImportModal() {
     sounds.playButtonClick();
     const modal = document.createElement('div');
@@ -1199,37 +1204,43 @@ export class HomeUIManager {
           <div class="backup-header-title">
             <span class="backup-header-icon">📥</span>
             <div>
-              <h3>RESTORE PROGRESS BACKUP</h3>
-              <p>Restore your saved coins, diamonds, levels & unlocked themes</p>
+              <h3>RESTORE GAME PROGRESS (JSON)</h3>
+              <p>Restore your saved coins, diamonds, levels & skins from JSON</p>
             </div>
           </div>
           <button class="modal-close-icon" id="btn-close-import">✕</button>
         </div>
 
         <div class="backup-modal-body">
+          <!-- Primary: 1-Click Paste Button -->
+          <button class="btn-backup-action btn-gold-restore-action" id="btn-quick-paste" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; border: 1.5px solid #34d399 !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.45); margin-bottom: 12px;">
+            <span class="action-icon">📋</span>
+            <div class="action-text">
+              <strong style="color: white; font-size: 0.95rem;">PASTE JSON CODE (1-CLICK)</strong>
+              <small style="color: #d1fae5;">Instantly paste copied JSON from clipboard</small>
+            </div>
+          </button>
+
+          <!-- Secondary: .json file drop -->
           <div class="file-drop-zone" id="file-drop-zone">
             <span class="drop-zone-icon">📁</span>
-            <span class="drop-zone-text">Tap to select your backup .json file</span>
-            <input type="file" id="backup-file-input" accept=".json,application/json,text/plain,*/*" class="hidden-file-input">
+            <span class="drop-zone-text">Tap to select your backup <strong>.json</strong> file</span>
+            <input type="file" id="backup-file-input" accept=".json,application/json" class="hidden-file-input">
           </div>
 
-          <div class="backup-divider"><span>OR PASTE BACKUP TEXT</span></div>
-
-          <div class="backup-paste-row">
-            <button class="btn-paste-clipboard" id="btn-quick-paste">📋 Paste from Clipboard</button>
-          </div>
+          <div class="backup-divider"><span>OR PASTE RAW JSON BELOW</span></div>
 
           <textarea id="backup-text-input" class="backup-textarea" placeholder="Paste your saved JSON progress text here..."></textarea>
 
           <div id="backup-preview-badge" class="backup-preview-badge hidden">
-            <span class="preview-badge-title">✨ VALID PROGRESS DETECTED:</span>
+            <span class="preview-badge-title">✨ VALID JSON BACKUP DETECTED:</span>
             <div class="preview-badge-details" id="preview-badge-details"></div>
           </div>
         </div>
 
         <div class="backup-modal-actions">
           <button class="btn-setup-cancel" id="btn-cancel-import">CANCEL</button>
-          <button class="btn-setup-start btn-gold-restore" id="btn-confirm-import">RESTORE PROGRESS</button>
+          <button class="btn-setup-start btn-gold-restore" id="btn-confirm-import">RESTORE FROM JSON</button>
         </div>
       </div>
     `;
@@ -1254,9 +1265,10 @@ export class HomeUIManager {
           const gems = parsed.wallet?.gems !== undefined ? parsed.wallet.gems : (parsed.gems || 0);
           const lvl = parsed.player?.level || parsed.level || 1;
           const completedLudo = Object.keys(parsed.sagaProgress?.completedLevels || parsed.completedLevels || {}).length;
+          const completedSnakes = Object.keys(parsed.sagaProgress?.completedSnakesStages || parsed.completedSnakesStages || {}).length;
 
           previewDetails.innerHTML = `
-            <strong>${name}</strong> (LVL ${lvl}) | 🪙 ${coins.toLocaleString()} Coins | 💎 ${gems.toLocaleString()} Diamonds | 🏆 ${completedLudo} Ludo Levels
+            <strong>${name}</strong> (LVL ${lvl}) | 🪙 ${coins.toLocaleString()} Coins | 💎 ${gems.toLocaleString()} Diamonds | 🏆 ${completedLudo} Ludo Levels | 🐍 ${completedSnakes} Stages
           `;
           previewBox.classList.remove('hidden');
           return true;
@@ -1271,7 +1283,7 @@ export class HomeUIManager {
       updatePreview(textInput.value.trim());
     });
 
-    // Paste from clipboard
+    // Paste from clipboard (1-Click Paste)
     const btnPaste = modal.querySelector('#btn-quick-paste');
     if (btnPaste) {
       btnPaste.addEventListener('click', async () => {
@@ -1282,8 +1294,10 @@ export class HomeUIManager {
             if (clipText && clipText.trim()) {
               textInput.value = clipText.trim();
               updatePreview(clipText.trim());
+              return;
             }
           }
+          textInput.focus();
         } catch (e) {
           textInput.focus();
         }
@@ -1306,7 +1320,7 @@ export class HomeUIManager {
       sounds.playButtonClick();
       const content = textInput.value.trim();
       if (!content) {
-        this.showGenericNotice('EMPTY BACKUP', 'Please choose a backup file or paste valid backup text.');
+        this.showGenericNotice('EMPTY BACKUP', 'Please choose a .json backup file or paste valid JSON text.');
         return;
       }
       const success = economy.importBackupJSON(content);
@@ -1314,10 +1328,10 @@ export class HomeUIManager {
       if (success) {
         sounds.playVictory();
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
-        this.showGenericNotice('RESTORE SUCCESSFUL', 'Your game progress, coins, diamonds, and inventory have been successfully restored!');
+        this.showGenericNotice('RESTORE SUCCESSFUL', 'Your game progress, coins, diamonds, and inventory have been successfully restored from JSON!');
         this.render();
       } else {
-        this.showGenericNotice('INVALID BACKUP', 'The backup file format was invalid or corrupted.');
+        this.showGenericNotice('INVALID JSON BACKUP', 'The backup format was invalid JSON. Please ensure you copied or uploaded valid JSON.');
       }
     });
   }
@@ -1413,7 +1427,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.3';
+    const CURRENT_VERSION = '1.3.4';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1468,7 +1482,7 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.3').replace(/^v/, '');
+      const latestTag = (release.tag_name || 'v1.3.4').replace(/^v/, '');
 
       let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.apk`;
       let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.ipa`;

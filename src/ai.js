@@ -1,6 +1,6 @@
 /**
  * Ludo 3D Pro - Smart AI Bot Decision Engine
- * Evaluates tactical positions: captures, safe spots, escaping danger, goal entry
+ * Evaluates tactical positions: captures, safe spots, escaping danger, goal entry, quick blitz & team synergy
  */
 
 import { SAFE_TILE_INDICES } from './boardData.js';
@@ -10,18 +10,21 @@ export class LudoAI {
     if (!validMoves || validMoves.length === 0) return null;
     if (validMoves.length === 1) return validMoves[0];
 
+    const curP = engine.getCurrentPlayer();
+    const pId = curP.id;
+    const isQuickMode = engine.mode === 'quick';
+
     const scoredMoves = validMoves.map((move) => {
       let score = 0;
-      const pId = engine.getCurrentPlayer().id;
 
       // 1. Instantly Score Goal (Reaching 56)
       if (move.targetStep === 56) {
-        score += 1000;
+        score += isQuickMode ? 3000 : 1200; // In Quick mode, 1 goal wins the entire match!
       }
 
       // 2. Entering Safe Home Stretch (51..55)
       if (move.targetStep >= 51 && move.targetStep < 56) {
-        score += 350 + (move.targetStep - 51) * 30;
+        score += (isQuickMode ? 600 : 400) + (move.targetStep - 51) * 35;
       }
 
       // 3. Capturing an Opponent's Token
@@ -33,28 +36,34 @@ export class LudoAI {
           // Check if opponent is sitting on this tile
           engine.players.forEach((opp) => {
             if (opp.id !== pId) {
-              if (engine.isTeam && opp.team === engine.getCurrentPlayer().team) return;
+              if (engine.isTeam && opp.team === curP.team) return;
               engine.tokens[opp.id].forEach((oppStep) => {
                 if (oppStep >= 0 && oppStep <= 50) {
                   const oppTile = engine.getCommonTileIndex(opp.id, oppStep);
                   if (oppTile === targetTile) {
-                    score += 850; // Huge priority to capture!
+                    score += 950; // Priority: Capture opponent & reset their progress!
                   }
                 }
               });
             }
           });
+        }
 
-          // 4. Reaching a Safe Star Tile
-          if (isSafeTile) {
-            score += 400;
-          }
+        // 4. Reaching a Safe Star Tile
+        if (isSafeTile) {
+          score += 420;
         }
       }
 
       // 5. Spawning a New Token from Yard
       if (move.isSpawn) {
-        score += 300;
+        // In Quick mode, spawning is good early, but advancing an active token is much better
+        const activeTokensCount = engine.tokens[pId].filter(s => s >= 0 && s < 56).length;
+        if (isQuickMode && activeTokensCount >= 1) {
+          score += 150; // Focus on the running token in blitz
+        } else {
+          score += 320;
+        }
       }
 
       // 6. Escaping from Threat
@@ -67,7 +76,7 @@ export class LudoAI {
           let inDanger = false;
           engine.players.forEach((opp) => {
             if (opp.id !== pId) {
-              if (engine.isTeam && opp.team === engine.getCurrentPlayer().team) return;
+              if (engine.isTeam && opp.team === curP.team) return;
               engine.tokens[opp.id].forEach((oppStep) => {
                 if (oppStep >= 0 && oppStep <= 50) {
                   const oppTile = engine.getCommonTileIndex(opp.id, oppStep);
@@ -80,16 +89,42 @@ export class LudoAI {
             }
           });
           if (inDanger) {
-            score += 450; // Priority to flee!
+            score += 480; // High priority to flee threat!
           }
         }
       }
 
-      // 7. General Progress Bonus (Prefer advancing tokens further ahead)
-      score += (move.currentStep >= 0 ? move.currentStep * 3 : 0);
+      // 7. Danger Evaluation on Destination (Avoid landing directly in front of enemy)
+      if (move.targetStep >= 0 && move.targetStep <= 50) {
+        const destTile = engine.getCommonTileIndex(pId, move.targetStep);
+        if (!SAFE_TILE_INDICES.includes(destTile)) {
+          let enemyCloseBehind = false;
+          engine.players.forEach((opp) => {
+            if (opp.id !== pId) {
+              if (engine.isTeam && opp.team === curP.team) return;
+              engine.tokens[opp.id].forEach((oppStep) => {
+                if (oppStep >= 0 && oppStep <= 50) {
+                  const oppTile = engine.getCommonTileIndex(opp.id, oppStep);
+                  const dist = (destTile - oppTile + 52) % 52;
+                  if (dist >= 1 && dist <= 4) {
+                    enemyCloseBehind = true;
+                  }
+                }
+              });
+            }
+          });
+          if (enemyCloseBehind) {
+            score -= 120; // Tactical caution: avoid hazardous tiles when safer moves exist
+          }
+        }
+      }
 
-      // 8. Natural variance
-      score += Math.random() * 25;
+      // 8. General Progress Bonus (Prefer advancing tokens further ahead)
+      const stepProgression = move.currentStep >= 0 ? move.currentStep : 0;
+      score += isQuickMode ? (stepProgression * 6) : (stepProgression * 3.5);
+
+      // 9. Natural slight variance to prevent predictable mechanical play
+      score += Math.random() * 20;
 
       return { move, score };
     });
