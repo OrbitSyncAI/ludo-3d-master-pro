@@ -172,7 +172,7 @@ export class HomeUIManager {
               <span class="item-icon">🔄</span>
               <div class="item-update-row">
                 <span>Check for Updates</span>
-                <span class="version-chip">v1.3.0</span>
+                <span class="version-chip">v1.3.6</span>
               </div>
             </button>
             <button class="drawer-nav-item" data-drawer-action="profile">
@@ -349,7 +349,7 @@ export class HomeUIManager {
           <div class="mode-icon">🧗</div>
           <div class="mode-info">
             <h4>Snakes 500 Stages</h4>
-            <p>500-Stage Adventure Campaign! Boss Themes at 25, 50, 75...</p>
+            <p>500 Stages Campaign! Boss Themes at 25, 50, 75...</p>
             <span class="mode-tag tag-adventure">500 STAGES</span>
           </div>
           <button class="btn-play-mode" data-action="open-snakes-saga">PLAY</button>
@@ -1315,7 +1315,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.5';
+    const CURRENT_VERSION = '1.3.6';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1370,7 +1370,7 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.5').replace(/^v/, '');
+      const latestTag = (release.tag_name || 'v1.3.6').replace(/^v/, '');
 
       let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.apk`;
       let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.ipa`;

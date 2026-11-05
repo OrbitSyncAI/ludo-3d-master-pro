@@ -321,6 +321,39 @@ class SoundEngine {
       timeOffset += note.d + 0.05;
     });
   }
+
+  // Ethereal Royal Game Opening Chime
+  playSplashIntro() {
+    this.vibrate([30, 50, 40]);
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const chords = [
+      { f: 523.25, d: 0.6, t: 0.00 }, // C5
+      { f: 659.25, d: 0.6, t: 0.08 }, // E5
+      { f: 783.99, d: 0.7, t: 0.16 }, // G5
+      { f: 1046.50, d: 0.9, t: 0.24 } // C6
+    ];
+
+    chords.forEach(note => {
+      const startT = this.ctx.currentTime + note.t;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(note.f, startT);
+
+      gain.gain.setValueAtTime(0.18 * this.volume, startT);
+      gain.gain.exponentialRampToValueAtTime(0.001, startT + note.d);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(startT);
+      osc.stop(startT + note.d);
+    });
+  }
 }
 
 export const sounds = new SoundEngine();

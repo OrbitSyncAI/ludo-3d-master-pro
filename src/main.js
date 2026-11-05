@@ -22,6 +22,7 @@ import { SHOP_CATALOG } from './shopData.js';
 import { liveUpdater } from './liveUpdater.js';
 import { LEVELS } from './levelsData.js';
 import { SNAKES_STAGES } from './snakesLevelsData.js';
+import { SplashScreen } from './splashScreen.js';
 
 class LudoApp {
   constructor() {
@@ -44,6 +45,13 @@ class LudoApp {
     // Start on Home Screen by default!
     this.homeUI.show();
 
+    // AAA Game Opening Splash Loading Screen
+    const screenEl = document.getElementById('game-screen');
+    if (screenEl) {
+      const splash = new SplashScreen(screenEl);
+      splash.show();
+    }
+
     // Silent Background OTA Live Updater
     liveUpdater.initSilentUpdate();
   }
@@ -64,12 +72,13 @@ class LudoApp {
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: false,
-      powerPreference: 'high-performance'
+      powerPreference: 'high-performance',
+      precision: 'mediump'
     });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.container.appendChild(this.renderer.domElement);
 
     this.clock = new THREE.Clock();
@@ -89,12 +98,12 @@ class LudoApp {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     this.scene.add(ambientLight);
 
-    // Warm directional sun light casting crisp, soft shadows
+    // Warm directional sun light casting crisp, soft shadows (optimized 512 map for locked 60 FPS)
     const sunLight = new THREE.DirectionalLight(0xfffdf5, 1.25);
     sunLight.position.set(10, 28, 14);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 1024;
-    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.mapSize.width = 512;
+    sunLight.shadow.mapSize.height = 512;
     sunLight.shadow.near = 1;
     sunLight.shadow.far = 50;
     sunLight.shadow.left = -12;
@@ -419,10 +428,18 @@ class LudoApp {
   }
 
   highlightMovableTokens(playerId, moves) {
+    // Unconditionally turn off selection glow across ALL tokens across ALL players first
+    for (let p = 0; p < this.tokens.length; p++) {
+      for (let t = 0; t < this.tokens[p].length; t++) {
+        this.tokens[p][t].setSelectable(false);
+      }
+    }
     const pTokens = this.tokens[playerId];
-    pTokens.forEach(t => t.setSelectable(false));
+    if (!pTokens) return;
     moves.forEach(m => {
-      pTokens[m.tokenIndex].setSelectable(true);
+      if (pTokens[m.tokenIndex] && pTokens[m.tokenIndex].step < 56) {
+        pTokens[m.tokenIndex].setSelectable(true);
+      }
     });
   }
 
@@ -789,8 +806,8 @@ class LudoApp {
         this.restartMatch();
       },
       () => {
-        // Advance to next level directly and seamlessly
-        if (this.currentSnakesLevelNum && this.currentSnakesLevelNum < 300) {
+        // Advance to next level directly and seamlessly (500 total stages & levels)
+        if (this.currentSnakesLevelNum && this.currentSnakesLevelNum < 500) {
           const nextStage = this.currentSnakesLevelNum + 1;
           const stageData = SNAKES_STAGES[nextStage - 1] || SNAKES_STAGES[0];
           this.startMatch({
@@ -799,7 +816,7 @@ class LudoApp {
             levelNumber: nextStage,
             isAI: true
           });
-        } else if (this.currentLevelNum && this.currentLevelNum < 300) {
+        } else if (this.currentLevelNum && this.currentLevelNum < 500) {
           const nextLvl = this.currentLevelNum + 1;
           const levelData = LEVELS[nextLvl - 1] || LEVELS[0];
           this.startMatch({
@@ -818,32 +835,58 @@ class LudoApp {
   getStackOffset(targetToken) {
     const pId = targetToken.playerId;
     const step = targetToken.step;
-    if (step === -1 || step === 56) return { x: 0, z: 0 };
+    if (step === -1 || step >= 56) return { x: 0, z: 0 };
 
-    const sharingTokens = [];
-    this.tokens.forEach((pTokens) => {
-      pTokens.forEach((t) => {
-        if (t !== targetToken && t.step === step && t.playerId === pId) {
-          sharingTokens.push(t);
+    // Identify location key: on common path (0..50) vs in personal home stretch (51..55)
+    let locKey = null;
+    if (step >= 0 && step <= 50) {
+      const commonTile = this.engine ? this.engine.getCommonTileIndex(pId, step) : -1;
+      locKey = `common_${commonTile}`;
+    } else if (step >= 51 && step <= 55) {
+      locKey = `homestretch_${pId}_${step}`;
+    }
+
+    if (!locKey) return { x: 0, z: 0 };
+
+    // Collect all tokens across all players sharing this exact location
+    const sharing = [];
+    for (let p = 0; p < this.tokens.length; p++) {
+      for (let t = 0; t < this.tokens[p].length; t++) {
+        const candidate = this.tokens[p][t];
+        if (candidate.step === -1 || candidate.step >= 56) continue;
+        let candKey = null;
+        if (candidate.step >= 0 && candidate.step <= 50) {
+          candKey = `common_${this.engine ? this.engine.getCommonTileIndex(p, candidate.step) : -1}`;
+        } else if (candidate.step >= 51 && candidate.step <= 55) {
+          candKey = `homestretch_${p}_${candidate.step}`;
         }
-      });
-    });
+        if (candKey === locKey) {
+          sharing.push(candidate);
+        }
+      }
+    }
 
-    if (sharingTokens.length === 0) return { x: 0, z: 0 };
+    if (sharing.length <= 1) return { x: 0, z: 0 };
 
-    const index = sharingTokens.length;
-    const angle = (index * Math.PI * 2) / (sharingTokens.length + 1);
+    // Deterministic ordering so offsets remain completely stable
+    sharing.sort((a, b) => (a.playerId * 10 + a.tokenIndex) - (b.playerId * 10 + b.tokenIndex));
+    const myIndex = sharing.indexOf(targetToken);
+    if (myIndex === -1) return { x: 0, z: 0 };
+
+    const count = sharing.length;
+    const radius = count === 2 ? 0.20 : 0.26;
+    const angle = (myIndex * (Math.PI * 2) / count) + Math.PI / 4;
     return {
-      x: Math.cos(angle) * 0.22,
-      z: Math.sin(angle) * 0.22
+      x: Math.cos(angle) * radius,
+      z: Math.sin(angle) * radius
     };
   }
 
   updateAllStackOffsets() {
-    for (let p = 0; p < 4; p++) {
-      for (let t = 0; t < 4; t++) {
+    for (let p = 0; p < this.tokens.length; p++) {
+      for (let t = 0; t < this.tokens[p].length; t++) {
         const token = this.tokens[p][t];
-        if (!token.isMoving && token.step >= 0) {
+        if (!token.isMoving && token.step >= 0 && token.step < 56) {
           token.smoothOffsetTo(this.getStackOffset(token));
         }
       }

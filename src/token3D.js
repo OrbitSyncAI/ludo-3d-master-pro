@@ -1,11 +1,36 @@
 /**
  * Ludo 3D Pro - 3D Token (Pawn) Class & Management
  * Realistic hopping animation, selection glow, multi-token stacking
+ * Optimized for rock-solid 60 FPS mobile performance & zero ghost highlights
  */
 
 import * as THREE from 'three';
 import { PLAYERS_CONFIG, getTokenWorldCoords } from './boardData.js';
 import { sounds } from './audio.js';
+
+// Module-level shared geometries to eliminate GPU buffer duplication across tokens
+const SHARED_GEOMETRIES = {
+  base: new THREE.CylinderGeometry(0.32, 0.38, 0.15, 20),
+  goldRing: new THREE.TorusGeometry(0.33, 0.035, 12, 24),
+  body: new THREE.CylinderGeometry(0.18, 0.30, 0.38, 20),
+  collar: new THREE.CylinderGeometry(0.24, 0.24, 0.06, 20),
+  head: new THREE.SphereGeometry(0.24, 20, 20),
+  crown: new THREE.ConeGeometry(0.08, 0.14, 14),
+  selectionRing: new THREE.RingGeometry(0.36, 0.52, 24)
+};
+
+// Module-level shared metallic materials
+const BASE_MAT = new THREE.MeshStandardMaterial({
+  color: 0x2b3040,
+  metalness: 0.9,
+  roughness: 0.2
+});
+
+const GOLD_MAT = new THREE.MeshStandardMaterial({
+  color: 0xffd700,
+  metalness: 0.95,
+  roughness: 0.1
+});
 
 export class Token3D {
   constructor(playerId, tokenIndex, scene) {
@@ -17,6 +42,7 @@ export class Token3D {
     this.step = -1; // -1: in Yard, 0..50: common path, 51..55: home stretch, 56: won
     this.isMoving = false;
     this.isSelectable = false;
+    this.baseY = 0.25;
     
     this.mesh = this.createMesh();
     this.selectionRing = this.createSelectionRing();
@@ -37,67 +63,49 @@ export class Token3D {
     };
 
     // 1. Heavy Metallic Base
-    const baseGeo = new THREE.CylinderGeometry(0.32, 0.38, 0.15, 32);
-    const baseMat = new THREE.MeshStandardMaterial({
-      color: 0x2b3040,
-      metalness: 0.9,
-      roughness: 0.2
-    });
-    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    const baseMesh = new THREE.Mesh(SHARED_GEOMETRIES.base, BASE_MAT);
     baseMesh.position.y = 0.075;
     baseMesh.castShadow = true;
     baseMesh.receiveShadow = true;
     group.add(baseMesh);
 
     // 2. Gold Accent Ring
-    const goldRingGeo = new THREE.TorusGeometry(0.33, 0.035, 16, 32);
-    const goldMat = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      metalness: 0.95,
-      roughness: 0.1
-    });
-    const goldMesh = new THREE.Mesh(goldRingGeo, goldMat);
+    const goldMesh = new THREE.Mesh(SHARED_GEOMETRIES.goldRing, GOLD_MAT);
     goldMesh.rotation.x = Math.PI / 2;
     goldMesh.position.y = 0.16;
     group.add(goldMesh);
 
     // 3. Tapered Pawn Body (Player Color)
-    const bodyGeo = new THREE.CylinderGeometry(0.18, 0.30, 0.38, 32);
     const bodyMat = new THREE.MeshStandardMaterial({
       color: this.playerConfig.hexColor,
       metalness: 0.5,
       roughness: 0.3
     });
-    const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+    const bodyMesh = new THREE.Mesh(SHARED_GEOMETRIES.body, bodyMat);
     bodyMesh.position.y = 0.35;
     bodyMesh.castShadow = true;
     group.add(bodyMesh);
 
     // 4. Neck Collar Ring
-    const collarGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.06, 32);
-    const collarMesh = new THREE.Mesh(collarGeo, goldMat);
+    const collarMesh = new THREE.Mesh(SHARED_GEOMETRIES.collar, GOLD_MAT);
     collarMesh.position.y = 0.56;
     group.add(collarMesh);
 
-    // 5. Gemstone Crown Sphere Head
-    const headGeo = new THREE.SphereGeometry(0.24, 32, 32);
-    const headMat = new THREE.MeshPhysicalMaterial({
+    // 5. Gemstone Crown Sphere Head (Standard Material with emissive for 60 FPS mobile speed)
+    const headMat = new THREE.MeshStandardMaterial({
       color: this.playerConfig.hexColor,
       emissive: this.playerConfig.glowColor,
       emissiveIntensity: 0.35,
-      roughness: 0.1,
-      metalness: 0.4,
-      clearcoat: 1.0,
-      transmission: 0.2
+      roughness: 0.15,
+      metalness: 0.5
     });
-    const headMesh = new THREE.Mesh(headGeo, headMat);
+    const headMesh = new THREE.Mesh(SHARED_GEOMETRIES.head, headMat);
     headMesh.position.y = 0.78;
     headMesh.castShadow = true;
     group.add(headMesh);
 
     // 6. Mini Crown Finial on top
-    const crownGeo = new THREE.ConeGeometry(0.08, 0.14, 16);
-    const crownMesh = new THREE.Mesh(crownGeo, goldMat);
+    const crownMesh = new THREE.Mesh(SHARED_GEOMETRIES.crown, GOLD_MAT);
     crownMesh.position.y = 1.05;
     group.add(crownMesh);
 
@@ -106,16 +114,17 @@ export class Token3D {
 
   // Pulsing Holographic Selection Ring under active token
   createSelectionRing() {
-    const ringGeo = new THREE.RingGeometry(0.36, 0.52, 32);
     const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: this.playerConfig.hexColor,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.0
+      opacity: 0.0,
+      depthWrite: false
     });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
+    const ring = new THREE.Mesh(SHARED_GEOMETRIES.selectionRing, ringMat);
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = 0.12;
+    ring.visible = false;
     return ring;
   }
 
@@ -123,6 +132,7 @@ export class Token3D {
   smoothOffsetTo(targetOffset = { x: 0, z: 0 }, duration = 120) {
     if (this.isMoving) return;
     const base = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
+    this.baseY = base.y;
     const destX = base.x + (targetOffset.x || 0);
     const destZ = base.z + (targetOffset.z || 0);
     const startX = this.mesh.position.x;
@@ -149,7 +159,7 @@ export class Token3D {
         requestAnimationFrame(stepSlide);
       } else {
         this.mesh.position.set(destX, base.y, destZ);
-        this.selectionRing.position.set(destX, base.y + 0.01, destZ);
+        this.selectionRing.position.set(destX, 0.12, destZ);
       }
     };
     requestAnimationFrame(stepSlide);
@@ -158,20 +168,34 @@ export class Token3D {
   // Immediate coordinate update without animation
   updatePositionInstant(stackOffset = { x: 0, z: 0 }) {
     const target = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
+    this.baseY = target.y;
     this.mesh.position.set(target.x + stackOffset.x, target.y, target.z + stackOffset.z);
-    this.selectionRing.position.set(target.x + stackOffset.x, target.y + 0.01, target.z + stackOffset.z);
+    this.selectionRing.position.set(target.x + stackOffset.x, 0.12, target.z + stackOffset.z);
+    if (!this.isSelectable || this.step >= 56) {
+      this.selectionRing.visible = false;
+      this.selectionRing.material.opacity = 0.0;
+    }
   }
 
   // Set whether this token can be clicked to move
   setSelectable(selectable) {
+    // If token has already reached home goal (step >= 56), it can NEVER be selectable or highlighted
+    if (this.step >= 56) {
+      selectable = false;
+    }
     this.isSelectable = selectable;
     if (selectable) {
+      this.selectionRing.visible = true;
       this.selectionRing.material.opacity = 0.85;
       this.selectionRing.material.color.setHex(this.playerConfig.hexColor);
+      // Synchronize selectionRing position lockstep with token's current world position
+      this.selectionRing.position.set(this.mesh.position.x, 0.12, this.mesh.position.z);
     } else {
+      this.selectionRing.visible = false;
       this.selectionRing.material.opacity = 0.0;
-      const target = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
-      this.mesh.position.y = target.y; // reset flush on pedestal
+      if (this.baseY !== undefined) {
+        this.mesh.position.y = this.baseY; // reset flush on pedestal
+      }
     }
   }
 
@@ -185,6 +209,10 @@ export class Token3D {
       sounds.playTokenSpawn();
       await this.animateYardSpawn();
       this.step = 0;
+      const finalCoord = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);
+      this.baseY = finalCoord.y;
+      this.mesh.position.set(finalCoord.x, finalCoord.y, finalCoord.z);
+      this.selectionRing.position.set(finalCoord.x, 0.12, finalCoord.z);
       this.isMoving = false;
       return;
     }
@@ -206,8 +234,13 @@ export class Token3D {
     // Apply final stack offset if sharing space
     const offset = getStackOffsetFn ? getStackOffsetFn(this) : { x: 0, z: 0 };
     const finalCoord = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
+    this.baseY = finalCoord.y;
     this.mesh.position.set(finalCoord.x + offset.x, finalCoord.y, finalCoord.z + offset.z);
-    this.selectionRing.position.set(finalCoord.x + offset.x, finalCoord.y + 0.01, finalCoord.z + offset.z);
+    this.selectionRing.position.set(finalCoord.x + offset.x, 0.12, finalCoord.z + offset.z);
+    if (this.step >= 56) {
+      this.selectionRing.visible = false;
+      this.selectionRing.material.opacity = 0.0;
+    }
 
     this.isMoving = false;
   }
@@ -243,6 +276,7 @@ export class Token3D {
           requestAnimationFrame(stepHop);
         } else {
           this.mesh.position.set(end.x, end.y, end.z);
+          this.selectionRing.position.set(end.x, 0.12, end.z);
           this.mesh.scale.set(1.0, 1.0, 1.0);
           resolve();
         }
@@ -254,8 +288,10 @@ export class Token3D {
   // Dramatic Arc out of Yard onto Start Square (Snappy 270ms)
   animateYardSpawn(duration = 270) {
     return new Promise((resolve) => {
+      this.setSelectable(false);
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);
+      this.baseY = end.y;
       const startTime = performance.now();
       const jumpHeight = 1.35;
 
@@ -269,6 +305,7 @@ export class Token3D {
         const y = start.y + Math.sin(progress * Math.PI) * jumpHeight;
 
         this.mesh.position.set(x, y, z);
+        this.selectionRing.position.set(x, 0.12, z);
         this.mesh.rotation.y = progress * Math.PI * 4; // 2 full spins
 
         if (progress < 1.0) {
@@ -276,6 +313,7 @@ export class Token3D {
         } else {
           this.mesh.rotation.y = 0;
           this.mesh.position.set(end.x, end.y, end.z);
+          this.selectionRing.position.set(end.x, 0.12, end.z);
           this.mesh.scale.set(1.0, 1.0, 1.0);
           resolve();
         }
@@ -287,10 +325,12 @@ export class Token3D {
   // Knockout return to base yard (Snappy 240ms)
   animateCaptured() {
     return new Promise((resolve) => {
+      this.setSelectable(false);
       sounds.playTokenCapture();
       const start = { ...this.mesh.position };
       this.step = -1;
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
+      this.baseY = end.y;
       const startTime = performance.now();
       const duration = 240;
 
@@ -303,6 +343,7 @@ export class Token3D {
         const y = Math.max(start.y, end.y) + Math.sin(progress * Math.PI) * 1.8;
 
         this.mesh.position.set(x, y, z);
+        this.selectionRing.position.set(x, 0.12, z);
         this.mesh.rotation.y = progress * Math.PI * 8; // spin back
         this.mesh.rotation.x = Math.sin(progress * Math.PI) * 0.8; // tilt tumble
 
@@ -311,6 +352,9 @@ export class Token3D {
         } else {
           this.mesh.rotation.set(0, 0, 0);
           this.mesh.position.set(end.x, end.y, end.z);
+          this.selectionRing.position.set(end.x, 0.12, end.z);
+          this.selectionRing.visible = false;
+          this.selectionRing.material.opacity = 0.0;
           resolve();
         }
       };
@@ -320,13 +364,24 @@ export class Token3D {
 
   // Idle hover bounce when selectable
   update(delta) {
-    if (this.isSelectable && !this.isMoving) {
+    if (this.isSelectable && !this.isMoving && this.step < 56) {
+      if (this.baseY === undefined) {
+        this.baseY = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step).y;
+      }
       const bounce = Math.sin(Date.now() * 0.008 + this.tokenIndex) * 0.12;
-      const baseCoord = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
-      this.mesh.position.y = baseCoord.y + Math.max(0, bounce);
+      this.mesh.position.y = this.baseY + Math.max(0, bounce);
+
+      // Lock selection ring under token
+      this.selectionRing.position.x = this.mesh.position.x;
+      this.selectionRing.position.z = this.mesh.position.z;
 
       const pulse = 1.0 + Math.sin(Date.now() * 0.01) * 0.15;
       this.selectionRing.scale.set(pulse, pulse, pulse);
     }
+  }
+
+  destroy() {
+    this.scene.remove(this.mesh);
+    this.scene.remove(this.selectionRing);
   }
 }

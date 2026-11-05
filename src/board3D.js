@@ -342,13 +342,12 @@ export class Board3D {
 
     // Central Floating 3D Golden Victory Trophy
     const crownGeo = new THREE.OctahedronGeometry(0.48, 0);
-    const crownMat = new THREE.MeshPhysicalMaterial({
+    const crownMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       emissive: 0xffb300,
-      emissiveIntensity: 0.4,
-      roughness: 0.1,
-      metalness: 0.95,
-      clearcoat: 1.0
+      emissiveIntensity: 0.45,
+      roughness: 0.15,
+      metalness: 0.85
     });
     this.victoryCrystal = new THREE.Mesh(crownGeo, crownMat);
     this.victoryCrystal.position.set(centerPos.x, 0.85, centerPos.z);

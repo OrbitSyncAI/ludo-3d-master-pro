@@ -102,14 +102,13 @@ export class SnakesBoard3D {
       group.add(body);
 
       // Gem Sphere Head
-      const headGeo = new THREE.SphereGeometry(0.24, 24, 24);
-      const headMat = new THREE.MeshPhysicalMaterial({
+      const headGeo = new THREE.SphereGeometry(0.24, 20, 20);
+      const headMat = new THREE.MeshStandardMaterial({
         color: p.colorHex,
         emissive: p.colorHex,
-        emissiveIntensity: 0.4,
-        roughness: 0.1,
-        metalness: 0.3,
-        clearcoat: 1.0
+        emissiveIntensity: 0.35,
+        roughness: 0.15,
+        metalness: 0.4
       });
       const head = new THREE.Mesh(headGeo, headMat);
       head.position.y = 0.75;
