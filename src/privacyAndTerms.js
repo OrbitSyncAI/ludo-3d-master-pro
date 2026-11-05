@@ -22,7 +22,7 @@ export const PRIVACY_POLICY_TEXT = `
 <h3>1. Information We Collect</h3>
 <p>Ludo 3D Master Pro is designed as an offline-first and family-friendly casual board game. We respect user privacy:</p>
 <ul>
-  <li><strong>No Personal Identifiable Information (PII) Required:</strong> You do not need to submit personal credentials to play matches, roll dice, or progress through the 200 Level Saga.</li>
+  <li><strong>No Personal Identifiable Information (PII) Required:</strong> You do not need to submit personal credentials to play matches, roll dice, or progress through the 500 Level Saga.</li>
   <li><strong>Local Gameplay Data:</strong> Game scores, coins, unlocked board themes, dice skins, and completed level numbers are stored locally on your device via HTML5 LocalStorage.</li>
   <li><strong>Device Information:</strong> Basic device parameters (screen resolution, operating system version) are utilized solely to optimize 3D WebGL rendering performance.</li>
 </ul>

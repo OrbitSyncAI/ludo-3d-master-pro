@@ -1,6 +1,6 @@
 /**
  * Ludo 3D Master Pro - Economy & Persistence Engine (Real Wallet, Strict Validation & Bonus Spins)
- * Supports 300 Ludo Saga Levels + 300 Snakes Adventure Stages + Full Themes Inventory
+ * Supports 500 Ludo Saga Levels + 500 Snakes Adventure Stages + Full Themes Inventory
  * Developer: Sohel | Raebareli, UP - 229001
  */
 
@@ -180,7 +180,7 @@ class EconomyManager {
   addXP(amount) {
     this.data.xp += amount;
     const needed = this.data.level * 100;
-    if (this.data.xp >= needed && this.data.level < 300) {
+    if (this.data.xp >= needed && this.data.level < 500) {
       this.data.level++;
       this.data.xp -= needed;
       this.addCoins(500);

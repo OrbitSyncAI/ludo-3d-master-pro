@@ -137,11 +137,11 @@ export class HomeUIManager {
         </button>
         <button class="nav-tab ${this.activeTab === 'ludo_saga' ? 'active' : ''}" data-tab="ludo_saga">
           <span class="nav-icon">🎲</span>
-          <span class="nav-label">Ludo 300L</span>
+          <span class="nav-label">Ludo 500L</span>
         </button>
         <button class="nav-tab ${this.activeTab === 'snakes_saga' ? 'active' : ''}" data-tab="snakes_saga">
           <span class="nav-icon">🐍</span>
-          <span class="nav-label">Snakes 300L</span>
+          <span class="nav-label">Snakes 500L</span>
         </button>
         <button class="nav-tab ${this.activeTab === 'shop' ? 'active' : ''}" data-tab="shop">
           <span class="nav-icon">🛍️</span>
@@ -311,15 +311,15 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-mode-setup="team2v2">PLAY 2v2</button>
         </div>
 
-        <!-- 4. Ludo 300 Saga -->
+        <!-- 4. Ludo 500 Saga -->
         <div class="game-mode-card card-saga" data-action="open-saga">
           <div class="mode-icon">🗺️</div>
           <div class="mode-info">
-            <h4>Ludo 300 Saga</h4>
-            <p>Climb from Level 1 at bottom to Level 300!</p>
-            <span class="mode-tag tag-saga">300 LEVELS</span>
+            <h4>Ludo 500 Saga</h4>
+            <p>Climb from Level 1 at bottom to Level 500!</p>
+            <span class="mode-tag tag-saga">500 LEVELS</span>
           </div>
-          <button class="btn-play-mode" data-action="open-saga">JOURNEY</button>
+          <button class="btn-play-mode" data-action="open-saga">PLAY</button>
         </div>
 
         <!-- 5. Snakes & Ladders 3D -->
@@ -344,27 +344,27 @@ export class HomeUIManager {
           <button class="btn-play-mode" data-mode-setup="team_snakes">PLAY 2v2</button>
         </div>
 
-        <!-- 7. Snakes 300 Stages Adventure -->
+        <!-- 7. Snakes 500 Stages Adventure -->
         <div class="game-mode-card card-snakes-adventure" data-action="open-snakes-saga">
           <div class="mode-icon">🧗</div>
           <div class="mode-info">
-            <h4>Snakes 300 Stages</h4>
-            <p>300-Stage Adventure Campaign! Boss Themes at 25, 50, 75...</p>
-            <span class="mode-tag tag-adventure">CAMPAIGN MODE</span>
+            <h4>Snakes 500 Stages</h4>
+            <p>500-Stage Adventure Campaign! Boss Themes at 25, 50, 75...</p>
+            <span class="mode-tag tag-adventure">500 STAGES</span>
           </div>
-          <button class="btn-play-mode" data-action="open-snakes-saga">ADVENTURE</button>
+          <button class="btn-play-mode" data-action="open-snakes-saga">PLAY</button>
         </div>
       </div>
     `;
   }
 
-  // 2. 300 Level Ludo Saga Map (Level 1 is strictly at the BOTTOM!)
+  // 2. 500 Level Ludo Saga Map (Level 1 is strictly at the BOTTOM!)
   renderSagaMap() {
     let levelsHtml = '';
     const completedCount = Object.keys(economy.data.completedLevels).length;
     const currentUnlock = completedCount + 1;
 
-    for (let i = 1; i <= 300; i++) {
+    for (let i = 1; i <= 500; i++) {
       const isLocked = i > currentUnlock;
       const isCurrent = i === currentUnlock;
       const isMilestone = i % 25 === 0;
@@ -411,14 +411,14 @@ export class HomeUIManager {
     `;
   }
 
-  // 3. 300 Stage Snakes & Ladders Adventure Map
+  // 3. 500 Stage Snakes & Ladders Adventure Map
   renderSnakesAdventureMap() {
     let stagesHtml = '';
     const completedStages = economy.data.completedSnakesStages || {};
     const completedCount = Object.keys(completedStages).length;
     const currentUnlock = completedCount + 1;
 
-    for (let i = 1; i <= 300; i++) {
+    for (let i = 1; i <= 500; i++) {
       const isLocked = i > currentUnlock;
       const isCurrent = i === currentUnlock;
       const isMilestone = i % 25 === 0;
@@ -1315,7 +1315,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.4';
+    const CURRENT_VERSION = '1.3.5';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1370,7 +1370,7 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.4').replace(/^v/, '');
+      const latestTag = (release.tag_name || 'v1.3.5').replace(/^v/, '');
 
       let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.apk`;
       let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.ipa`;
@@ -1401,7 +1401,7 @@ export class HomeUIManager {
 
           <div style="background: rgba(15,23,42,0.7); border-radius: 14px; padding: 14px; margin: 16px 0; text-align: left;">
             <h4 style="color: #67e8f9; margin: 0 0 8px 0; font-size: 0.90rem;">🛡️ Permanent Local Save Guarantee:</h4>
-            <p style="color: #94a3b8; font-size: 0.78rem; margin: 0; line-height: 1.5;">All your unlocked 300 levels, coins, diamonds, and equipped store skins are permanently retained on this device.</p>
+            <p style="color: #94a3b8; font-size: 0.78rem; margin: 0; line-height: 1.5;">All your unlocked 500 levels, coins, diamonds, and equipped store skins are permanently retained on this device.</p>
           </div>
 
           <div class="update-dl-buttons-group" style="margin-top: 18px;">

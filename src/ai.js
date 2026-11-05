@@ -27,7 +27,7 @@ export class LudoAI {
         score += (isQuickMode ? 600 : 400) + (move.targetStep - 51) * 35;
       }
 
-      // 3. Capturing an Opponent's Token
+      // 3. Capturing an Opponent's Token (High Value Target Hunting)
       if (move.targetStep >= 0 && move.targetStep <= 50) {
         const targetTile = engine.getCommonTileIndex(pId, move.targetStep);
         const isSafeTile = SAFE_TILE_INDICES.includes(targetTile);
@@ -41,7 +41,9 @@ export class LudoAI {
                 if (oppStep >= 0 && oppStep <= 50) {
                   const oppTile = engine.getCommonTileIndex(opp.id, oppStep);
                   if (oppTile === targetTile) {
-                    score += 950; // Priority: Capture opponent & reset their progress!
+                    // Huge swing if capturing advanced opponent near their home stretch!
+                    const advanceBonus = oppStep >= 25 ? 350 : 0;
+                    score += 1050 + advanceBonus;
                   }
                 }
               });
@@ -51,18 +53,19 @@ export class LudoAI {
 
         // 4. Reaching a Safe Star Tile
         if (isSafeTile) {
-          score += 420;
+          score += 440;
         }
       }
 
       // 5. Spawning a New Token from Yard
       if (move.isSpawn) {
-        // In Quick mode, spawning is good early, but advancing an active token is much better
         const activeTokensCount = engine.tokens[pId].filter(s => s >= 0 && s < 56).length;
-        if (isQuickMode && activeTokensCount >= 1) {
-          score += 150; // Focus on the running token in blitz
+        if (activeTokensCount === 0) {
+          score += 900; // Immediate top priority to enter board if all locked in yard!
+        } else if (isQuickMode && activeTokensCount >= 1) {
+          score += 180; // Focus on the running token in blitz
         } else {
-          score += 320;
+          score += 380;
         }
       }
 

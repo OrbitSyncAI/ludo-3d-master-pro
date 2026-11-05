@@ -350,7 +350,7 @@ class LudoApp {
     if (curPlayer.isAI) {
       this.inGameUI.setRollButtonEnabled(false);
       this.inGameUI.updateStatus(`${curPlayer.name} is rolling...`);
-      await this.sleep(450); // Natural, smooth delay before AI roll
+      await this.sleep(180); // Quick, lively delay before AI roll
       if (this.engine.state === GAME_STATES.GAME_OVER) return;
       this.scheduleLudoAITurn();
     } else {
@@ -408,7 +408,7 @@ class LudoApp {
     if (!curPlayer.isAI) {
       if (this.validMoves.length === 1) {
         this.inGameUI.updateStatus(`Rolled ${rollValue} - Moving token...`);
-        await this.sleep(120);
+        await this.sleep(60);
         await this.executeLudoMove(this.validMoves[0]);
       } else {
         this.inGameUI.updateStatus(`Rolled ${rollValue} - Tap a glowing token`);
@@ -472,11 +472,11 @@ class LudoApp {
     if (result.bonusTurn) {
       const reason = result.capturedOpponent ? 'Capture' : (this.engine.currentRoll === 6 ? 'Six' : 'Goal');
       this.inGameUI.updateStatus(`🎉 ${reason}! Bonus turn!`, true);
-      await this.sleep(300);
+      await this.sleep(180);
     }
 
     this.validMoves = [];
-    await this.sleep(380); // Natural delay before switching turn to next player
+    await this.sleep(160); // Crisp, snappy transition to next player
     this.isProcessingTurn = false;
     this.updateTurnUI();
   }
@@ -495,9 +495,8 @@ class LudoApp {
 
     if (result.action === 'FORFEIT_THREE_SIXES') {
       this.inGameUI.updateStatus(`3 Sixes! Turn forfeited!`);
-      await this.sleep(400);
+      await this.sleep(220);
       this.engine.nextPlayer();
-      await this.sleep(350);
       this.isProcessingTurn = false;
       this.updateTurnUI();
       return;
@@ -505,16 +504,15 @@ class LudoApp {
 
     if (result.action === 'NO_MOVES') {
       this.inGameUI.updateStatus(`${this.engine.getCurrentPlayer().name} rolled ${rollValue} - No moves`);
-      await this.sleep(380);
+      await this.sleep(220);
       this.engine.nextPlayer();
-      await this.sleep(350);
       this.isProcessingTurn = false;
       this.updateTurnUI();
       return;
     }
 
     const bestMove = LudoAI.chooseBestMove(this.engine, result.validMoves);
-    await this.sleep(220);
+    await this.sleep(100);
     await this.executeLudoMove(bestMove);
   }
 
@@ -666,14 +664,14 @@ class LudoApp {
     const isUserTeamWinner = (winner.team === 'A');
 
     if (this.currentLevelNum) {
-      // 1. Ludo 300 Saga Mode
+      // 1. Ludo 500 Saga Mode
       if (isUserWinner) {
         const stars = 3;
         economy.completeLevel(this.currentLevelNum, stars);
         rewardInfo = {
           isDefeat: false,
           isLevel: true,
-          hasNextLevel: (this.currentLevelNum < 300),
+          hasNextLevel: (this.currentLevelNum < 500),
           rankings,
           title: `LUDO SAGA LEVEL ${this.currentLevelNum} CLEARED!`,
           coins: 1500,
@@ -697,14 +695,14 @@ class LudoApp {
         };
       }
     } else if (this.currentSnakesLevelNum) {
-      // 2. Snakes 300 Stage Mode
+      // 2. Snakes 500 Stage Mode
       if (isUserWinner) {
         const stars = 3;
         economy.completeSnakesStage(this.currentSnakesLevelNum, stars);
         rewardInfo = {
           isDefeat: false,
           isLevel: true,
-          hasNextLevel: (this.currentSnakesLevelNum < 300),
+          hasNextLevel: (this.currentSnakesLevelNum < 500),
           rankings,
           title: `SNAKES STAGE ${this.currentSnakesLevelNum} CONQUERED!`,
           coins: 1200,
@@ -845,8 +843,8 @@ class LudoApp {
     for (let p = 0; p < 4; p++) {
       for (let t = 0; t < 4; t++) {
         const token = this.tokens[p][t];
-        if (!token.isMoving) {
-          token.updatePositionInstant(this.getStackOffset(token));
+        if (!token.isMoving && token.step >= 0) {
+          token.smoothOffsetTo(this.getStackOffset(token));
         }
       }
     }

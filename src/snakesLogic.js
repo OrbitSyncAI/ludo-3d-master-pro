@@ -85,15 +85,30 @@ export class SnakesEngine {
     return this.players[this.activePlayerIndex];
   }
 
-  // Dynamic Comeback Assist
+  // Dynamic Balanced Smart Roll Algorithm (Comeback & Photo-Finish Assist)
   generateSmartRoll(playerIndex = this.activePlayerIndex) {
     const isHuman = (playerIndex === 0);
-    // If recently bitten by a snake, grant exciting comeback roll
+    const myPos = this.positions[playerIndex];
+    const maxOppPos = Math.max(...this.positions.filter((_, idx) => idx !== playerIndex));
+
+    // 1. If recently bitten by a snake, grant exciting comeback roll
     if (isHuman && this.recentSnakeBite[playerIndex]) {
       this.recentSnakeBite[playerIndex] = false;
       const boostRolls = [4, 5, 6];
       return boostRolls[Math.floor(Math.random() * boostRolls.length)];
     }
+
+    // 2. Trailing Comeback Assist: If human is > 30 tiles behind the leader
+    if (isHuman && (maxOppPos - myPos >= 30) && Math.random() < 0.40) {
+      const comebackRolls = [4, 5, 6];
+      return comebackRolls[Math.floor(Math.random() * comebackRolls.length)];
+    }
+
+    // 3. Exciting Climax: Near tile 100, ensure competitive photo-finish
+    if (myPos >= 94 && (100 - myPos) <= 6 && Math.random() < 0.28) {
+      return (100 - myPos);
+    }
+
     return Math.floor(Math.random() * 6) + 1;
   }
 

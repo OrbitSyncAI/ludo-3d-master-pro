@@ -111,15 +111,87 @@ export const SNAKES_MILESTONES = {
     coins: 150000,
     gems: 500,
     desc: "Grandmaster Finale: 150,000 Coins + 500 Gems + Mythic Golden Dragon Emperor!"
+  },
+  325: {
+    title: "Jurassic Dinosaur Jungle Theme",
+    icon: "🦖",
+    itemType: "snakesThemes",
+    itemId: "snakes_jurassic",
+    coins: 160000,
+    gems: 550,
+    desc: "Unlocks Primordial Ferns & Giant Raptor Serpents + 160,000 Coins!"
+  },
+  350: {
+    title: "Chrono Steampunk Clocks Theme",
+    icon: "⏳",
+    itemType: "snakesThemes",
+    itemId: "snakes_chrono",
+    coins: 180000,
+    gems: 600,
+    desc: "Unlocks Gearwork Cog Ladders & Clockwork Serpents!"
+  },
+  375: {
+    title: "Solar Titan Colosseum Theme",
+    icon: "☀️",
+    itemType: "snakesThemes",
+    itemId: "snakes_solar_titan",
+    coins: 200000,
+    gems: 650,
+    desc: "Unlocks Sun-Forged Bronze Pillars & Solar Wyrms!"
+  },
+  400: {
+    title: "Abyssal Deep Void Theme",
+    icon: "🐉",
+    itemType: "snakesThemes",
+    itemId: "snakes_deep_void",
+    coins: 220000,
+    gems: 700,
+    desc: "Quad-Century Master: Bioluminescent Trench Leviathans!"
+  },
+  425: {
+    title: "Prismatic Starlight Die",
+    icon: "✨",
+    itemType: "dice",
+    itemId: "starlight_prism",
+    coins: 240000,
+    gems: 750,
+    desc: "Unlocks Radiant Prismatic Rainbow Laser Die!"
+  },
+  450: {
+    title: "Neon Hyperdrive Grid Theme",
+    icon: "⚡",
+    itemType: "snakesThemes",
+    itemId: "snakes_hyperdrive",
+    coins: 260000,
+    gems: 800,
+    desc: "Unlocks Cybernetic Speed-of-Light Neon Grid!"
+  },
+  475: {
+    title: "Phoenix Feather Pawns",
+    icon: "🪶",
+    itemType: "pawns",
+    itemId: "phoenix_pawn",
+    coins: 280000,
+    gems: 900,
+    desc: "Unlocks Mythical Blazing Phoenix Feather Pawns!"
+  },
+  500: {
+    title: "Apex Mythic Dragon Overlord Finale",
+    icon: "👑",
+    itemType: "snakesThemes",
+    itemId: "snakes_apex_dragon",
+    coins: 300000,
+    gems: 1000,
+    desc: "Supreme 500-Stage Grandmaster Finale: 300,000 Coins + 1,000 Gems + Mythic Dragon Overlord Theme!"
   }
 };
 
 export function generateSnakesStages() {
   const stages = [];
-  for (let i = 1; i <= 300; i++) {
+  for (let i = 1; i <= 500; i++) {
     const isMilestone = i % 25 === 0;
     const botCount = i <= 25 ? 1 : (i <= 100 ? 2 : 3);
-    const difficulty = i <= 50 ? 'Novice' : (i <= 150 ? 'Challenger' : (i <= 250 ? 'Master' : 'Grandmaster'));
+    const difficulty = i <= 50 ? 'Novice' : (i <= 150 ? 'Challenger' : (i <= 250 ? 'Master' : (i <= 400 ? 'Grandmaster' : 'Apex Legend')));
 
     stages.push({
       number: i,

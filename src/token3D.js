@@ -119,6 +119,42 @@ export class Token3D {
     return ring;
   }
 
+  // Smooth coordinate update when stacking or resting
+  smoothOffsetTo(targetOffset = { x: 0, z: 0 }, duration = 120) {
+    if (this.isMoving) return;
+    const base = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
+    const destX = base.x + (targetOffset.x || 0);
+    const destZ = base.z + (targetOffset.z || 0);
+    const startX = this.mesh.position.x;
+    const startZ = this.mesh.position.z;
+
+    const diff = Math.hypot(destX - startX, destZ - startZ);
+    if (diff < 0.005) return;
+
+    const startTime = performance.now();
+    const stepSlide = (now) => {
+      if (this.isMoving) return;
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1.0);
+      const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
+
+      const curX = startX + (destX - startX) * ease;
+      const curZ = startZ + (destZ - startZ) * ease;
+      this.mesh.position.x = curX;
+      this.mesh.position.z = curZ;
+      this.selectionRing.position.x = curX;
+      this.selectionRing.position.z = curZ;
+
+      if (progress < 1.0) {
+        requestAnimationFrame(stepSlide);
+      } else {
+        this.mesh.position.set(destX, base.y, destZ);
+        this.selectionRing.position.set(destX, base.y + 0.01, destZ);
+      }
+    };
+    requestAnimationFrame(stepSlide);
+  }
+
   // Immediate coordinate update without animation
   updatePositionInstant(stackOffset = { x: 0, z: 0 }) {
     const target = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step);
@@ -176,26 +212,28 @@ export class Token3D {
     this.isMoving = false;
   }
 
-  // Smooth arc hop animation from point A to B (Relaxed & buttery smooth 230ms)
-  animateSingleHop(start, end, duration = 230) {
+  // Ultra-smooth, snappy hop animation from point A to B (Fast & energetic 155ms)
+  animateSingleHop(start, end, duration = 155) {
     return new Promise((resolve) => {
       const startTime = performance.now();
-      const hopHeight = 0.58;
+      const hopHeight = 0.55;
 
       const stepHop = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1.0);
 
-        // Linear interpolation for X and Z
-        const x = start.x + (end.x - start.x) * progress;
-        const z = start.z + (end.z - start.z) * progress;
+        // Cosine smooth easing for organic horizontal trajectory
+        const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
+        const x = start.x + (end.x - start.x) * ease;
+        const z = start.z + (end.z - start.z) * ease;
+
         // Parabolic arc for Y
         const arc = Math.sin(progress * Math.PI);
         const y = start.y + arc * hopHeight;
 
-        // Subtle squash and stretch for juicy cartoon hop feel
-        const scaleY = 1.0 + arc * 0.12;
-        const scaleXZ = 1.0 - arc * 0.06;
+        // Dynamic squash and stretch: stretched at peak, subtle cushion squash on touchdown
+        const scaleY = 1.0 + (arc > 0.25 ? (arc - 0.25) * 0.18 : -(0.25 - arc) * 0.10);
+        const scaleXZ = 1.0 / Math.sqrt(Math.max(0.65, scaleY));
         this.mesh.scale.set(scaleXZ, scaleY, scaleXZ);
 
         this.mesh.position.set(x, y, z);
@@ -213,20 +251,21 @@ export class Token3D {
     });
   }
 
-  // Dramatic Arc out of Yard onto Start Square (Smooth 420ms)
-  animateYardSpawn(duration = 420) {
+  // Dramatic Arc out of Yard onto Start Square (Snappy 270ms)
+  animateYardSpawn(duration = 270) {
     return new Promise((resolve) => {
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);
       const startTime = performance.now();
-      const jumpHeight = 1.4;
+      const jumpHeight = 1.35;
 
       const spawnAnim = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1.0);
+        const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
 
-        const x = start.x + (end.x - start.x) * progress;
-        const z = start.z + (end.z - start.z) * progress;
+        const x = start.x + (end.x - start.x) * ease;
+        const z = start.z + (end.z - start.z) * ease;
         const y = start.y + Math.sin(progress * Math.PI) * jumpHeight;
 
         this.mesh.position.set(x, y, z);
@@ -237,6 +276,7 @@ export class Token3D {
         } else {
           this.mesh.rotation.y = 0;
           this.mesh.position.set(end.x, end.y, end.z);
+          this.mesh.scale.set(1.0, 1.0, 1.0);
           resolve();
         }
       };

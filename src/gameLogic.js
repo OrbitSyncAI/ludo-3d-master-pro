@@ -127,8 +127,8 @@ export class GameEngine {
     const tokens = this.tokens[player.id];
     const allInYard = tokens.every(s => s === -1);
 
-    // Anti-frustration rule 1: If human has all 4 tokens trapped in yard and hasn't rolled a 6 for 2+ turns
-    if (isHuman && allInYard && (this.turnsWithoutSix[player.id] || 0) >= 2) {
+    // Anti-frustration rule 1: If player has all 4 tokens trapped in yard and hasn't rolled a 6
+    if (allInYard && (this.turnsWithoutSix[player.id] || 0) >= (isHuman ? 2 : 3)) {
       if (Math.random() < 0.45) {
         this.turnsWithoutSix[player.id] = 0;
         return 6;
