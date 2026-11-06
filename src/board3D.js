@@ -340,30 +340,11 @@ export class Board3D {
       this.group.add(triMesh);
     });
 
-    // Central Floating 3D Golden Victory Trophy
-    const crownGeo = new THREE.OctahedronGeometry(0.48, 0);
-    const crownMat = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      emissive: 0xffb300,
-      emissiveIntensity: 0.45,
-      roughness: 0.15,
-      metalness: 0.85
-    });
-    this.victoryCrystal = new THREE.Mesh(crownGeo, crownMat);
-    this.victoryCrystal.position.set(centerPos.x, 0.85, centerPos.z);
-    this.victoryCrystal.castShadow = true;
-    this.group.add(this.victoryCrystal);
-
-    const victoryLight = new THREE.PointLight(0xffd700, 1.5, 6);
-    victoryLight.position.set(centerPos.x, 1.3, centerPos.z);
-    this.group.add(victoryLight);
+    // Center is kept clean and clear so only the 3D dice sits flush and prominently
   }
 
   update(delta) {
-    if (this.victoryCrystal) {
-      this.victoryCrystal.rotation.y += delta * 1.5;
-      this.victoryCrystal.position.y = 0.85 + Math.sin(Date.now() * 0.003) * 0.09;
-    }
+    // Board update hooks (kept clean without distracting overlays)
   }
 
   destroy() {

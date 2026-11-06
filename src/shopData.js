@@ -816,6 +816,66 @@ export const SHOP_CATALOG = {
       baseColor: '#fdf4ff',
       pipRed: '#e11d48',
       pipDark: '#6366f1'
+    },
+    {
+      id: 'cyber_matrix_neon',
+      name: 'Cyber Matrix 3D Die',
+      desc: 'Neon cybernetic green cube with glowing digital circuit traces and cyan pips.',
+      rarity: 'LEGENDARY',
+      priceCoins: 25000,
+      priceGems: 0,
+      icon: '🟩',
+      baseColor: '#052e16',
+      pipRed: '#22c55e',
+      pipDark: '#10b981'
+    },
+    {
+      id: 'dragon_inferno_die',
+      name: 'Dragon Inferno Die',
+      desc: 'Forged in dragon breath with blazing incandescent ember spots.',
+      rarity: 'LEGENDARY',
+      priceCoins: 0,
+      priceGems: 220,
+      icon: '🐉',
+      baseColor: '#450a0a',
+      pipRed: '#f97316',
+      pipDark: '#dc2626'
+    },
+    {
+      id: 'galactic_nebula_die',
+      name: 'Galactic Nebula Die',
+      desc: 'Deep cosmic starlight violet cube infused with radiant interstellar stardust.',
+      rarity: 'MYTHIC',
+      priceCoins: 0,
+      priceGems: 280,
+      icon: '🌌',
+      baseColor: '#2e1065',
+      pipRed: '#38bdf8',
+      pipDark: '#c084fc'
+    },
+    {
+      id: 'steampunk_chrono_die',
+      name: 'Chrono Gear Steampunk Die',
+      desc: 'Antiqued brass clockwork die engraved with micro gear cogwheels.',
+      rarity: 'RARE',
+      priceCoins: 17500,
+      priceGems: 0,
+      icon: '⚙️',
+      baseColor: '#78350f',
+      pipRed: '#f59e0b',
+      pipDark: '#d97706'
+    },
+    {
+      id: 'apex_sovereign_die',
+      name: 'Apex Sun God Die',
+      desc: 'Radiant celestial sunburst die hand-carved for undefeated arena emperors.',
+      rarity: 'MYTHIC',
+      priceCoins: 0,
+      priceGems: 350,
+      icon: '☀️',
+      baseColor: '#451a03',
+      pipRed: '#facc15',
+      pipDark: '#fbbf24'
     }
   ],
 
@@ -946,6 +1006,51 @@ export const SHOP_CATALOG = {
       priceCoins: 0,
       priceGems: 250,
       icon: '🪶'
+    },
+    {
+      id: 'cyber_samurai_blade',
+      name: 'Cyber Samurai Blade Pawns',
+      desc: 'High-frequency cyber katana blade forged with neon hyper-luminescent edges.',
+      rarity: 'MYTHIC',
+      priceCoins: 35000,
+      priceGems: 0,
+      icon: '⚔️'
+    },
+    {
+      id: 'astral_dragon_pawn',
+      name: 'Celestial Astral Dragon Pawns',
+      desc: 'Ancient celestial dragon figurine sculpted from supernova starlight and pure obsidian.',
+      rarity: 'MYTHIC',
+      priceCoins: 0,
+      priceGems: 300,
+      icon: '🐉'
+    },
+    {
+      id: 'horus_falcon_pawn',
+      name: 'Horus Solar Falcon Pawns',
+      desc: 'Sacred golden Horus falcon crowned with the solar sun disk of the pharaohs.',
+      rarity: 'LEGENDARY',
+      priceCoins: 28000,
+      priceGems: 0,
+      icon: '🦅'
+    },
+    {
+      id: 'bengal_tiger_pawn',
+      name: 'Golden Bengal Tiger Pawns',
+      desc: 'Regal golden tiger totem radiating ferocity, courage and supreme royal dominion.',
+      rarity: 'LEGENDARY',
+      priceCoins: 30000,
+      priceGems: 0,
+      icon: '🐅'
+    },
+    {
+      id: 'arcane_tome_pawn',
+      name: 'Ancient Arcane Tome Pawns',
+      desc: 'Enchanted floating spellbook bound in celestial runes that unlocks destiny.',
+      rarity: 'RARE',
+      priceCoins: 19500,
+      priceGems: 0,
+      icon: '📖'
     }
   ],
 

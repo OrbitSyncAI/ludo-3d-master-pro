@@ -45,22 +45,13 @@ export class UIManager {
     this.playersContainer.className = 'players-overlay hidden';
     screen.appendChild(this.playersContainer);
 
-    // Bottom Action Dock
+    // Sleek Floating Match Status Dock (Replaces clunky yellow button)
     this.rollController = document.createElement('div');
-    this.rollController.className = 'roll-controller hidden';
+    this.rollController.className = 'match-status-dock hidden';
     this.rollController.innerHTML = `
-      <div class="turn-prompt-pill" id="turn-prompt">
+      <div class="match-status-pill" id="turn-prompt">
+        <span class="status-pip-dot"></span>
         <span id="turn-prompt-text">Welcome to Ludo 3D</span>
-      </div>
-
-      <div class="roll-btn-wrapper">
-        <button id="btn-roll" class="roll-btn btn-roll-dice">
-          <span class="dice-pip-display dice-icon-preview">🎲</span>
-          <div class="roll-text roll-btn-labels">
-            <span class="roll-title main-roll-text">ROLL DICE</span>
-            <span class="roll-sub sub-roll-text">Tap button or 3D dice</span>
-          </div>
-        </button>
       </div>
     `;
     screen.appendChild(this.rollController);
@@ -93,6 +84,14 @@ export class UIManager {
     const btnRoll = document.getElementById('btn-roll');
     if (btnRoll) {
       btnRoll.addEventListener('click', () => {
+        sounds.playButtonClick();
+        if (this.callbacks.onRoll) this.callbacks.onRoll();
+      });
+    }
+
+    const turnPrompt = document.getElementById('turn-prompt');
+    if (turnPrompt) {
+      turnPrompt.addEventListener('click', () => {
         sounds.playButtonClick();
         if (this.callbacks.onRoll) this.callbacks.onRoll();
       });
@@ -188,8 +187,10 @@ export class UIManager {
 
   renderPlayerCards(players, activePlayerIndex = 0, tokens = null, positions = null) {
     this.setupPlayerCards(players);
-    if (players && players[activePlayerIndex]) {
-      this.highlightActivePlayer(players[activePlayerIndex].id, players[activePlayerIndex].name);
+    const activePlayer = players && players[activePlayerIndex];
+    if (activePlayer) {
+      this.activePlayerId = activePlayer.id;
+      this.highlightActivePlayer(activePlayer.id, activePlayer.name);
     }
     if (tokens) {
       players.forEach(p => {
@@ -207,9 +208,12 @@ export class UIManager {
     }
   }
 
-  updateDiceDisplay(rollValue, isRolling = false) {
+  updateDiceDisplay(rollValue, isRolling = false, activePlayerId = this.activePlayerId) {
     const dicePreview = this.rollController ? this.rollController.querySelector('.dice-icon-preview') : null;
     const rollMain = this.rollController ? this.rollController.querySelector('.main-roll-text') : null;
+    const pipIcons = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+    // Update Bottom Roll Bar
     if (isRolling) {
       if (dicePreview) dicePreview.classList.add('spinning');
       if (rollMain) rollMain.textContent = 'ROLLING...';
@@ -217,7 +221,6 @@ export class UIManager {
       if (dicePreview) {
         dicePreview.classList.remove('spinning');
         if (rollValue) {
-          const pipIcons = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
           dicePreview.textContent = pipIcons[rollValue - 1] || `${rollValue}`;
         } else {
           dicePreview.textContent = '🎲';
@@ -227,9 +230,52 @@ export class UIManager {
         rollMain.textContent = rollValue ? `ROLLED ${rollValue}` : 'ROLL DICE';
       }
     }
+
+    // Update Ludo King Integrated Corner Dice for Active Player
+    if (activePlayerId !== undefined && activePlayerId !== null) {
+      const cornerPip = document.getElementById(`corner-pip-${activePlayerId}`);
+      const cornerLabel = document.querySelector(`#corner-dice-${activePlayerId} .corner-dice-label`);
+      if (cornerPip) {
+        if (isRolling) {
+          cornerPip.classList.add('spinning');
+          cornerPip.textContent = '🎲';
+          if (cornerLabel) cornerLabel.textContent = '...';
+        } else {
+          cornerPip.classList.remove('spinning');
+          if (rollValue) {
+            cornerPip.textContent = pipIcons[rollValue - 1] || `${rollValue}`;
+            cornerPip.classList.add('bounce-dice');
+            setTimeout(() => cornerPip.classList.remove('bounce-dice'), 600);
+            if (cornerLabel) cornerLabel.textContent = `${rollValue}`;
+          } else {
+            cornerPip.textContent = '🎲';
+            if (cornerLabel) cornerLabel.textContent = 'ROLL';
+          }
+        }
+      }
+    }
   }
 
   setupPlayerCards(players) {
+    const currentCardCount = this.playersContainer.querySelectorAll('.player-hud-card').length;
+    if (currentCardCount === players.length) {
+      // Cards already created, only update rank badges if any
+      players.forEach(p => {
+        const card = document.getElementById(`player-hud-${p.id}`);
+        if (card && p.hasFinished && p.rank) {
+          let rankBadge = card.querySelector('.hud-rank-badge');
+          if (!rankBadge) {
+            rankBadge = document.createElement('span');
+            rankBadge.className = 'hud-rank-badge';
+            card.appendChild(rankBadge);
+          }
+          const medals = { 1: '🥇 1ST', 2: '🥈 2ND', 3: '🥉 3RD', 4: '4TH' };
+          rankBadge.textContent = medals[p.rank] || `RANK ${p.rank}`;
+        }
+      });
+      return;
+    }
+
     this.playersContainer.innerHTML = '';
     const cornerClasses = ['pos-bottom-left', 'pos-top-left', 'pos-top-right', 'pos-bottom-right'];
 
@@ -250,32 +296,63 @@ export class UIManager {
 
       const roleBadge = p.team 
         ? `<span class="type-pill hud-role" style="background: ${p.team === 'A' ? '#fee2e2; color: #dc2626' : '#dcfce7; color: #16a34a'}">${p.team === 'A' ? '🔴 SOLAR' : '🟢 CYBER'}</span>`
-        : `<span class="type-pill hud-role">${p.isAI ? 'BOT' : 'YOU'}</span>`;
+        : `<span class="type-pill hud-role">${p.isAI ? 'BOT' : (p.id === 0 ? 'YOU' : `P${p.id + 1}`)}</span>`;
 
       card.innerHTML = `
-        <div class="player-avatar hud-avatar-box" style="background: ${p.color ? (p.color.primary || '#cbd5e1') + '22' : '#ffffff22'}">
-          <span class="hud-avatar">${p.isAI ? '🤖' : (economy?.data?.avatar || '👑')}</span>
-        </div>
-        <div class="player-info hud-player-meta">
-          <strong class="player-name hud-name" style="color: ${nameColor}">${p.name}</strong>
-          <div class="player-meta">
-            ${roleBadge}
-            <span class="home-score hud-score-chip" id="hud-score-${p.id}">🏆 0/4</span>
+        <div class="card-left-section">
+          <div class="player-avatar hud-avatar-box" style="background: ${p.color ? (p.color.primary || '#cbd5e1') + '22' : '#ffffff22'}">
+            <span class="hud-avatar">${p.isAI ? '🤖' : (p.id === 0 ? (economy?.data?.avatar || '👑') : '👤')}</span>
+            <div class="active-pulse-ring"></div>
+          </div>
+          <div class="player-info hud-player-meta">
+            <div class="hud-name-row">
+              <strong class="player-name hud-name" style="color: ${nameColor}">${p.name}</strong>
+              <span class="hud-turn-badge" id="hud-turn-badge-${p.id}">TURN</span>
+            </div>
+            <div class="player-meta">
+              ${roleBadge}
+              <span class="home-score hud-score-chip" id="hud-score-${p.id}">🏆 0/4</span>
+            </div>
           </div>
         </div>
+
+        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON -->
+        <button class="corner-dice-btn" id="corner-dice-${p.id}" data-player-id="${p.id}" title="${p.name} Tap to Roll">
+          <span class="corner-dice-pip" id="corner-pip-${p.id}">🎲</span>
+          <span class="corner-dice-label">${p.isAI ? 'BOT' : 'ROLL'}</span>
+        </button>
+
         <div class="active-pulse-dot"></div>
       `;
+
+      // Corner dice click handler
+      const cornerDiceBtn = card.querySelector('.corner-dice-btn');
+      if (cornerDiceBtn) {
+        cornerDiceBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sounds.playButtonClick();
+          if (this.callbacks.onRoll) this.callbacks.onRoll();
+        });
+      }
+
       this.playersContainer.appendChild(card);
     });
   }
 
   highlightActivePlayer(playerId, playerName) {
+    this.activePlayerId = playerId;
     const allCards = this.playersContainer.querySelectorAll('.player-hud-card');
-    allCards.forEach(c => c.classList.remove('active-turn'));
+    allCards.forEach(c => {
+      c.classList.remove('active-turn');
+      const dice = c.querySelector('.corner-dice-btn');
+      if (dice) dice.classList.remove('dice-ready-pulse');
+    });
 
     const activeCard = document.getElementById(`player-hud-${playerId}`);
     if (activeCard) {
       activeCard.classList.add('active-turn');
+      const activeDice = activeCard.querySelector('.corner-dice-btn');
+      if (activeDice) activeDice.classList.add('dice-ready-pulse');
     }
 
     const text = document.getElementById('turn-prompt-text');

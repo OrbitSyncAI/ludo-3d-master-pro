@@ -1,6 +1,7 @@
 /**
  * Ludo 3D Pro - Authentic 100-Tile Illustrated Snakes & Ladders 3D Board
  * Realistic Step-by-Step Walking, Ladder Climbing & Snake Sliding Animations
+ * Precision Tile Centering: Multiple pawns cluster strictly inside the tile without spilling over
  */
 
 import * as THREE from 'three';
@@ -48,49 +49,68 @@ export class SnakesBoard3D {
     const trimGeo = new THREE.BoxGeometry(boardSize + 0.35, 0.22, boardSize + 0.35);
     const trimMat = new THREE.MeshStandardMaterial({
       color: themeConfig.trimColor || 0xffd700,
-      metalness: 0.95,
-      roughness: 0.1
+      metalness: 0.85,
+      roughness: 0.2
     });
     const trimMesh = new THREE.Mesh(trimGeo, trimMat);
-    trimMesh.position.y = -boardThickness / 2;
+    trimMesh.position.y = -0.11;
     this.group.add(trimMesh);
 
-    // Play Surface with 100-Tile Illustrated Canvas Texture dynamically generated for this theme
-    const boardTexture = createSnakesBoardTexture(this.themeId);
-    const surfaceGeo = new THREE.PlaneGeometry(15.2, 15.2);
-    const surfaceMat = new THREE.MeshStandardMaterial({
+    // High-Resolution 100-Tile Board Face (Canvas Texture with Themed Graphics)
+    const canvas = createSnakesBoardTexture(this.themeId);
+    const boardTexture = new THREE.CanvasTexture(canvas);
+    boardTexture.anisotropy = 4;
+
+    const faceGeo = new THREE.PlaneGeometry(15.2, 15.2);
+    const faceMat = new THREE.MeshStandardMaterial({
       map: boardTexture,
-      roughness: 0.2,
-      metalness: 0.05
+      roughness: 0.25,
+      metalness: 0.1
     });
-    const surfaceMesh = new THREE.Mesh(surfaceGeo, surfaceMat);
-    surfaceMesh.rotation.x = -Math.PI / 2;
-    surfaceMesh.position.y = 0.03;
-    surfaceMesh.receiveShadow = true;
-    this.group.add(surfaceMesh);
+    const faceMesh = new THREE.Mesh(faceGeo, faceMat);
+    faceMesh.rotation.x = -Math.PI / 2;
+    faceMesh.position.y = 0.01;
+    faceMesh.receiveShadow = true;
+    this.group.add(faceMesh);
   }
 
+  // Create Pawns for active players
   createPawns(players) {
     this.pawns.forEach(p => this.group.remove(p));
     this.pawns = [];
 
+    const initialPositions = Array(players.length).fill(1);
+
     players.forEach((p, idx) => {
       const group = new THREE.Group();
+      group.userData = { isPawn: true, playerIndex: idx };
 
-      // Heavy Gold Base
-      const baseGeo = new THREE.CylinderGeometry(0.32, 0.38, 0.16, 24);
+      // Base
+      const baseGeo = new THREE.CylinderGeometry(0.24, 0.30, 0.14, 20);
       const baseMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        metalness: 0.85,
+        roughness: 0.25
+      });
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      base.position.y = 0.07;
+      base.castShadow = true;
+      group.add(base);
+
+      // Gold Ring
+      const ringGeo = new THREE.TorusGeometry(0.25, 0.03, 12, 20);
+      const ringMat = new THREE.MeshStandardMaterial({
         color: 0xffd700,
         metalness: 0.9,
         roughness: 0.15
       });
-      const base = new THREE.Mesh(baseGeo, baseMat);
-      base.position.y = 0.08;
-      base.castShadow = true;
-      group.add(base);
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.14;
+      group.add(ring);
 
-      // Pawn Body (Player Color)
-      const bodyGeo = new THREE.CylinderGeometry(0.20, 0.28, 0.45, 24);
+      // Body (Player Color)
+      const bodyGeo = new THREE.CylinderGeometry(0.14, 0.22, 0.35, 20);
       const bodyMat = new THREE.MeshStandardMaterial({
         color: p.colorHex,
         metalness: 0.4,
@@ -102,7 +122,7 @@ export class SnakesBoard3D {
       group.add(body);
 
       // Gem Sphere Head
-      const headGeo = new THREE.SphereGeometry(0.24, 20, 20);
+      const headGeo = new THREE.SphereGeometry(0.22, 20, 20);
       const headMat = new THREE.MeshStandardMaterial({
         color: p.colorHex,
         emissive: p.colorHex,
@@ -116,52 +136,111 @@ export class SnakesBoard3D {
       group.add(head);
 
       const pos = tileToGrid(1);
-      const offset = (idx - (players.length - 1) / 2) * 0.38;
-      group.position.set(pos.x + offset, 0.1, pos.z);
+      const offset = this.getPawnTileOffset(idx, 1, initialPositions);
+      group.position.set(pos.x + offset.x, 0.1, pos.z + offset.z);
 
       this.group.add(group);
       this.pawns.push(group);
     });
   }
 
+  // Calculate precise offset so multiple pawns on the SAME tile remain strictly centered
+  // and NEVER spill over into adjacent tile boxes (tile pitch is 1.52)
+  getPawnTileOffset(playerIndex, targetTile, positions = null) {
+    if (!positions) return { x: 0, z: 0 };
+
+    const sharingPlayers = [];
+    for (let i = 0; i < positions.length; i++) {
+      if (positions[i] === targetTile) {
+        sharingPlayers.push(i);
+      }
+    }
+    if (!sharingPlayers.includes(playerIndex)) {
+      sharingPlayers.push(playerIndex);
+    }
+    sharingPlayers.sort((a, b) => a - b);
+
+    const count = sharingPlayers.length;
+    if (count <= 1) {
+      return { x: 0, z: 0 }; // Dead center of tile box!
+    }
+
+    const myIdx = sharingPlayers.indexOf(playerIndex);
+    // Tight 2x2 or radial cluster strictly inside tile (radius <= 0.22, pitch = 1.52)
+    if (count === 2) {
+      return myIdx === 0 ? { x: -0.22, z: 0 } : { x: 0.22, z: 0 };
+    } else if (count === 3) {
+      const angles = [-Math.PI / 2, Math.PI / 6, (5 * Math.PI) / 6];
+      return {
+        x: Math.cos(angles[myIdx]) * 0.22,
+        z: Math.sin(angles[myIdx]) * 0.22
+      };
+    } else {
+      // 4 players on same tile -> 2x2 grid centered within the tile
+      const gridOffsets = [
+        { x: -0.22, z: -0.22 },
+        { x: 0.22, z: -0.22 },
+        { x: -0.22, z: 0.22 },
+        { x: 0.22, z: 0.22 }
+      ];
+      return gridOffsets[myIdx] || { x: 0, z: 0 };
+    }
+  }
+
+  // Update all pawns to their exact centered cluster on their current tiles
+  updateAllPawnTilePositions(positions) {
+    if (!positions || !this.pawns) return;
+    this.pawns.forEach((pawn, idx) => {
+      const tile = positions[idx];
+      if (tile) {
+        const coord = tileToGrid(tile);
+        const offset = this.getPawnTileOffset(idx, tile, positions);
+        pawn.position.set(coord.x + offset.x, 0.1, coord.z + offset.z);
+      }
+    });
+  }
+
   // 1. Step-by-Step Walking (Tile by Tile)
-  async animatePawnWalk(playerIndex, startTile, targetTile) {
+  async animatePawnWalk(playerIndex, startTile, targetTile, positions = null) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return;
 
-    const offset = (playerIndex - (this.pawns.length - 1) / 2) * 0.32;
     const steps = targetTile - startTile;
     for (let s = 1; s <= steps; s++) {
       const currentStepTile = startTile + s;
       const startCoord = tileToGrid(currentStepTile - 1);
       const endCoord = tileToGrid(currentStepTile);
 
+      // On intermediate steps, hop through tile center; on final step, apply final tile cluster offset
+      const isFinal = (s === steps);
+      const finalOffset = isFinal ? this.getPawnTileOffset(playerIndex, targetTile, positions) : { x: 0, z: 0 };
+
       sounds.playTokenStep(1.0 + (s / Math.max(1, steps)) * 0.25);
-      await this.hopSingleTile(pawn, startCoord, endCoord, offset);
+      await this.hopSingleTile(pawn, startCoord, endCoord, finalOffset);
     }
   }
 
   // Fallback alias in case called directly
-  async animatePawnMove(playerIndex, targetTile) {
+  async animatePawnMove(playerIndex, targetTile, positions = null) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return;
     const endCoord = tileToGrid(targetTile);
-    const offset = (playerIndex - (this.pawns.length - 1) / 2) * 0.32;
-    pawn.position.set(endCoord.x + offset, 0.1, endCoord.z);
+    const offset = this.getPawnTileOffset(playerIndex, targetTile, positions);
+    pawn.position.set(endCoord.x + offset.x, 0.1, endCoord.z + offset.z);
   }
 
-  hopSingleTile(pawn, start, end, offset = 0, duration = 230) {
+  hopSingleTile(pawn, start, end, offset = { x: 0, z: 0 }, duration = 210) {
     return new Promise((resolve) => {
       const startTime = performance.now();
-      const hopHeight = 0.58;
+      const hopHeight = 0.55;
 
       const step = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1.0);
         const arc = Math.sin(progress * Math.PI);
 
-        pawn.position.x = start.x + (end.x - start.x) * progress + offset;
-        pawn.position.z = start.z + (end.z - start.z) * progress;
+        pawn.position.x = start.x + (end.x - start.x) * progress + offset.x * progress;
+        pawn.position.z = start.z + (end.z - start.z) * progress + offset.z * progress;
         pawn.position.y = 0.1 + arc * hopHeight;
 
         const scaleY = 1.0 + arc * 0.12;
@@ -171,7 +250,7 @@ export class SnakesBoard3D {
         if (progress < 1.0) {
           requestAnimationFrame(step);
         } else {
-          pawn.position.set(end.x + offset, 0.1, end.z);
+          pawn.position.set(end.x + offset.x, 0.1, end.z + offset.z);
           pawn.scale.set(1.0, 1.0, 1.0);
           resolve();
         }
@@ -181,11 +260,11 @@ export class SnakesBoard3D {
   }
 
   // 2. Smooth Climb Up Along the Ladder (Authentic 850ms)
-  animateLadderClimb(playerIndex, startTile, targetTile, duration = 850) {
+  animateLadderClimb(playerIndex, startTile, targetTile, positions = null, duration = 850) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return Promise.resolve();
 
-    const offset = (playerIndex - (this.pawns.length - 1) / 2) * 0.32;
+    const offset = this.getPawnTileOffset(playerIndex, targetTile, positions);
     const start = tileToGrid(startTile);
     const end = tileToGrid(targetTile);
     const startTime = performance.now();
@@ -196,14 +275,14 @@ export class SnakesBoard3D {
         const progress = Math.min(elapsed / duration, 1.0);
         const ease = progress * progress * (3 - 2 * progress); // smooth smoothstep
 
-        pawn.position.x = start.x + (end.x - start.x) * ease + offset;
-        pawn.position.z = start.z + (end.z - start.z) * ease;
+        pawn.position.x = start.x + (end.x - start.x) * ease + offset.x * ease;
+        pawn.position.z = start.z + (end.z - start.z) * ease + offset.z * ease;
         pawn.position.y = 0.1 + Math.sin(progress * Math.PI) * 1.2;
 
         if (progress < 1.0) {
           requestAnimationFrame(step);
         } else {
-          pawn.position.set(end.x + offset, 0.1, end.z);
+          pawn.position.set(end.x + offset.x, 0.1, end.z + offset.z);
           resolve();
         }
       };
@@ -212,11 +291,11 @@ export class SnakesBoard3D {
   }
 
   // 3. Smooth Slide Down Along the Snake Body (Authentic 880ms)
-  animateSnakeSlide(playerIndex, startTile, targetTile, duration = 880) {
+  animateSnakeSlide(playerIndex, startTile, targetTile, positions = null, duration = 880) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return Promise.resolve();
 
-    const offset = (playerIndex - (this.pawns.length - 1) / 2) * 0.32;
+    const offset = this.getPawnTileOffset(playerIndex, targetTile, positions);
     const start = tileToGrid(startTile);
     const end = tileToGrid(targetTile);
     const startTime = performance.now();
@@ -228,15 +307,15 @@ export class SnakesBoard3D {
         const ease = 1 - Math.pow(1 - progress, 2); // deceleration
 
         // S-curve serpentine wobble while sliding
-        const wobble = Math.sin(progress * Math.PI * 4) * 0.35;
-        pawn.position.x = start.x + (end.x - start.x) * ease + wobble + offset;
-        pawn.position.z = start.z + (end.z - start.z) * ease;
+        const wobble = Math.sin(progress * Math.PI * 4) * 0.25;
+        pawn.position.x = start.x + (end.x - start.x) * ease + wobble + offset.x * ease;
+        pawn.position.z = start.z + (end.z - start.z) * ease + offset.z * ease;
         pawn.position.y = 0.1 + Math.sin(progress * Math.PI) * 0.5;
 
         if (progress < 1.0) {
           requestAnimationFrame(step);
         } else {
-          pawn.position.set(end.x + offset, 0.1, end.z);
+          pawn.position.set(end.x + offset.x, 0.1, end.z + offset.z);
           resolve();
         }
       };

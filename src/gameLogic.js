@@ -32,6 +32,8 @@ export class GameEngine {
     this.consecutiveSixes = 0;
     this.bonusTurn = false;
     this.winner = null;
+    this.rankings = [];
+    this.finishedPlayers = new Set();
 
     // Token states: [playerIndex][tokenIndex] = step (-1 = yard, 0..50 = track, 51..55 = home, 56 = won)
     this.tokens = Array.from({ length: 4 }, () => [-1, -1, -1, -1]);
@@ -222,18 +224,50 @@ export class GameEngine {
 
     // Check win condition
     const hasWon = this.checkWin(pId);
-    if (hasWon) {
-      this.winner = this.getCurrentPlayer();
-      const winningTeamMembers = this.isTeam ? this.players.filter(p => p.team === this.winner.team) : null;
-      this.state = GAME_STATES.GAME_OVER;
-      return {
-        action: 'GAME_OVER',
-        winner: this.winner,
-        isTeam: this.isTeam,
-        winningTeam: this.winningTeam,
-        winningTeamMembers,
-        capturedOpponent
-      };
+    if (hasWon && !this.finishedPlayers.has(pId)) {
+      this.finishedPlayers.add(pId);
+      const curPlayer = this.getCurrentPlayer();
+      curPlayer.hasFinished = true;
+      curPlayer.rank = this.rankings.length + 1;
+      this.rankings.push(curPlayer);
+
+      const shouldFinishMatch = (this.playerCount <= 2) || (this.finishedPlayers.size >= this.playerCount - 1);
+      if (shouldFinishMatch) {
+        if (this.finishedPlayers.size < this.playerCount) {
+          for (let i = 0; i < this.playerCount; i++) {
+            if (!this.finishedPlayers.has(i)) {
+              this.finishedPlayers.add(i);
+              this.players[i].hasFinished = true;
+              this.players[i].rank = this.rankings.length + 1;
+              this.rankings.push(this.players[i]);
+              break;
+            }
+          }
+        }
+        this.winner = this.rankings[0];
+        const winningTeamMembers = this.isTeam ? this.players.filter(p => p.team === this.winner.team) : null;
+        this.state = GAME_STATES.GAME_OVER;
+        return {
+          action: 'GAME_OVER',
+          winner: this.winner,
+          rankings: this.rankings,
+          isTeam: this.isTeam,
+          winningTeam: this.winningTeam,
+          winningTeamMembers,
+          capturedOpponent
+        };
+      } else {
+        // Tournament continues for remaining ranks!
+        this.nextPlayer();
+        return {
+          action: 'PLAYER_FINISHED',
+          finishedPlayer: curPlayer,
+          rank: curPlayer.rank,
+          rankings: this.rankings,
+          capturedOpponent,
+          nextPlayer: this.getCurrentPlayer()
+        };
+      }
     }
 
     // Determine bonus turn:
@@ -257,10 +291,20 @@ export class GameEngine {
     };
   }
 
-  // Advance turn to next player
+  // Advance turn to next player (skips finished players)
   nextPlayer() {
     this.consecutiveSixes = 0;
-    this.activePlayerIndex = (this.activePlayerIndex + 1) % this.players.length;
+    if (this.finishedPlayers.size >= this.playerCount - 1) {
+      this.state = GAME_STATES.GAME_OVER;
+      return;
+    }
+    let nextIdx = (this.activePlayerIndex + 1) % this.playerCount;
+    let loopCount = 0;
+    while (this.finishedPlayers.has(nextIdx) && loopCount < this.playerCount) {
+      nextIdx = (nextIdx + 1) % this.playerCount;
+      loopCount++;
+    }
+    this.activePlayerIndex = nextIdx;
     this.state = GAME_STATES.WAITING_FOR_ROLL;
   }
 

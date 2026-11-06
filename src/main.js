@@ -35,6 +35,7 @@ class LudoApp {
 
     this.initThree();
     this.initLighting();
+    this.applyGraphicsSettings();
     this.initUI();
     this.initTapRaycasting();
 
@@ -95,28 +96,68 @@ class LudoApp {
   // 2. High-Contrast Studio Lighting (Vibrant colors with rich contrast - NO washed out whites)
   initLighting() {
     // Balanced ambient light preserving depth and tile borders
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-    this.scene.add(ambientLight);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    this.scene.add(this.ambientLight);
 
-    // Warm directional sun light casting crisp, soft shadows (optimized 512 map for locked 60 FPS)
-    const sunLight = new THREE.DirectionalLight(0xfffdf5, 1.25);
-    sunLight.position.set(10, 28, 14);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 512;
-    sunLight.shadow.mapSize.height = 512;
-    sunLight.shadow.near = 1;
-    sunLight.shadow.far = 50;
-    sunLight.shadow.left = -12;
-    sunLight.shadow.right = 12;
-    sunLight.shadow.top = 12;
-    sunLight.shadow.bottom = -12;
-    sunLight.shadow.bias = -0.0003;
-    this.scene.add(sunLight);
+    // Warm directional sun light casting realistic shadows
+    this.sunLight = new THREE.DirectionalLight(0xfffdf5, 1.25);
+    this.sunLight.position.set(10, 28, 14);
+    this.sunLight.castShadow = true;
+    this.sunLight.shadow.mapSize.width = 512;
+    this.sunLight.shadow.mapSize.height = 512;
+    this.sunLight.shadow.near = 1;
+    this.sunLight.shadow.far = 50;
+    this.sunLight.shadow.left = -12;
+    this.sunLight.shadow.right = 12;
+    this.sunLight.shadow.top = 12;
+    this.sunLight.shadow.bottom = -12;
+    this.sunLight.shadow.bias = -0.0003;
+    this.scene.add(this.sunLight);
 
     // Gentle cool fill light from opposite angle
-    const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.35);
-    fillLight.position.set(-10, 18, -14);
-    this.scene.add(fillLight);
+    this.fillLight = new THREE.DirectionalLight(0xdbeafe, 0.35);
+    this.fillLight.position.set(-10, 18, -14);
+    this.scene.add(this.fillLight);
+  }
+
+  // Live Real-Time Graphics Quality & Realistic Shadows Controller (PUBG Style)
+  applyGraphicsSettings(settings = null) {
+    const config = settings || economy.getGraphicsSettings();
+    const preset = config.preset || 'balanced';
+    const enableShadows = config.shadows !== false && preset !== 'smooth';
+
+    if (this.renderer) {
+      this.renderer.shadowMap.enabled = enableShadows;
+
+      let pixelRatio = 1.0;
+      let mapSize = 512;
+
+      if (preset === 'smooth') {
+        pixelRatio = 1.0;
+        mapSize = 256;
+      } else if (preset === 'balanced') {
+        pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+        mapSize = 512;
+      } else if (preset === 'hd') {
+        pixelRatio = Math.min(window.devicePixelRatio, 2.0);
+        mapSize = 1024;
+      } else if (preset === 'ultra') {
+        pixelRatio = Math.min(window.devicePixelRatio, 2.5);
+        mapSize = 2048;
+      }
+
+      this.renderer.setPixelRatio(pixelRatio);
+
+      if (this.sunLight) {
+        this.sunLight.castShadow = enableShadows;
+        this.sunLight.shadow.mapSize.width = mapSize;
+        this.sunLight.shadow.mapSize.height = mapSize;
+        if (this.sunLight.shadow.map) {
+          this.sunLight.shadow.map.dispose();
+          this.sunLight.shadow.map = null;
+        }
+      }
+    }
   }
 
   // 3. UI Managers (Home Hub & In-Game HUD)
@@ -389,7 +430,7 @@ class LudoApp {
 
     const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
     const rollValue = await this.dice3D.roll(smartTarget);
-    this.inGameUI.updateDiceDisplay(rollValue, false);
+    this.inGameUI.updateDiceDisplay(rollValue, false, this.engine.activePlayerIndex);
 
     const result = this.engine.onDiceRolled(rollValue);
 
@@ -480,7 +521,19 @@ class LudoApp {
     }
 
     if (result.action === 'GAME_OVER') {
-      this.onMatchVictory(result.winner);
+      this.onMatchVictory(result.winner, result.rankings);
+      return;
+    }
+
+    if (result.action === 'PLAYER_FINISHED') {
+      sounds.playSafeZone();
+      const rankSuffix = result.rank === 1 ? '1st' : (result.rank === 2 ? '2nd' : '3rd');
+      this.inGameUI.updateStatus(`🏆 ${result.finishedPlayer.name} finished ${rankSuffix} Place! Remaining players continue...`, true);
+      this.updateAllStackOffsets();
+      this.validMoves = [];
+      await this.sleep(800);
+      this.isProcessingTurn = false;
+      this.updateTurnUI();
       return;
     }
 
@@ -506,7 +559,7 @@ class LudoApp {
 
     const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
     const rollValue = await this.dice3D.roll(smartTarget);
-    this.inGameUI.updateDiceDisplay(rollValue, false);
+    this.inGameUI.updateDiceDisplay(rollValue, false, this.engine.activePlayerIndex);
 
     const result = this.engine.onDiceRolled(rollValue);
 
@@ -559,7 +612,7 @@ class LudoApp {
 
     const smartTarget = this.snakesEngine.generateSmartRoll(this.snakesEngine.activePlayerIndex);
     const rollValue = await this.dice3D.roll(smartTarget);
-    this.inGameUI.updateDiceDisplay(rollValue, false);
+    this.inGameUI.updateDiceDisplay(rollValue, false, curPIdx);
 
     const curPIdx = this.snakesEngine.activePlayerIndex;
     const curP = this.snakesEngine.getCurrentPlayer();
@@ -577,28 +630,42 @@ class LudoApp {
       return;
     }
 
-    // Step 1: Animate Pawn Walk Step-by-Step (Tile-by-Tile from start to landedPos)
-    await this.snakesBoard3D.animatePawnWalk(curPIdx, result.startPos, result.landedPos);
+    // Step 1: Animate Pawn Walk Step-by-Step (Tile-by-Tile with centered tile offsets)
+    await this.snakesBoard3D.animatePawnWalk(curPIdx, result.startPos, result.landedPos, this.snakesEngine.positions);
 
     // Step 2: Now the pawn is standing on landedPos - trigger Ladder or Snake if hit!
     if (result.climbedLadder) {
       sounds.playSafeZone();
       this.inGameUI.updateStatus(`🪜 Ladder bonus: ${curP.name} climbed to tile ${result.finalPos} and earned a BONUS ROLL`, true);
       await this.sleep(200);
-      await this.snakesBoard3D.animateLadderClimb(curPIdx, result.landedPos, result.finalPos);
+      await this.snakesBoard3D.animateLadderClimb(curPIdx, result.landedPos, result.finalPos, this.snakesEngine.positions);
     } else if (result.bittenBySnake) {
       sounds.playTokenCapture();
-      this.inGameUI.updateStatus(`🐍 Snake bite: ${curP.name} slid down to tile ${result.finalPos}`, true);
+      this.inGameUI.updateStatus(`🐍 Snake bite: ${curP.name} slid down to tile ${result.finalPos}. No bonus roll!`, true);
       await this.sleep(200);
-      await this.snakesBoard3D.animateSnakeSlide(curPIdx, result.landedPos, result.finalPos);
+      await this.snakesBoard3D.animateSnakeSlide(curPIdx, result.landedPos, result.finalPos, this.snakesEngine.positions);
     }
 
+    // Step 3: Strictly center all pawns on their current tiles without spilling
+    this.snakesBoard3D.updateAllPawnTilePositions(this.snakesEngine.positions);
+
     if (result.action === 'GAME_OVER') {
-      this.onMatchVictory(result.winner);
+      this.onMatchVictory(result.winner, result.rankings);
       return;
     }
 
-    if (result.bonusTurn) {
+    if (result.action === 'PLAYER_FINISHED') {
+      sounds.playSafeZone();
+      const rankSuffix = result.rank === 1 ? '1st' : (result.rank === 2 ? '2nd' : '3rd');
+      this.inGameUI.updateStatus(`🏆 ${result.finishedPlayer.name} reached 100 (${rankSuffix} Place)! Remaining players continue...`, true);
+      this.snakesBoard3D.updateAllPawnTilePositions(this.snakesEngine.positions);
+      await this.sleep(800);
+      this.isProcessingTurn = false;
+      this.updateSnakesTurnUI();
+      return;
+    }
+
+    if (result.bonusTurn && !result.bittenBySnake) {
       if (result.ladderBonus && result.sixBonus) {
         this.inGameUI.updateStatus(`🎉 Rolled 6 & climbed ladder: ${curP.name} gets a bonus roll`, true);
       } else if (result.ladderBonus) {
@@ -615,7 +682,23 @@ class LudoApp {
   }
 
   // Compute Olympic Podium / Tournament Standings
-  computeMatchRankings(winner) {
+  computeMatchRankings(winner, officialRankings = null) {
+    if (officialRankings && officialRankings.length > 0) {
+      return officialRankings.map((p, idx) => ({
+        id: p.id,
+        name: p.name,
+        colorHex: p.colorHex || (p.color ? p.color.hexColor : 0xffffff),
+        text: p.text || (p.color ? p.color.textColor : '#0f172a'),
+        isAI: p.isAI,
+        team: p.team,
+        rank: idx + 1,
+        isWinner: idx === 0,
+        isRunnerUp: idx === 1 && officialRankings.length > 2,
+        isDefeated: idx === officialRankings.length - 1 && officialRankings.length >= 2,
+        scoreLabel: p.hasFinished ? `Rank ${idx + 1} Finish` : 'Defeated'
+      }));
+    }
+
     if (this.currentConfig && (this.currentConfig.mode === 'snakes' || this.snakesEngine)) {
       const players = this.snakesEngine.players;
       const positions = this.snakesEngine.positions;
@@ -669,11 +752,11 @@ class LudoApp {
   }
 
   // 8. Victory & Defeat Handler (Strict: Only User Wins Award Stars & Progress)
-  onMatchVictory(winner) {
+  onMatchVictory(winner, officialRankings = null) {
     let rewardInfo = null;
     const isUserWinner = (winner.id === 0);
     const isTeamMode = (this.engine && this.engine.isTeam) || (this.snakesEngine && this.snakesEngine.isTeam);
-    const rankings = this.computeMatchRankings(winner);
+    const rankings = this.computeMatchRankings(winner, officialRankings);
     const winningTeam = winner.teamName || (this.engine?.winningTeam) || (winner.team === 'A' ? 'Team Solar 🔴🟡' : 'Team Cyber 🟢🔵');
     const winningTeamMembers = (this.engine?.winningTeamMembers) || 
       (this.engine ? this.engine.players.filter(p => p.team === winner.team) : 

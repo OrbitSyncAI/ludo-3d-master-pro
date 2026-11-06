@@ -172,8 +172,12 @@ export class HomeUIManager {
               <span class="item-icon">🔄</span>
               <div class="item-update-row">
                 <span>Check for Updates</span>
-                <span class="version-chip">v1.3.6</span>
+                <span class="version-chip">v1.3.7</span>
               </div>
+            </button>
+            <button class="drawer-nav-item" data-drawer-action="graphics-settings">
+              <span class="item-icon">⚙️</span>
+              <span>Graphics Settings</span>
             </button>
             <button class="drawer-nav-item" data-drawer-action="profile">
               <span class="item-icon">👤</span>
@@ -243,7 +247,7 @@ export class HomeUIManager {
                            this.container.querySelector('[data-level="1"]') ||
                            this.container.querySelector('[data-snakes-stage="1"]');
         if (activeNode) {
-          activeNode.scrollIntoView({ block: 'center', behavior: 'auto' });
+          activeNode.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
         }
         requestAnimationFrame(() => {
           scrollBody.style.scrollBehavior = 'smooth';
@@ -1293,7 +1297,9 @@ export class HomeUIManager {
         sounds.playButtonClick();
         const action = item.dataset.drawerAction;
         this.closeDrawer();
-        if (action === 'profile') {
+        if (action === 'graphics-settings') {
+          this.openGraphicsSettingsModal();
+        } else if (action === 'profile') {
           this.openProfileModal(false);
         } else if (action === 'inventory') {
           this.activeTab = 'shop';
@@ -1312,10 +1318,118 @@ export class HomeUIManager {
     });
   }
 
+  // PUBG-Style Graphics Settings & Realistic Shadows Modal
+  openGraphicsSettingsModal() {
+    sounds.playButtonClick();
+    const curSettings = economy.getGraphicsSettings();
+    let selectedPreset = curSettings.preset || 'balanced';
+    let selectedFps = curSettings.fps || 60;
+    let selectedShadows = curSettings.shadows !== false;
+
+    const modal = document.createElement('div');
+    modal.className = 'graphics-modal';
+    modal.innerHTML = `
+      <div class="graphics-card">
+        <div class="graphics-card-header">
+          <h3>⚙️ Graphics Settings</h3>
+          <button class="graphics-close-btn" id="btn-close-graphics">✕</button>
+        </div>
+
+        <div class="graphics-section">
+          <div class="graphics-section-title">Graphics Quality (Presets)</div>
+          <div class="graphics-preset-grid">
+            <button class="graphics-option-btn ${selectedPreset === 'smooth' ? 'active' : ''}" data-preset="smooth">Smooth</button>
+            <button class="graphics-option-btn ${selectedPreset === 'balanced' ? 'active' : ''}" data-preset="balanced">Balanced</button>
+            <button class="graphics-option-btn ${selectedPreset === 'hd' ? 'active' : ''}" data-preset="hd">HD</button>
+            <button class="graphics-option-btn ${selectedPreset === 'ultra' ? 'active' : ''}" data-preset="ultra">Ultra</button>
+          </div>
+        </div>
+
+        <div class="graphics-section">
+          <div class="graphics-section-title">Frame Rate (FPS)</div>
+          <div class="graphics-fps-grid">
+            <button class="graphics-option-btn ${selectedFps === 30 ? 'active' : ''}" data-fps="30">30 FPS</button>
+            <button class="graphics-option-btn ${selectedFps === 60 ? 'active' : ''}" data-fps="60">60 FPS</button>
+            <button class="graphics-option-btn ${selectedFps === 90 ? 'active' : ''}" data-fps="90">90 FPS</button>
+          </div>
+        </div>
+
+        <div class="shadow-toggle-row">
+          <div class="shadow-toggle-desc">
+            <strong>Realistic Shadows</strong>
+            <span>Dynamic 3D directional cast shadows</span>
+          </div>
+          <button class="shadow-toggle-btn ${selectedShadows ? 'active' : ''}" id="btn-toggle-shadows">
+            ${selectedShadows ? 'ENABLED' : 'DISABLED'}
+          </button>
+        </div>
+
+        <button class="graphics-save-btn" id="btn-save-graphics">APPLY & SAVE SETTINGS</button>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Preset selection
+    modal.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        modal.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedPreset = btn.dataset.preset;
+      });
+    });
+
+    // FPS selection
+    modal.querySelectorAll('[data-fps]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        modal.querySelectorAll('[data-fps]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedFps = parseInt(btn.dataset.fps, 10);
+      });
+    });
+
+    // Shadows toggle
+    const shadowBtn = modal.querySelector('#btn-toggle-shadows');
+    shadowBtn.addEventListener('click', () => {
+      sounds.playButtonClick();
+      selectedShadows = !selectedShadows;
+      shadowBtn.classList.toggle('active', selectedShadows);
+      shadowBtn.textContent = selectedShadows ? 'ENABLED' : 'DISABLED';
+    });
+
+    // Close button
+    modal.querySelector('#btn-close-graphics').addEventListener('click', () => {
+      sounds.playButtonClick();
+      modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+
+    // Save and Apply
+    modal.querySelector('#btn-save-graphics').addEventListener('click', () => {
+      sounds.playButtonClick();
+      const updated = {
+        preset: selectedPreset,
+        fps: selectedFps,
+        shadows: selectedShadows
+      };
+      economy.setGraphicsSettings(updated);
+      if (window.app && window.app.applyGraphicsSettings) {
+        window.app.applyGraphicsSettings(updated);
+      }
+      modal.remove();
+      this.showToast(`Graphics: ${selectedPreset.toUpperCase()} (${selectedFps} FPS, Shadows ${selectedShadows ? 'ON' : 'OFF'})`);
+    });
+  }
+
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.6';
+    const CURRENT_VERSION = '1.3.7';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1370,7 +1484,7 @@ export class HomeUIManager {
       }
 
       const release = await res.json();
-      const latestTag = (release.tag_name || 'v1.3.6').replace(/^v/, '');
+      const latestTag = (release.tag_name || 'v1.3.7').replace(/^v/, '');
 
       let apkUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.apk`;
       let iosUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${latestTag}/Ludo-3D-Master-Pro.ipa`;
@@ -1600,7 +1714,7 @@ export class HomeUIManager {
                            this.container.querySelector('[data-level="1"]') || 
                            this.container.querySelector('[data-snakes-stage="1"]');
         if (activeNode) {
-          activeNode.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          activeNode.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
         }
       });
     }

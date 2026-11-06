@@ -1,10 +1,12 @@
 /**
- * Ludo 3D Pro - Snakes & Ladders Game Engine with Step-by-Step Movement
- * Distinguishes between landing tile and ladder/snake destination tile
+ * Ludo 3D Pro - Snakes & Ladders Game Engine & Board Coordinate Mapping
+ * Authentic 100-tile numbered layout with progressive climbing & dynamic comeback luck
+ * Multi-rank finish (1st, 2nd, 3rd, 4th) & strict snake bite bonus cancellation
  */
 
 import { economy } from './economyState.js';
 
+// Classic Authentic Board Mapping (10 Ladders, 8 Snakes)
 export const LADDERS = {
   4: 14,
   9: 31,
@@ -61,10 +63,10 @@ export class SnakesEngine {
     const p4Name = (isTeam || !isBot) ? "Player 4" : "Alpha Blue";
 
     this.players = [
-      { id: 0, name: p1Name, isAI: false, color: { primary: '#ef4444', textColor: '#dc2626' }, colorHex: 0xff1744, text: "#dc2626" },
-      { id: 1, name: p2Name, isAI: this.isAI, color: { primary: '#10b981', textColor: '#15803d' }, colorHex: 0x00e676, text: "#15803d" },
-      { id: 2, name: p3Name, isAI: this.isAI, color: { primary: '#f59e0b', textColor: '#b45309' }, colorHex: 0xffc400, text: "#b45309" },
-      { id: 3, name: p4Name, isAI: this.isAI, color: { primary: '#06b6d4', textColor: '#0284c7' }, colorHex: 0x00b0ff, text: "#0284c7" }
+      { id: 0, name: p1Name, isAI: false, color: { primary: '#ef4444', textColor: '#dc2626' }, colorHex: 0xff1744, text: "#dc2626", hasFinished: false },
+      { id: 1, name: p2Name, isAI: this.isAI, color: { primary: '#10b981', textColor: '#15803d' }, colorHex: 0x00e676, text: "#15803d", hasFinished: false },
+      { id: 2, name: p3Name, isAI: this.isAI, color: { primary: '#f59e0b', textColor: '#b45309' }, colorHex: 0xffc400, text: "#b45309", hasFinished: false },
+      { id: 3, name: p4Name, isAI: this.isAI, color: { primary: '#06b6d4', textColor: '#0284c7' }, colorHex: 0x00b0ff, text: "#0284c7", hasFinished: false }
     ].slice(0, this.playerCount);
 
     if (this.isTeam) {
@@ -76,6 +78,8 @@ export class SnakesEngine {
 
     this.activePlayerIndex = 0;
     this.positions = Array(this.playerCount).fill(1); // all start at square 1
+    this.rankings = []; // Ordered list of players who reached 100
+    this.finishedPlayers = new Set();
     this.winner = null;
     this.isOver = false;
     this.recentSnakeBite = Array(this.playerCount).fill(false);
@@ -83,6 +87,20 @@ export class SnakesEngine {
 
   getCurrentPlayer() {
     return this.players[this.activePlayerIndex];
+  }
+
+  nextPlayer() {
+    if (this.finishedPlayers.size >= this.playerCount - 1) {
+      this.isOver = true;
+      return;
+    }
+    let nextIdx = (this.activePlayerIndex + 1) % this.playerCount;
+    let loopCount = 0;
+    while (this.finishedPlayers.has(nextIdx) && loopCount < this.playerCount) {
+      nextIdx = (nextIdx + 1) % this.playerCount;
+      loopCount++;
+    }
+    this.activePlayerIndex = nextIdx;
   }
 
   // Dynamic Balanced Smart Roll Algorithm (Comeback & Photo-Finish Assist)
@@ -121,7 +139,7 @@ export class SnakesEngine {
     if (landedPos > 100) {
       const bonus = (roll === 6);
       if (!bonus) {
-        this.activePlayerIndex = (this.activePlayerIndex + 1) % this.playerCount;
+        this.nextPlayer();
       }
       return {
         action: 'NO_MOVE',
@@ -153,28 +171,73 @@ export class SnakesEngine {
     // Save final position
     this.positions[curP] = finalPos;
 
+    // If player reaches tile 100
     if (finalPos === 100) {
-      this.isOver = true;
-      this.winner = this.getCurrentPlayer();
-      const winningTeamMembers = this.isTeam ? this.players.filter(p => p.team === this.winner.team) : null;
-      return {
-        action: 'GAME_OVER',
-        winner: this.winner,
-        isTeam: this.isTeam,
-        winningTeam: this.winner.teamName,
-        winningTeamMembers,
-        startPos,
-        landedPos,
-        finalPos: 100,
-        climbedLadder,
-        bittenBySnake
-      };
+      const curPlayer = this.getCurrentPlayer();
+      if (!this.finishedPlayers.has(curP)) {
+        this.finishedPlayers.add(curP);
+        curPlayer.hasFinished = true;
+        curPlayer.rank = this.rankings.length + 1;
+        this.rankings.push(curPlayer);
+      }
+
+      // Check if match is fully completed
+      // (For 2-player: finishes as soon as 1st player finishes. For 3-4 players: finishes when all but 1 finish)
+      const shouldFinishMatch = (this.playerCount <= 2) || (this.finishedPlayers.size >= this.playerCount - 1);
+
+      if (shouldFinishMatch) {
+        // Assign rank to last remaining player if any
+        if (this.finishedPlayers.size < this.playerCount) {
+          for (let i = 0; i < this.playerCount; i++) {
+            if (!this.finishedPlayers.has(i)) {
+              this.finishedPlayers.add(i);
+              this.players[i].hasFinished = true;
+              this.players[i].rank = this.rankings.length + 1;
+              this.rankings.push(this.players[i]);
+              break;
+            }
+          }
+        }
+
+        this.isOver = true;
+        this.winner = this.rankings[0];
+        const winningTeamMembers = this.isTeam ? this.players.filter(p => p.team === this.winner.team) : null;
+        return {
+          action: 'GAME_OVER',
+          winner: this.winner,
+          rankings: this.rankings,
+          isTeam: this.isTeam,
+          winningTeam: this.winner.teamName,
+          winningTeamMembers,
+          startPos,
+          landedPos,
+          finalPos: 100,
+          climbedLadder,
+          bittenBySnake
+        };
+      } else {
+        // Match continues for 2nd/3rd place!
+        this.nextPlayer();
+        return {
+          action: 'PLAYER_FINISHED',
+          finishedPlayer: curPlayer,
+          rank: curPlayer.rank,
+          rankings: this.rankings,
+          startPos,
+          landedPos,
+          finalPos: 100,
+          climbedLadder,
+          bittenBySnake,
+          nextPlayer: this.getCurrentPlayer()
+        };
+      }
     }
 
-    // BONUS TURN RULE: Rolling a 6 OR climbing a Ladder awards a Bonus Roll!
-    const bonus = (roll === 6 || climbedLadder);
+    // BONUS TURN RULE:
+    // User Directive: When bitten by a snake, NO BONUS TURN UNDER ANY CIRCUMSTANCES (even if 6 was rolled)!
+    const bonus = !bittenBySnake && (roll === 6 || climbedLadder);
     if (!bonus) {
-      this.activePlayerIndex = (this.activePlayerIndex + 1) % this.playerCount;
+      this.nextPlayer();
     }
 
     return {
@@ -185,8 +248,8 @@ export class SnakesEngine {
       climbedLadder,
       bittenBySnake,
       bonusTurn: bonus,
-      ladderBonus: climbedLadder,
-      sixBonus: (roll === 6),
+      ladderBonus: !bittenBySnake && climbedLadder,
+      sixBonus: !bittenBySnake && (roll === 6),
       nextPlayer: this.getCurrentPlayer()
     };
   }

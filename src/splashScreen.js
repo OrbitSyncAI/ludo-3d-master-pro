@@ -68,7 +68,7 @@ export class SplashScreen {
         <!-- Studio Watermark -->
         <div class="splash-footer">
           <div class="splash-studio-name">ORBITSYNC STUDIOS</div>
-          <div class="splash-version">BUILD v1.3.6 • PRODUCTION READY</div>
+          <div class="splash-version">BUILD v1.3.7 • PRODUCTION READY</div>
         </div>
       </div>
     `;

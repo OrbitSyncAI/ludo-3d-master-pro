@@ -46,6 +46,11 @@ const DEFAULT_STATE = {
     matchesPlayed: 0,
     matchesWon: 0,
     snakesWon: 0
+  },
+  graphicsSettings: {
+    preset: 'balanced', // 'smooth', 'balanced', 'hd', 'ultra'
+    shadows: true,
+    fps: 60
   }
 };
 
@@ -186,6 +191,22 @@ class EconomyManager {
       this.addCoins(500);
       this.addGems(5);
     }
+    this.saveState();
+  }
+
+  getGraphicsSettings() {
+    return this.data.graphicsSettings || {
+      preset: 'balanced',
+      shadows: true,
+      fps: 60
+    };
+  }
+
+  setGraphicsSettings(settings) {
+    this.data.graphicsSettings = {
+      ...this.getGraphicsSettings(),
+      ...settings
+    };
     this.saveState();
   }
 
