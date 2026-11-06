@@ -25,10 +25,10 @@ export class Dice3D {
     };
 
     this.mesh = this.createDiceMesh();
-    // Authentic board center placement: hidden by default so center triangles remain clean like Ludo King
+    // Authentic board center placement: 3D physical dice with realistic shadows and flip tumble
     this.basePosition = new THREE.Vector3(0, 0.58, 0);
     this.mesh.position.copy(this.basePosition);
-    this.mesh.visible = false; // Ludo King style: dice is on the player's card, not blocking center triangles
+    this.mesh.visible = true; // 3D tumbling physical dice
 
     this.scene.add(this.mesh);
 
@@ -205,10 +205,10 @@ export class Dice3D {
     this.currentValue = finalVal;
 
     const targetRot = this.faceRotations[finalVal];
-    // Controlled 2 revolutions on each axis for clean, non-blurring 3D tumble
-    const spinsX = 2 * Math.PI * 2;
+    // Dynamic 3D physical tumble (authentic flip & roll on all axes)
+    const spinsX = 3 * Math.PI * 2;
     const spinsY = 2 * Math.PI * 2;
-    const spinsZ = 1 * Math.PI * 2;
+    const spinsZ = 2 * Math.PI * 2;
 
     const startRot = {
       x: this.mesh.rotation.x,
@@ -222,8 +222,8 @@ export class Dice3D {
     };
 
     const startY = this.basePosition.y;
-    const peakY = startY + 2.0;
-    const duration = 380; // Snappy, responsive roll matching Ludo King pace
+    const peakY = startY + 2.2;
+    const duration = 650; // Authentic, satisfying physical roll pace
     const startTime = performance.now();
 
     return new Promise((resolve) => {

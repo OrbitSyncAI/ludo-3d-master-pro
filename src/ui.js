@@ -11,85 +11,68 @@ export function getDiceFaceSvg(val = 6) {
   const num = Math.min(Math.max(parseInt(val) || 6, 1), 6);
   const pipsMap = {
     1: `
-      <circle cx="28" cy="28" r="8.5" fill="url(#rubyGlow)"/>
-      <circle cx="25.5" cy="25.5" r="2.8" fill="#ffffff" opacity="0.75"/>
+      <circle cx="28" cy="28" r="8.5" fill="#e11d48"/>
+      <circle cx="25.5" cy="25.5" r="2.8" fill="#ffffff" opacity="0.8"/>
     `,
     2: `
-      <circle cx="17" cy="17" r="5.5" fill="url(#darkPip)"/>
-      <circle cx="15.5" cy="15.5" r="1.8" fill="#ffffff" opacity="0.65"/>
-      <circle cx="39" cy="39" r="5.5" fill="url(#darkPip)"/>
-      <circle cx="37.5" cy="37.5" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="17" cy="17" r="5.5" fill="#0f172a"/>
+      <circle cx="15.5" cy="15.5" r="1.8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="39" cy="39" r="5.5" fill="#0f172a"/>
+      <circle cx="37.5" cy="37.5" r="1.8" fill="#ffffff" opacity="0.7"/>
     `,
     3: `
-      <circle cx="16" cy="16" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="14.8" cy="14.8" r="1.8" fill="#ffffff" opacity="0.65"/>
-      <circle cx="28" cy="28" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="26.8" cy="26.8" r="1.8" fill="#ffffff" opacity="0.65"/>
-      <circle cx="40" cy="40" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="38.8" cy="38.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="16" cy="16" r="5.2" fill="#0f172a"/>
+      <circle cx="14.8" cy="14.8" r="1.8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="28" cy="28" r="5.2" fill="#0f172a"/>
+      <circle cx="26.8" cy="26.8" r="1.8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="40" cy="40" r="5.2" fill="#0f172a"/>
+      <circle cx="38.8" cy="38.8" r="1.8" fill="#ffffff" opacity="0.7"/>
     `,
     4: `
-      <circle cx="17" cy="17" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="15.8" cy="15.8" r="1.8" fill="#ffffff" opacity="0.65"/>
-      <circle cx="39" cy="17" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="37.8" cy="15.8" r="1.8" fill="#ffffff" opacity="0.65"/>
-      <circle cx="17" cy="39" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="15.8" cy="37.8" r="1.8" fill="#ffffff" opacity="0.65"/>
-      <circle cx="39" cy="39" r="5.2" fill="url(#darkPip)"/>
-      <circle cx="37.8" cy="37.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="17" cy="17" r="5.2" fill="#0f172a"/>
+      <circle cx="15.8" cy="15.8" r="1.8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="39" cy="17" r="5.2" fill="#0f172a"/>
+      <circle cx="37.8" cy="15.8" r="1.8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="17" cy="39" r="5.2" fill="#0f172a"/>
+      <circle cx="15.8" cy="37.8" r="1.8" fill="#ffffff" opacity="0.7"/>
+      <circle cx="39" cy="39" r="5.2" fill="#0f172a"/>
+      <circle cx="37.8" cy="37.8" r="1.8" fill="#ffffff" opacity="0.7"/>
     `,
     5: `
-      <circle cx="16" cy="16" r="5" fill="url(#darkPip)"/>
-      <circle cx="15" cy="15" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="40" cy="16" r="5" fill="url(#darkPip)"/>
-      <circle cx="39" cy="15" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="28" cy="28" r="5.2" fill="url(#rubyGlow)"/>
-      <circle cx="26.8" cy="26.8" r="1.8" fill="#ffffff" opacity="0.75"/>
-      <circle cx="16" cy="40" r="5" fill="url(#darkPip)"/>
-      <circle cx="15" cy="39" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="40" cy="40" r="5" fill="url(#darkPip)"/>
-      <circle cx="39" cy="39" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="16" cy="16" r="5" fill="#0f172a"/>
+      <circle cx="15" cy="15" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="40" cy="16" r="5" fill="#0f172a"/>
+      <circle cx="39" cy="15" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="28" cy="28" r="5.5" fill="#e11d48"/>
+      <circle cx="26.8" cy="26.8" r="1.8" fill="#ffffff" opacity="0.8"/>
+      <circle cx="16" cy="40" r="5" fill="#0f172a"/>
+      <circle cx="15" cy="39" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="40" cy="40" r="5" fill="#0f172a"/>
+      <circle cx="39" cy="39" r="1.6" fill="#ffffff" opacity="0.7"/>
     `,
     6: `
-      <circle cx="17" cy="15" r="5" fill="url(#darkPip)"/>
-      <circle cx="15.8" cy="13.8" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="17" cy="28" r="5" fill="url(#darkPip)"/>
-      <circle cx="15.8" cy="26.8" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="17" cy="41" r="5" fill="url(#darkPip)"/>
-      <circle cx="15.8" cy="39.8" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="39" cy="15" r="5" fill="url(#darkPip)"/>
-      <circle cx="37.8" cy="13.8" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="39" cy="28" r="5" fill="url(#darkPip)"/>
-      <circle cx="37.8" cy="26.8" r="1.6" fill="#ffffff" opacity="0.65"/>
-      <circle cx="39" cy="41" r="5" fill="url(#darkPip)"/>
-      <circle cx="37.8" cy="39.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="17" cy="15" r="5" fill="#0f172a"/>
+      <circle cx="15.8" cy="13.8" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="17" cy="28" r="5" fill="#0f172a"/>
+      <circle cx="15.8" cy="26.8" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="17" cy="41" r="5" fill="#0f172a"/>
+      <circle cx="15.8" cy="39.8" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="39" cy="15" r="5" fill="#0f172a"/>
+      <circle cx="37.8" cy="13.8" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="39" cy="28" r="5" fill="#0f172a"/>
+      <circle cx="37.8" cy="26.8" r="1.6" fill="#ffffff" opacity="0.7"/>
+      <circle cx="39" cy="41" r="5" fill="#0f172a"/>
+      <circle cx="37.8" cy="39.8" r="1.6" fill="#ffffff" opacity="0.7"/>
     `
   };
 
   return `
-    <svg class="dice-svg-face" viewBox="0 0 56 56" width="100%" height="100%">
-      <defs>
-        <radialGradient id="rubyGlow" cx="35%" cy="30%" r="70%">
-          <stop offset="0%" stop-color="#ff1744"/>
-          <stop offset="70%" stop-color="#d50000"/>
-          <stop offset="100%" stop-color="#880e4f"/>
-        </radialGradient>
-        <radialGradient id="darkPip" cx="35%" cy="30%" r="70%">
-          <stop offset="0%" stop-color="#334155"/>
-          <stop offset="75%" stop-color="#0f172a"/>
-          <stop offset="100%" stop-color="#020617"/>
-        </radialGradient>
-        <linearGradient id="diceBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffffff"/>
-          <stop offset="40%" stop-color="#fdfdfd"/>
-          <stop offset="100%" stop-color="#e2e8f0"/>
-        </linearGradient>
-        <filter id="diceShadow" x="-10%" y="-10%" width="130%" height="130%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
-        </filter>
-      </defs>
-      <rect x="3" y="3" width="50" height="50" rx="12" ry="12" fill="url(#diceBodyGrad)" stroke="#cbd5e1" stroke-width="2" filter="url(#diceShadow)"/>
-      <rect x="5" y="4" width="46" height="22" rx="10" ry="10" fill="#ffffff" opacity="0.55"/>
+    <svg class="dice-svg-face" viewBox="0 0 56 56" width="100%" height="100%" style="display:block; overflow:visible;">
+      <!-- Solid White 3D Dice Face with Crisp 2.5px Slate Border -->
+      <rect x="3" y="3" width="50" height="50" rx="12" ry="12" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+      <!-- Soft Depth Shadow at bottom of dice -->
+      <path d="M 5 42 Q 5 51 14 51 L 42 51 Q 51 51 51 42 L 51 45 Q 51 53 42 53 L 14 53 Q 5 53 5 45 Z" fill="#cbd5e1" opacity="0.75"/>
+      <!-- Crisp High-Contrast Pips (100% visible, zero defs dependency) -->
       ${pipsMap[num]}
     </svg>
   `;
@@ -364,11 +347,15 @@ export class UIManager {
 
     this.playersContainer.innerHTML = '';
     const cornerClasses = ['pos-bottom-left', 'pos-top-left', 'pos-top-right', 'pos-bottom-right'];
+    const isMultiPlayer = players.length > 2;
 
     players.forEach((p, idx) => {
+      // In 4-player games: Left cards (idx 0 & 1) have dice on LEFT, Right cards (idx 2 & 3) have dice on RIGHT
+      // In 2-player games: Both cards have dice on RIGHT (looks great as requested)
+      const isLeft = isMultiPlayer && (idx === 0 || idx === 1);
       const card = document.createElement('div');
       card.id = `player-hud-${p.id}`;
-      card.className = `player-card player-hud-card ${cornerClasses[idx]} ${p.isAI ? 'is-bot' : 'is-human'}`;
+      card.className = `player-card player-hud-card ${cornerClasses[idx]} ${isLeft ? 'dice-on-left' : 'dice-on-right'} ${p.isAI ? 'is-bot' : 'is-human'}`;
       card.style.borderColor = p.color ? (p.color.primary || p.color.textColor) : (p.text || '#ffd700');
 
       // High-contrast, crystal clear readable colors on white card
@@ -384,7 +371,14 @@ export class UIManager {
         ? `<span class="type-pill hud-role" style="background: ${p.team === 'A' ? '#fee2e2; color: #dc2626' : '#dcfce7; color: #16a34a'}">${p.team === 'A' ? '🔴 SOLAR' : '🟢 CYBER'}</span>`
         : `<span class="type-pill hud-role">${p.isAI ? 'BOT' : (p.id === 0 ? 'YOU' : `P${p.id + 1}`)}</span>`;
 
-      card.innerHTML = `
+      const diceHtml = `
+        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON (Large, Pure 3D Dice) -->
+        <button class="corner-dice-btn" id="corner-dice-${p.id}" data-player-id="${p.id}" title="${p.name} Tap to Roll">
+          <span class="corner-dice-pip" id="corner-pip-${p.id}">${getDiceFaceSvg(6)}</span>
+        </button>
+      `;
+
+      const profileHtml = `
         <div class="card-left-section">
           <div class="player-avatar hud-avatar-box" style="background: ${p.color ? (p.color.primary || '#cbd5e1') + '22' : '#ffffff22'}">
             <span class="hud-avatar">${p.isAI ? '🤖' : (p.id === 0 ? (economy?.data?.avatar || '👑') : '👤')}</span>
@@ -401,14 +395,12 @@ export class UIManager {
             </div>
           </div>
         </div>
-
-        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON (Large, Pure 3D Dice) -->
-        <button class="corner-dice-btn" id="corner-dice-${p.id}" data-player-id="${p.id}" title="${p.name} Tap to Roll">
-          <span class="corner-dice-pip" id="corner-pip-${p.id}">${getDiceFaceSvg(6)}</span>
-        </button>
-
-        <div class="active-pulse-dot"></div>
       `;
+
+      // If left card in 4-player game, put dice on LEFT; otherwise put dice on RIGHT
+      card.innerHTML = isLeft
+        ? `${diceHtml}${profileHtml}<div class="active-pulse-dot"></div>`
+        : `${profileHtml}${diceHtml}<div class="active-pulse-dot"></div>`;
 
       // Whole-card and Corner Dice instant tap handler (Ludo King style effortless rolling)
       let lastCardTap = 0;

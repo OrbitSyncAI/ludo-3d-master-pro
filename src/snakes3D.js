@@ -232,7 +232,7 @@ export class SnakesBoard3D {
     pawn.position.set(endCoord.x + offset.x, 0.1, endCoord.z + offset.z);
   }
 
-  hopSingleTile(pawn, start, end, offset = { x: 0, z: 0 }, duration = 210) {
+  hopSingleTile(pawn, start, end, offset = { x: 0, z: 0 }, duration = 240) {
     return new Promise((resolve) => {
       const startTime = performance.now();
       const hopHeight = 0.55;
@@ -262,8 +262,8 @@ export class SnakesBoard3D {
     });
   }
 
-  // 2. Smooth Climb Up Along the Ladder (Authentic 850ms)
-  animateLadderClimb(playerIndex, startTile, targetTile, positions = null, duration = 850) {
+  // 2. Smooth Climb Up Along the Ladder (Leisurely & clear 980ms)
+  animateLadderClimb(playerIndex, startTile, targetTile, positions = null, duration = 980) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return Promise.resolve();
 
@@ -293,8 +293,8 @@ export class SnakesBoard3D {
     });
   }
 
-  // 3. Smooth Slide Down Along the Snake Body (Authentic 880ms)
-  animateSnakeSlide(playerIndex, startTile, targetTile, positions = null, duration = 880) {
+  // 3. Smooth Slide Down Along the Snake Body (Serpentine & smooth 1050ms)
+  animateSnakeSlide(playerIndex, startTile, targetTile, positions = null, duration = 1050) {
     const pawn = this.pawns[playerIndex];
     if (!pawn) return Promise.resolve();
 

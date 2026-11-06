@@ -74,12 +74,15 @@ class LudoApp {
       antialias: true,
       alpha: false,
       powerPreference: 'high-performance',
-      precision: 'mediump'
+      precision: 'highp'
     });
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.85));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.container.appendChild(this.renderer.domElement);
 
     this.clock = new THREE.Clock();
@@ -93,72 +96,77 @@ class LudoApp {
     this.camera.lookAt(camConfig.lookAt.x, camConfig.lookAt.y, camConfig.lookAt.z);
   }
 
-  // 2. High-Contrast Studio Lighting with Realistic Directional Shadows
+  // 2. High-Contrast Studio Lighting with Realistic Directional Shadows (PUBG Mobile Quality)
   initLighting() {
-    // Balanced ambient light preserving depth and rich shadow contrast
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.62);
+    // Deep contrast ambient light preserving rich dark shadows without washing out
+    this.ambientLight = new THREE.AmbientLight(0xf8fafc, 0.44);
     this.scene.add(this.ambientLight);
 
-    // Warm directional sun light casting realistic shadows at 45 degree angle
-    this.sunLight = new THREE.DirectionalLight(0xfffef0, 1.55);
-    this.sunLight.position.set(11, 22, 11);
+    // Warm directional sun light casting realistic elongated shadows at cinematic 45 degree angle
+    this.sunLight = new THREE.DirectionalLight(0xfff8ea, 1.85);
+    this.sunLight.position.set(13, 19, 13);
     this.sunLight.castShadow = true;
-    this.sunLight.shadow.mapSize.width = 1024;
-    this.sunLight.shadow.mapSize.height = 1024;
+    this.sunLight.shadow.mapSize.width = 2048;
+    this.sunLight.shadow.mapSize.height = 2048;
     this.sunLight.shadow.near = 1;
     this.sunLight.shadow.far = 50;
     this.sunLight.shadow.left = -16;
     this.sunLight.shadow.right = 16;
     this.sunLight.shadow.top = 16;
     this.sunLight.shadow.bottom = -16;
-    this.sunLight.shadow.bias = -0.0005;
+    this.sunLight.shadow.bias = -0.0003;
     this.sunLight.shadow.normalBias = 0.02;
+    this.sunLight.shadow.radius = 2.4; // Filmic soft PCF shadow edges
     this.scene.add(this.sunLight);
 
-    // Gentle cool fill light from opposite angle
-    this.fillLight = new THREE.DirectionalLight(0xdbeafe, 0.25);
-    this.fillLight.position.set(-10, 16, -12);
+    // Subtle cool sky fill light from opposite angle
+    this.fillLight = new THREE.DirectionalLight(0xbfdbfe, 0.20);
+    this.fillLight.position.set(-12, 16, -14);
     this.scene.add(this.fillLight);
   }
 
-  // Live Real-Time Graphics Quality & Realistic Shadows Controller (PUBG Style)
+  // Live Real-Time Graphics Quality & Realistic Shadows Controller (PUBG Style with 90 FPS / 120 FPS)
   applyGraphicsSettings(settings = null) {
     const config = settings || economy.getGraphicsSettings();
     const preset = config.preset || 'balanced';
     const enableShadows = config.shadows !== false && preset !== 'smooth';
+    const targetFps = config.fps || 90;
 
     if (this.renderer) {
       this.renderer.shadowMap.enabled = enableShadows;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
       let pixelRatio = 1.0;
-      let mapSize = 1024;
-      let ambientIntensity = 0.62;
-      let sunIntensity = 1.55;
+      let mapSize = 2048;
+      let ambientIntensity = 0.46;
+      let sunIntensity = 1.85;
 
       if (preset === 'smooth') {
         pixelRatio = 1.0;
-        mapSize = 512;
-        ambientIntensity = 0.85;
-        sunIntensity = 1.1;
-      } else if (preset === 'balanced') {
-        pixelRatio = Math.min(window.devicePixelRatio, 1.25);
         mapSize = 1024;
         ambientIntensity = 0.62;
-        sunIntensity = 1.55;
-      } else if (preset === 'hd') {
-        pixelRatio = Math.min(window.devicePixelRatio, 1.5);
-        mapSize = 1024;
-        ambientIntensity = 0.52;
-        sunIntensity = 1.70;
-      } else if (preset === 'ultra') {
-        pixelRatio = Math.min(window.devicePixelRatio, 1.75);
+        sunIntensity = 1.50;
+      } else if (preset === 'balanced') {
+        pixelRatio = Math.min(window.devicePixelRatio, 1.45);
         mapSize = 2048;
         ambientIntensity = 0.46;
-        sunIntensity = 1.88;
+        sunIntensity = 1.85;
+      } else if (preset === 'hd') {
+        pixelRatio = Math.min(window.devicePixelRatio, 1.75);
+        mapSize = 2048;
+        ambientIntensity = 0.42;
+        sunIntensity = 1.95;
+      } else if (preset === 'ultra') {
+        pixelRatio = Math.min(window.devicePixelRatio, 2.0);
+        mapSize = 2048;
+        ambientIntensity = 0.38;
+        sunIntensity = 2.15;
       }
 
       this.renderer.setPixelRatio(pixelRatio);
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = (preset === 'ultra' || preset === 'hd') ? 1.18 : 1.12;
+      this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       if (this.ambientLight) {
         this.ambientLight.intensity = ambientIntensity;
@@ -169,6 +177,7 @@ class LudoApp {
         this.sunLight.intensity = sunIntensity;
         this.sunLight.shadow.mapSize.width = mapSize;
         this.sunLight.shadow.mapSize.height = mapSize;
+        this.sunLight.shadow.radius = 2.4;
         if (this.sunLight.shadow.map) {
           this.sunLight.shadow.map.dispose();
           this.sunLight.shadow.map = null;
@@ -620,6 +629,7 @@ class LudoApp {
     if (this.engine.state === GAME_STATES.GAME_OVER) return;
 
     this.isProcessingTurn = true;
+    await this.sleep(380); // Natural pacing before AI initiates roll
     this.inGameUI.updateDiceDisplay(null, true, this.engine.activePlayerIndex);
 
     const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
@@ -630,7 +640,7 @@ class LudoApp {
 
     if (result.action === 'FORFEIT_THREE_SIXES') {
       this.inGameUI.updateStatus(`3 Sixes! Turn forfeited!`);
-      await this.sleep(220);
+      await this.sleep(350);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
       this.updateTurnUI();
@@ -639,7 +649,7 @@ class LudoApp {
 
     if (result.action === 'NO_MOVES') {
       this.inGameUI.updateStatus(`${this.engine.getCurrentPlayer().name} rolled ${rollValue} - No moves`);
-      await this.sleep(220);
+      await this.sleep(350);
       this.engine.nextPlayer();
       this.isProcessingTurn = false;
       this.updateTurnUI();
@@ -647,7 +657,7 @@ class LudoApp {
     }
 
     const bestMove = LudoAI.chooseBestMove(this.engine, result.validMoves);
-    await this.sleep(100);
+    await this.sleep(260); // Clear pause so player sees AI's rolled number
     await this.executeLudoMove(bestMove);
   }
 
@@ -1056,7 +1066,7 @@ class LudoApp {
 
   animate() {
     requestAnimationFrame(this.animate);
-    const delta = this.clock.getDelta();
+    const delta = Math.min(this.clock.getDelta(), 0.05); // Fluid 90 FPS & 120 FPS sub-frame delta handling
 
     if (this.board3D) this.board3D.update(delta);
     if (this.dice3D) this.dice3D.update(delta);

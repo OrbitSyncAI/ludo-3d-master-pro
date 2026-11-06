@@ -172,7 +172,7 @@ export class HomeUIManager {
               <span class="item-icon">🔄</span>
               <div class="item-update-row">
                 <span>Check for Updates</span>
-                <span class="version-chip">v1.3.9</span>
+                <span class="version-chip">v1.3.10</span>
               </div>
             </button>
             <button class="drawer-nav-item" data-drawer-action="graphics-settings">
@@ -1346,11 +1346,11 @@ export class HomeUIManager {
         </div>
 
         <div class="graphics-section">
-          <div class="graphics-section-title">Frame Rate (FPS)</div>
+          <div class="graphics-section-title">Frame Rate (FPS) - 90 & 120 FPS Ultra High Refresh</div>
           <div class="graphics-fps-grid">
-            <button class="graphics-option-btn ${selectedFps === 30 ? 'active' : ''}" data-fps="30">30 FPS</button>
             <button class="graphics-option-btn ${selectedFps === 60 ? 'active' : ''}" data-fps="60">60 FPS</button>
             <button class="graphics-option-btn ${selectedFps === 90 ? 'active' : ''}" data-fps="90">90 FPS</button>
+            <button class="graphics-option-btn ${selectedFps === 120 ? 'active' : ''}" data-fps="120">120 FPS (Ultra)</button>
           </div>
         </div>
 
@@ -1429,7 +1429,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.8';
+    const CURRENT_VERSION = '1.3.10';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';

@@ -185,8 +185,9 @@ export class Token3D {
     }
     this.isSelectable = selectable;
     if (selectable) {
+      this.selectableStartTime = performance.now();
       this.selectionRing.visible = true;
-      this.selectionRing.material.opacity = 0.95;
+      this.selectionRing.material.opacity = 0.0;
       // Golden beacon ring for yard pawns, team color for track pawns
       this.selectionRing.material.color.setHex(this.step === -1 ? 0xffd700 : this.playerConfig.hexColor);
       // Synchronize selectionRing position lockstep with token's current world position (elevated above yard pedestal)
@@ -249,8 +250,8 @@ export class Token3D {
     this.isMoving = false;
   }
 
-  // Ultra-smooth, snappy hop animation from point A to B (Fast & energetic 155ms)
-  animateSingleHop(start, end, duration = 155) {
+  // Smooth, rhythmic step hop animation from tile A to B (180ms with squash & stretch - balanced pacing)
+  animateSingleHop(start, end, duration = 180) {
     return new Promise((resolve) => {
       const startTime = performance.now();
       const hopHeight = 0.55;
@@ -289,8 +290,8 @@ export class Token3D {
     });
   }
 
-  // Dramatic Celebratory Arc out of Yard onto Start Square (Juicy 450ms)
-  animateYardSpawn(duration = 450) {
+  // Dramatic Celebratory Arc out of Yard onto Start Square (Balanced 460ms)
+  animateYardSpawn(duration = 460) {
     return new Promise((resolve) => {
       this.setSelectable(false);
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
@@ -304,7 +305,7 @@ export class Token3D {
         const progress = Math.min(elapsed / duration, 1.0);
 
         if (progress < 0.8) {
-          // Phase 1: Majestic soaring arc with 3 full airborne spins
+          // Phase 1: Majestic soaring arc with 2 full airborne spins
           const t = progress / 0.8;
           const ease = 0.5 - Math.cos(t * Math.PI) / 2;
           const x = start.x + (end.x - start.x) * ease;
@@ -313,7 +314,7 @@ export class Token3D {
 
           this.mesh.position.set(x, y, z);
           this.selectionRing.position.set(x, 0.12, z);
-          this.mesh.rotation.y = t * Math.PI * 6; // 3 full airborne spins
+          this.mesh.rotation.y = t * Math.PI * 4; // 2 full airborne spins
 
           // Mid-air stretch
           const stretch = 1.0 + Math.sin(t * Math.PI) * 0.22;
@@ -325,7 +326,7 @@ export class Token3D {
           this.selectionRing.position.set(end.x, 0.12, end.z);
           this.mesh.rotation.y = 0;
 
-          const squish = 1.0 - Math.sin(t2 * Math.PI) * 0.25;
+          const squish = 1.0 - Math.sin(t2 * Math.PI) * 0.20;
           this.mesh.scale.set(1.0 + (1.0 - squish), squish, 1.0 + (1.0 - squish));
         }
 
@@ -343,7 +344,7 @@ export class Token3D {
     });
   }
 
-  // Knockout return to base yard (Snappy 240ms)
+  // Knockout return to base yard (Crisp 380ms)
   animateCaptured() {
     return new Promise((resolve) => {
       this.setSelectable(false);
@@ -353,7 +354,7 @@ export class Token3D {
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       this.baseY = end.y;
       const startTime = performance.now();
-      const duration = 240;
+      const duration = 380;
 
       const capAnim = (now) => {
         const elapsed = now - startTime;
@@ -365,15 +366,15 @@ export class Token3D {
 
         this.mesh.position.set(x, y, z);
         this.selectionRing.position.set(x, 0.12, z);
-        this.mesh.rotation.y = progress * Math.PI * 8; // spin back
-        this.mesh.rotation.x = Math.sin(progress * Math.PI) * 0.8; // tilt tumble
+        this.mesh.rotation.y = progress * Math.PI * 6; // spin back
+        this.mesh.rotation.x = Math.sin(progress * Math.PI) * 0.6; // tilt tumble
 
         if (progress < 1.0) {
           requestAnimationFrame(capAnim);
         } else {
           this.mesh.rotation.set(0, 0, 0);
           this.mesh.position.set(end.x, end.y, end.z);
-          this.selectionRing.position.set(end.x, 0.12, end.z);
+          this.selectionRing.position.set(end.x, 0.26, end.z);
           this.selectionRing.visible = false;
           this.selectionRing.material.opacity = 0.0;
           resolve();
@@ -383,36 +384,44 @@ export class Token3D {
     });
   }
 
-  // Idle hover bounce when selectable
+  // Idle hover bounce when selectable (Slow, calm, majestic rhythmic breathing - zero fast jerk)
   update(delta) {
     if (this.isSelectable && !this.isMoving && this.step < 56) {
       if (this.baseY === undefined) {
         this.baseY = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step).y;
       }
 
+      // Smooth slow entry ramp (800ms ease-in)
+      const elapsed = Math.min((performance.now() - (this.selectableStartTime || performance.now())) / 800, 1.0);
+      const entryEase = 0.5 - Math.cos(elapsed * Math.PI) / 2;
+
       // Lock selection ring under token
       this.selectionRing.position.x = this.mesh.position.x;
       this.selectionRing.position.y = this.step === -1 ? 0.26 : 0.12;
       this.selectionRing.position.z = this.mesh.position.z;
 
-      // JUICY UNLOCK BOUNCE FOR TOKENS IN YARD (When 6 is rolled!)
-      if (this.step === -1) {
-        const bounce = Math.abs(Math.sin(Date.now() * 0.008 + this.tokenIndex * 0.8)) * 0.45;
-        this.mesh.position.y = this.baseY + bounce;
-        const squish = 1.0 + Math.sin(Date.now() * 0.008 + this.tokenIndex * 0.8) * 0.22;
-        this.mesh.scale.set(1.0 - (squish - 1.0) * 0.5, squish, 1.0 - (squish - 1.0) * 0.5);
-        this.mesh.rotation.y = Math.sin(Date.now() * 0.006) * 0.4;
+      // Very slow, relaxing breathing frequency (1 full cycle every ~3.5 seconds)
+      const t = Date.now() * 0.0018;
 
-        // Radiant expanding golden/team aura beacon
-        const pulse = 1.15 + Math.sin(Date.now() * 0.014) * 0.35;
-        this.selectionRing.scale.set(pulse, pulse, pulse);
-        this.selectionRing.material.opacity = 0.98;
+      // Gentle, slow unlock bounce for tokens in yard when 6 is rolled
+      if (this.step === -1) {
+        const bounce = (Math.sin(t) * 0.5 + 0.5) * 0.12 * entryEase;
+        this.mesh.position.y = this.baseY + bounce;
+        const pulseScale = 1.0 + Math.sin(t) * 0.03 * entryEase;
+        this.mesh.scale.set(1.0, pulseScale, 1.0);
+        this.mesh.rotation.y = 0;
+
+        // Radiant expanding golden aura beacon (slow & smooth)
+        const ringPulse = 1.0 + Math.sin(t) * 0.08;
+        this.selectionRing.scale.set(ringPulse, ringPulse, ringPulse);
+        this.selectionRing.material.opacity = (0.75 + Math.sin(t) * 0.20) * entryEase;
       } else {
-        // Track hover bounce
-        const hover = Math.max(0, Math.sin(Date.now() * 0.008 + this.tokenIndex) * 0.12);
+        // Track slow calm hover bounce
+        const hover = (Math.sin(t) * 0.5 + 0.5) * 0.08 * entryEase;
         this.mesh.position.y = this.baseY + hover;
-        const pulse = 1.0 + Math.sin(Date.now() * 0.01) * 0.15;
+        const pulse = 1.0 + Math.sin(t) * 0.06;
         this.selectionRing.scale.set(pulse, pulse, pulse);
+        this.selectionRing.material.opacity = (0.75 + Math.sin(t) * 0.20) * entryEase;
       }
     }
   }
