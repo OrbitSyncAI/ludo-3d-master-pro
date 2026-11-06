@@ -138,6 +138,7 @@ jobs:
   publish-release:
     name: 🚀 Publish GitHub Release with APK & iOS
     needs: [build-android, build-ios]
+    if: always() && needs.build-android.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -163,12 +164,14 @@ jobs:
         with:
           name: Ludo-3D-Master-Pro-iOS-IPA
           path: release_assets
+        continue-on-error: true
 
       - name: Download iOS App Zip
         uses: actions/download-artifact@v4
         with:
           name: Ludo-3D-Master-Pro-iOS-App
           path: release_assets
+        continue-on-error: true
 
       - name: Create or Update GitHub Release with APK and iOS
         env:
