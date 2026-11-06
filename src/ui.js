@@ -7,6 +7,94 @@ import { sounds } from './audio.js';
 import { PLAYERS_CONFIG } from './boardData.js';
 import { economy } from './economyState.js';
 
+export function getDiceFaceSvg(val = 6) {
+  const num = Math.min(Math.max(parseInt(val) || 6, 1), 6);
+  const pipsMap = {
+    1: `
+      <circle cx="28" cy="28" r="8.5" fill="url(#rubyGlow)"/>
+      <circle cx="25.5" cy="25.5" r="2.8" fill="#ffffff" opacity="0.75"/>
+    `,
+    2: `
+      <circle cx="17" cy="17" r="5.5" fill="url(#darkPip)"/>
+      <circle cx="15.5" cy="15.5" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="39" cy="39" r="5.5" fill="url(#darkPip)"/>
+      <circle cx="37.5" cy="37.5" r="1.8" fill="#ffffff" opacity="0.65"/>
+    `,
+    3: `
+      <circle cx="16" cy="16" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="14.8" cy="14.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="28" cy="28" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="26.8" cy="26.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="40" cy="40" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="38.8" cy="38.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+    `,
+    4: `
+      <circle cx="17" cy="17" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="15.8" cy="15.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="39" cy="17" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="37.8" cy="15.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="17" cy="39" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="15.8" cy="37.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+      <circle cx="39" cy="39" r="5.2" fill="url(#darkPip)"/>
+      <circle cx="37.8" cy="37.8" r="1.8" fill="#ffffff" opacity="0.65"/>
+    `,
+    5: `
+      <circle cx="16" cy="16" r="5" fill="url(#darkPip)"/>
+      <circle cx="15" cy="15" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="40" cy="16" r="5" fill="url(#darkPip)"/>
+      <circle cx="39" cy="15" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="28" cy="28" r="5.2" fill="url(#rubyGlow)"/>
+      <circle cx="26.8" cy="26.8" r="1.8" fill="#ffffff" opacity="0.75"/>
+      <circle cx="16" cy="40" r="5" fill="url(#darkPip)"/>
+      <circle cx="15" cy="39" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="40" cy="40" r="5" fill="url(#darkPip)"/>
+      <circle cx="39" cy="39" r="1.6" fill="#ffffff" opacity="0.65"/>
+    `,
+    6: `
+      <circle cx="17" cy="15" r="5" fill="url(#darkPip)"/>
+      <circle cx="15.8" cy="13.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="17" cy="28" r="5" fill="url(#darkPip)"/>
+      <circle cx="15.8" cy="26.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="17" cy="41" r="5" fill="url(#darkPip)"/>
+      <circle cx="15.8" cy="39.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="39" cy="15" r="5" fill="url(#darkPip)"/>
+      <circle cx="37.8" cy="13.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="39" cy="28" r="5" fill="url(#darkPip)"/>
+      <circle cx="37.8" cy="26.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+      <circle cx="39" cy="41" r="5" fill="url(#darkPip)"/>
+      <circle cx="37.8" cy="39.8" r="1.6" fill="#ffffff" opacity="0.65"/>
+    `
+  };
+
+  return `
+    <svg class="dice-svg-face" viewBox="0 0 56 56" width="100%" height="100%">
+      <defs>
+        <radialGradient id="rubyGlow" cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#ff1744"/>
+          <stop offset="70%" stop-color="#d50000"/>
+          <stop offset="100%" stop-color="#880e4f"/>
+        </radialGradient>
+        <radialGradient id="darkPip" cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#334155"/>
+          <stop offset="75%" stop-color="#0f172a"/>
+          <stop offset="100%" stop-color="#020617"/>
+        </radialGradient>
+        <linearGradient id="diceBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="40%" stop-color="#fdfdfd"/>
+          <stop offset="100%" stop-color="#e2e8f0"/>
+        </linearGradient>
+        <filter id="diceShadow" x="-10%" y="-10%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+        </filter>
+      </defs>
+      <rect x="3" y="3" width="50" height="50" rx="12" ry="12" fill="url(#diceBodyGrad)" stroke="#cbd5e1" stroke-width="2" filter="url(#diceShadow)"/>
+      <rect x="5" y="4" width="46" height="22" rx="10" ry="10" fill="#ffffff" opacity="0.55"/>
+      ${pipsMap[num]}
+    </svg>
+  `;
+}
+
 export class UIManager {
   constructor(callbacks = {}) {
     this.callbacks = callbacks; // onRoll, onExitToHome, onRestartMatch
@@ -225,43 +313,29 @@ export class UIManager {
   }
 
   updateDiceDisplay(rollValue, isRolling = false, activePlayerId = this.activePlayerId) {
-    const dicePreview = this.rollController ? this.rollController.querySelector('.dice-icon-preview') : null;
-    const rollMain = this.rollController ? this.rollController.querySelector('.main-roll-text') : null;
-    const pipIcons = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-
-    // Update Bottom Roll Bar
-    if (isRolling) {
-      if (dicePreview) dicePreview.classList.add('spinning');
-      if (rollMain) rollMain.textContent = 'ROLLING...';
-    } else {
-      if (dicePreview) {
-        dicePreview.classList.remove('spinning');
-        if (rollValue) {
-          dicePreview.textContent = pipIcons[rollValue - 1] || `${rollValue}`;
-        } else {
-          dicePreview.textContent = '🎲';
-        }
-      }
-      if (rollMain) {
-        rollMain.textContent = rollValue ? `ROLLED ${rollValue}` : 'ROLL DICE';
-      }
-    }
-
-    // Update Ludo King Integrated Corner Dice for Active Player (Pure Big Dice, Zero Redundant Text)
+    // Update Ludo King Integrated Corner Dice for Active Player (Pure Big 3D SVG Dice, Zero Redundant Text)
     if (activePlayerId !== undefined && activePlayerId !== null) {
       const cornerPip = document.getElementById(`corner-pip-${activePlayerId}`);
       if (cornerPip) {
+        if (!this.rollIntervals) this.rollIntervals = {};
         if (isRolling) {
           cornerPip.classList.add('spinning');
-          cornerPip.textContent = '🎲';
+          if (!this.rollIntervals[activePlayerId]) {
+            this.rollIntervals[activePlayerId] = setInterval(() => {
+              const rand = Math.floor(Math.random() * 6) + 1;
+              cornerPip.innerHTML = getDiceFaceSvg(rand);
+            }, 65);
+          }
         } else {
+          if (this.rollIntervals[activePlayerId]) {
+            clearInterval(this.rollIntervals[activePlayerId]);
+            delete this.rollIntervals[activePlayerId];
+          }
           cornerPip.classList.remove('spinning');
           if (rollValue) {
-            cornerPip.textContent = pipIcons[rollValue - 1] || `${rollValue}`;
+            cornerPip.innerHTML = getDiceFaceSvg(rollValue);
             cornerPip.classList.add('bounce-dice');
             setTimeout(() => cornerPip.classList.remove('bounce-dice'), 600);
-          } else {
-            cornerPip.textContent = '🎲';
           }
         }
       }
@@ -328,9 +402,9 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON (Large, Pure Dice) -->
+        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON (Large, Pure 3D Dice) -->
         <button class="corner-dice-btn" id="corner-dice-${p.id}" data-player-id="${p.id}" title="${p.name} Tap to Roll">
-          <span class="corner-dice-pip" id="corner-pip-${p.id}">🎲</span>
+          <span class="corner-dice-pip" id="corner-pip-${p.id}">${getDiceFaceSvg(6)}</span>
         </button>
 
         <div class="active-pulse-dot"></div>

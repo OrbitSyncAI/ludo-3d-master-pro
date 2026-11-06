@@ -107,10 +107,10 @@ class LudoApp {
     this.sunLight.shadow.mapSize.height = 1024;
     this.sunLight.shadow.near = 1;
     this.sunLight.shadow.far = 50;
-    this.sunLight.shadow.left = -13;
-    this.sunLight.shadow.right = 13;
-    this.sunLight.shadow.top = 13;
-    this.sunLight.shadow.bottom = -13;
+    this.sunLight.shadow.left = -16;
+    this.sunLight.shadow.right = 16;
+    this.sunLight.shadow.top = 16;
+    this.sunLight.shadow.bottom = -16;
     this.sunLight.shadow.bias = -0.0005;
     this.sunLight.shadow.normalBias = 0.02;
     this.scene.add(this.sunLight);
@@ -487,7 +487,7 @@ class LudoApp {
     this.isProcessingTurn = true;
     this.inGameUI.setRollButtonEnabled(false);
     this.engine.state = GAME_STATES.ROLLING;
-    this.inGameUI.updateDiceDisplay(null, true);
+    this.inGameUI.updateDiceDisplay(null, true, this.engine.activePlayerIndex);
 
     const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
     const rollValue = await this.dice3D.roll(smartTarget);
@@ -517,12 +517,16 @@ class LudoApp {
     const curPlayer = this.engine.getCurrentPlayer();
 
     if (!curPlayer.isAI) {
-      if (this.validMoves.length === 1) {
+      const hasYardUnlock = this.validMoves.some(m => m.from === -1);
+      if (this.validMoves.length === 1 && !hasYardUnlock) {
         this.inGameUI.updateStatus(`Rolled ${rollValue} - Moving token...`);
-        await this.sleep(60);
+        await this.sleep(120);
         await this.executeLudoMove(this.validMoves[0]);
       } else {
-        this.inGameUI.updateStatus(`Rolled ${rollValue} - Tap a glowing token`);
+        const msg = (rollValue === 6 && hasYardUnlock)
+          ? `🎉 Rolled 6! Tap yard goti to unlock!`
+          : `Rolled ${rollValue} - Tap a glowing goti`;
+        this.inGameUI.updateStatus(msg, rollValue === 6);
         this.highlightMovableTokens(curPlayer.id, this.validMoves);
         this.isProcessingTurn = false;
       }
@@ -616,7 +620,7 @@ class LudoApp {
     if (this.engine.state === GAME_STATES.GAME_OVER) return;
 
     this.isProcessingTurn = true;
-    this.inGameUI.updateDiceDisplay(null, true);
+    this.inGameUI.updateDiceDisplay(null, true, this.engine.activePlayerIndex);
 
     const smartTarget = this.engine.generateSmartRoll(this.engine.activePlayerIndex);
     const rollValue = await this.dice3D.roll(smartTarget);
@@ -668,15 +672,15 @@ class LudoApp {
   async handleSnakesRoll() {
     if (this.isProcessingTurn) return;
     this.isProcessingTurn = true;
+    const curPIdx = this.snakesEngine.activePlayerIndex;
+    const curP = this.snakesEngine.getCurrentPlayer();
     this.inGameUI.setRollButtonEnabled(false);
-    this.inGameUI.updateDiceDisplay(null, true);
+    this.inGameUI.updateDiceDisplay(null, true, curPIdx);
 
-    const smartTarget = this.snakesEngine.generateSmartRoll(this.snakesEngine.activePlayerIndex);
+    const smartTarget = this.snakesEngine.generateSmartRoll(curPIdx);
     const rollValue = await this.dice3D.roll(smartTarget);
     this.inGameUI.updateDiceDisplay(rollValue, false, curPIdx);
 
-    const curPIdx = this.snakesEngine.activePlayerIndex;
-    const curP = this.snakesEngine.getCurrentPlayer();
     const result = this.snakesEngine.processRoll(rollValue);
 
     if (result.action === 'NO_MOVE') {

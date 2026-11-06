@@ -449,6 +449,7 @@ export function createSnakesBoardTexture(themeId = 'snakes_classic') {
   });
 
   const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
   texture.anisotropy = 4;
   return texture;
 }

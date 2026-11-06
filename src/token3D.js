@@ -187,9 +187,11 @@ export class Token3D {
     if (selectable) {
       this.selectionRing.visible = true;
       this.selectionRing.material.opacity = 0.95;
-      this.selectionRing.material.color.setHex(this.playerConfig.hexColor);
-      // Synchronize selectionRing position lockstep with token's current world position
-      this.selectionRing.position.set(this.mesh.position.x, 0.12, this.mesh.position.z);
+      // Golden beacon ring for yard pawns, team color for track pawns
+      this.selectionRing.material.color.setHex(this.step === -1 ? 0xffd700 : this.playerConfig.hexColor);
+      // Synchronize selectionRing position lockstep with token's current world position (elevated above yard pedestal)
+      const ringY = this.step === -1 ? 0.26 : 0.12;
+      this.selectionRing.position.set(this.mesh.position.x, ringY, this.mesh.position.z);
     } else {
       this.selectionRing.visible = false;
       this.selectionRing.material.opacity = 0.0;
@@ -390,20 +392,21 @@ export class Token3D {
 
       // Lock selection ring under token
       this.selectionRing.position.x = this.mesh.position.x;
+      this.selectionRing.position.y = this.step === -1 ? 0.26 : 0.12;
       this.selectionRing.position.z = this.mesh.position.z;
 
       // JUICY UNLOCK BOUNCE FOR TOKENS IN YARD (When 6 is rolled!)
       if (this.step === -1) {
-        const bounce = Math.abs(Math.sin(Date.now() * 0.007 + this.tokenIndex)) * 0.32;
+        const bounce = Math.abs(Math.sin(Date.now() * 0.008 + this.tokenIndex * 0.8)) * 0.45;
         this.mesh.position.y = this.baseY + bounce;
-        const squish = 1.0 + Math.sin(Date.now() * 0.007 + this.tokenIndex) * 0.16;
+        const squish = 1.0 + Math.sin(Date.now() * 0.008 + this.tokenIndex * 0.8) * 0.22;
         this.mesh.scale.set(1.0 - (squish - 1.0) * 0.5, squish, 1.0 - (squish - 1.0) * 0.5);
-        this.mesh.rotation.y = Math.sin(Date.now() * 0.005) * 0.35;
+        this.mesh.rotation.y = Math.sin(Date.now() * 0.006) * 0.4;
 
-        // Radiant expanding golden/team aura
-        const pulse = 1.05 + Math.sin(Date.now() * 0.012) * 0.25;
+        // Radiant expanding golden/team aura beacon
+        const pulse = 1.15 + Math.sin(Date.now() * 0.014) * 0.35;
         this.selectionRing.scale.set(pulse, pulse, pulse);
-        this.selectionRing.material.opacity = 0.95;
+        this.selectionRing.material.opacity = 0.98;
       } else {
         // Track hover bounce
         const hover = Math.max(0, Math.sin(Date.now() * 0.008 + this.tokenIndex) * 0.12);

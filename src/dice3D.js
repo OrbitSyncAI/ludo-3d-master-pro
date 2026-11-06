@@ -25,9 +25,10 @@ export class Dice3D {
     };
 
     this.mesh = this.createDiceMesh();
-    // Authentic board center placement: dice sits and rolls in the exact center of the board
+    // Authentic board center placement: hidden by default so center triangles remain clean like Ludo King
     this.basePosition = new THREE.Vector3(0, 0.58, 0);
     this.mesh.position.copy(this.basePosition);
+    this.mesh.visible = false; // Ludo King style: dice is on the player's card, not blocking center triangles
 
     this.scene.add(this.mesh);
 
@@ -222,7 +223,7 @@ export class Dice3D {
 
     const startY = this.basePosition.y;
     const peakY = startY + 2.0;
-    const duration = 820; // Relaxed, smooth organic 3D roll (neither too fast nor sluggish)
+    const duration = 380; // Snappy, responsive roll matching Ludo King pace
     const startTime = performance.now();
 
     return new Promise((resolve) => {

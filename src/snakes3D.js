@@ -57,8 +57,11 @@ export class SnakesBoard3D {
     this.group.add(trimMesh);
 
     // High-Resolution 100-Tile Board Face (Canvas Texture with Themed Graphics)
-    const canvas = createSnakesBoardTexture(this.themeId);
-    const boardTexture = new THREE.CanvasTexture(canvas);
+    const rawTexture = createSnakesBoardTexture(this.themeId);
+    const boardTexture = (rawTexture instanceof THREE.Texture)
+      ? rawTexture
+      : new THREE.CanvasTexture(rawTexture);
+    boardTexture.needsUpdate = true;
     boardTexture.anisotropy = 4;
 
     const faceGeo = new THREE.PlaneGeometry(15.2, 15.2);

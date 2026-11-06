@@ -1643,14 +1643,14 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 4px 6px;
+  padding: 4px 8px;
   background: rgba(255, 255, 255, 0.98);
-  border: 2px solid #cbd5e1;
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  border: 2.5px solid #cbd5e1;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
   pointer-events: auto;
-  width: 172px;
-  max-width: 176px;
+  width: 184px;
+  max-width: 190px;
   z-index: 35;
   transition: transform 0.28s cubic-bezier(0.34, 1.3, 0.64, 1), box-shadow 0.28s ease, border-color 0.28s ease;
   box-sizing: border-box;
@@ -1792,16 +1792,17 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  min-height: 50px;
   padding: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid #cbd5e1;
-  border-radius: 12px;
+  background: transparent;
+  border: none;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.95);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   user-select: none;
 }
 
@@ -1810,48 +1811,49 @@ html, body {
 }
 
 .corner-dice-pip {
-  font-size: 2.15rem;
-  line-height: 1;
-  display: inline-block;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s ease;
-  color: #1e293b;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* When it's this player's turn to roll, pulsate with gold/green aura */
+.corner-dice-pip svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* When it's this player's turn to roll, pulsate with gold aura */
 .corner-dice-btn.dice-ready-pulse {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border: 2px solid #ffb800;
-  box-shadow: 0 0 14px rgba(255, 184, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.25);
-  animation: corner-dice-glow 1.2s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.95)) drop-shadow(0 0 16px rgba(255, 184, 0, 0.65));
+  animation: ludo-king-dice-bounce 1.1s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.corner-dice-btn.dice-ready-pulse .corner-dice-label {
-  color: #b45309;
-  font-weight: 900;
-}
-
-@keyframes corner-dice-glow {
-  from { transform: scale(1.0); box-shadow: 0 0 8px rgba(255, 184, 0, 0.6); }
-  to { transform: scale(1.08); box-shadow: 0 0 18px rgba(255, 184, 0, 0.95); }
+@keyframes ludo-king-dice-bounce {
+  0% { transform: scale(1.0); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1.06); }
 }
 
 .corner-dice-pip.spinning {
-  animation: spin-dice-pip 0.4s linear infinite;
+  animation: spin-dice-pip 0.35s linear infinite;
 }
 
 @keyframes spin-dice-pip {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% { transform: rotate(0deg) scale(0.95); }
+  50% { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(0.95); }
 }
 
 .corner-dice-pip.bounce-dice {
-  animation: bounce-dice-pip 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: bounce-dice-pip 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes bounce-dice-pip {
-  0% { transform: scale(0.6); }
-  50% { transform: scale(1.35); }
+  0% { transform: scale(0.65); }
+  50% { transform: scale(1.32); }
   100% { transform: scale(1.0); }
 }
 
@@ -4054,454 +4056,3 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
-
-/* ==========================================================================
-   ROYAL & COSMIC MYSTERY BOXES & UNBOXING STAGE
-   ========================================================================== */
-
-.mystery-showcase-hero {
-  position: relative;
-  text-align: center;
-  padding: 18px 14px 14px;
-  background: radial-gradient(circle at center, rgba(168, 85, 247, 0.22) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border-radius: 18px;
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  margin-bottom: 14px;
-  overflow: hidden;
-}
-
-.mystery-hero-glow {
-  position: absolute;
-  top: -50%;
-  left: 20%;
-  width: 60%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
-  filter: blur(25px);
-  pointer-events: none;
-}
-
-.mystery-showcase-hero h4 {
-  font-size: 1.05rem;
-  font-weight: 900;
-  color: #ffd700;
-  text-shadow: 0 0 14px rgba(255, 215, 0, 0.6);
-  margin: 0 0 4px;
-  letter-spacing: 0.5px;
-}
-
-.mystery-showcase-hero p {
-  font-size: 0.78rem;
-  color: #cbd5e1;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.mystery-boxes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
-}
-
-.mystery-box-card {
-  position: relative;
-  background: rgba(15, 23, 42, 0.88);
-  border-radius: 20px;
-  border: 2px solid rgba(255, 215, 0, 0.35);
-  padding: 20px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.mystery-box-card:hover {
-  transform: translateY(-2px);
-}
-
-.mystery-box-card.card-royal {
-  border-color: rgba(255, 184, 0, 0.5);
-  background: linear-gradient(160deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
-}
-
-.mystery-box-card.card-cosmic {
-  border-color: rgba(0, 229, 255, 0.6);
-  background: linear-gradient(160deg, rgba(13, 27, 42, 0.98) 0%, rgba(10, 15, 30, 0.98) 100%);
-  box-shadow: 0 8px 30px rgba(0, 229, 255, 0.25);
-}
-
-.mystery-ribbon {
-  position: absolute;
-  top: 10px;
-  right: -28px;
-  transform: rotate(45deg);
-  font-size: 0.62rem;
-  font-weight: 900;
-  padding: 4px 32px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-.ribbon-free {
-  background: linear-gradient(135deg, #00e676 0%, #10b981 100%);
-  color: #022c22;
-}
-
-.ribbon-standard {
-  background: linear-gradient(135deg, #ffcf33 0%, #ff9800 100%);
-  color: #0f172a;
-}
-
-.ribbon-cosmic {
-  background: linear-gradient(135deg, #00e5ff 0%, #d946ef 100%);
-  color: #0f172a;
-}
-
-.chest-visual-stage {
-  position: relative;
-  width: 90px;
-  height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 6px 0 12px;
-}
-
-.chest-ambient-glow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  filter: blur(18px);
-}
-
-.royal-glow {
-  background: radial-gradient(circle, rgba(255, 184, 0, 0.6) 0%, transparent 70%);
-}
-
-.cosmic-glow {
-  background: radial-gradient(circle, rgba(0, 229, 255, 0.7) 0%, rgba(217, 70, 239, 0.4) 60%, transparent 75%);
-}
-
-.chest-icon-wrapper {
-  position: relative;
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.5px solid rgba(255, 215, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: chestHover 3.2s ease-in-out infinite;
-}
-
-.cosmic-chest-wrapper {
-  border-color: rgba(0, 229, 255, 0.7);
-  background: rgba(0, 229, 255, 0.1);
-  animation: chestHover 2.6s ease-in-out infinite;
-}
-
-@keyframes chestHover {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-6px) scale(1.04); }
-}
-
-.chest-emoji {
-  font-size: 2.5rem;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
-}
-
-.box-meta {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.box-title-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.box-title {
-  font-size: 1.05rem;
-  font-weight: 900;
-  color: #fff;
-  margin: 0;
-}
-
-.box-title.cosmic-title {
-  color: #00e5ff;
-  text-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
-}
-
-.box-hindi-sub {
-  font-size: 0.72rem;
-  color: #ffd700;
-  font-weight: 700;
-}
-
-.box-hindi-sub.cosmic-sub {
-  color: #d946ef;
-}
-
-.box-desc {
-  font-size: 0.74rem;
-  color: #94a3b8;
-  margin: 2px 0 8px;
-  line-height: 1.35;
-  max-width: 280px;
-}
-
-.box-loot-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.loot-pill {
-  font-size: 0.68rem;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 12px;
-  background: rgba(255, 215, 0, 0.12);
-  color: #ffd700;
-  border: 1px solid rgba(255, 215, 0, 0.25);
-}
-
-.loot-pill-cosmic {
-  background: rgba(0, 229, 255, 0.12);
-  color: #00e5ff;
-  border-color: rgba(0, 229, 255, 0.3);
-}
-
-.box-odds-strip {
-  font-size: 0.64rem;
-  color: #64748b;
-  margin-bottom: 12px;
-}
-
-.box-action-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-top: auto;
-}
-
-.btn-open-mystery {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-size: 0.88rem;
-  font-weight: 900;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
-  touch-action: manipulation;
-}
-
-.btn-open-mystery:active {
-  transform: scale(0.96);
-}
-
-.btn-royal-free {
-  background: linear-gradient(135deg, #00e676 0%, #10b981 100%);
-  color: #022c22;
-  box-shadow: 0 4px 18px rgba(0, 230, 118, 0.45);
-}
-
-.btn-royal-coins {
-  background: linear-gradient(135deg, #ffcf33 0%, #ff9800 100%);
-  color: #0f172a;
-  box-shadow: 0 4px 18px rgba(255, 152, 0, 0.4);
-}
-
-.btn-cosmic-gems {
-  background: linear-gradient(135deg, #00e5ff 0%, #d946ef 100%);
-  color: #0f172a;
-  box-shadow: 0 4px 22px rgba(0, 229, 255, 0.45);
-}
-
-.free-cooldown-text {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #94a3b8;
-}
-
-/* ==========================================================================
-   UNBOXING SUSPENSE MODAL & CELEBRATION REVEAL
-   ========================================================================== */
-
-.mystery-unbox-overlay {
-  z-index: 1000;
-  background: rgba(10, 15, 30, 0.94);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mystery-unbox-stage {
-  position: relative;
-  width: 90%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.unbox-chest-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: chestRumble 1.1s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
-}
-
-@keyframes chestRumble {
-  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  20% { transform: translate(-3px, 2px) rotate(-3deg) scale(1.03); }
-  40% { transform: translate(3px, -2px) rotate(3deg) scale(1.06); }
-  60% { transform: translate(-4px, -1px) rotate(-2deg) scale(1.08); }
-  80% { transform: translate(4px, 2px) rotate(2deg) scale(1.1); }
-  100% { transform: translate(0, 0) rotate(0deg) scale(1.12); }
-}
-
-.chest-burst-out {
-  animation: chestBurst 0.4s ease-out forwards;
-}
-
-@keyframes chestBurst {
-  0% { transform: scale(1.12); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.8; filter: brightness(2); }
-  100% { transform: scale(2.0); opacity: 0; }
-}
-
-.mystery-animated-chest {
-  font-size: 5.5rem;
-  filter: drop-shadow(0 0 24px rgba(255, 215, 0, 0.8));
-}
-
-.chest-suspense-label {
-  font-size: 0.82rem;
-  font-weight: 900;
-  color: #ffd700;
-  letter-spacing: 1px;
-  margin-top: 14px;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-  animation: pulse 1s infinite alternate;
-}
-
-.unbox-reward-card {
-  position: relative;
-  width: 100%;
-  background: linear-gradient(160deg, #1e1b4b 0%, #0f172a 100%);
-  border-radius: 24px;
-  border: 2px solid #ffd700;
-  padding: 24px 20px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-  overflow: hidden;
-}
-
-.reward-card-pop {
-  animation: cardPopIn 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
-}
-
-@keyframes cardPopIn {
-  0% { transform: scale(0.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.reward-tier-badge {
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 1px;
-  padding: 4px 14px;
-  border-radius: 20px;
-  margin-bottom: 12px;
-}
-
-.reward-tier-badge.tier-common { background: #64748b; color: #fff; }
-.reward-tier-badge.tier-rare { background: #0284c7; color: #fff; box-shadow: 0 0 12px rgba(2, 132, 199, 0.6); }
-.reward-tier-badge.tier-epic { background: #9333ea; color: #fff; box-shadow: 0 0 14px rgba(147, 51, 234, 0.7); }
-.reward-tier-badge.tier-legendary { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: #fff; box-shadow: 0 0 18px rgba(245, 158, 11, 0.8); }
-.reward-tier-badge.tier-mythic { background: linear-gradient(135deg, #00e5ff 0%, #ec4899 100%); color: #fff; box-shadow: 0 0 24px rgba(0, 229, 255, 0.9); }
-
-.reward-big-icon {
-  font-size: 4rem;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));
-}
-
-.reward-title {
-  font-size: 1.15rem;
-  font-weight: 900;
-  color: #fff;
-  margin: 10px 0 6px;
-}
-
-.reward-desc {
-  font-size: 0.78rem;
-  color: #cbd5e1;
-  margin: 0 0 14px;
-  line-height: 1.35;
-}
-
-.reward-payouts-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 18px;
-}
-
-.payout-badge {
-  font-size: 0.8rem;
-  font-weight: 900;
-  padding: 6px 12px;
-  border-radius: 12px;
-}
-
-.payout-badge.coins-badge { background: rgba(255, 215, 0, 0.18); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.4); }
-.payout-badge.gems-badge { background: rgba(0, 229, 255, 0.18); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.4); }
-.payout-badge.xp-badge { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
-
-.btn-claim-mystery-reward {
-  width: 100%;
-  padding: 13px 20px;
-  background: linear-gradient(135deg, #ffcf33 0%, #ff9800 100%);
-  color: #0f172a;
-  border: none;
-  border-radius: 14px;
-  font-size: 0.95rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(255, 152, 0, 0.5);
-  touch-action: manipulation;
-  transition: transform 0.15s ease;
-}
-
-.btn-claim-mystery-reward:active {
-  transform: scale(0.96);
-}
-
