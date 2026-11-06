@@ -56,6 +56,22 @@ export class UIManager {
     `;
     screen.appendChild(this.rollController);
 
+    // Make match status pill clickable to roll immediately
+    const pill = this.rollController.querySelector('#turn-prompt');
+    if (pill) {
+      let lastPillTap = 0;
+      const onPillTap = (e) => {
+        const now = Date.now();
+        if (now - lastPillTap < 350) return;
+        if (this.isRollAllowed === false) return;
+        lastPillTap = now;
+        sounds.playButtonClick();
+        if (this.callbacks.onRoll) this.callbacks.onRoll();
+      };
+      pill.addEventListener('pointerup', onPillTap);
+      pill.addEventListener('click', onPillTap);
+    }
+
     // Modal Overlay (Pause, Victory, Legal, Setup)
     this.modalOverlay = document.createElement('div');
     this.modalOverlay.className = 'modal-overlay hidden';
@@ -320,14 +336,32 @@ export class UIManager {
         <div class="active-pulse-dot"></div>
       `;
 
-      // Corner dice click handler
-      const cornerDiceBtn = card.querySelector('.corner-dice-btn');
-      if (cornerDiceBtn) {
-        cornerDiceBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
+      // Whole-card and Corner Dice instant tap handler (Ludo King style effortless rolling)
+      let lastCardTap = 0;
+      const triggerCardRoll = (e) => {
+        const now = Date.now();
+        if (now - lastCardTap < 350) return;
+        if (this.isRollAllowed === false) return;
+
+        // If card belongs to the active human player, roll immediately!
+        if (card.classList.contains('active-turn') && !p.isAI) {
+          lastCardTap = now;
+          if (e) {
+            e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
+          }
           sounds.playButtonClick();
           if (this.callbacks.onRoll) this.callbacks.onRoll();
-        });
+        }
+      };
+
+      card.addEventListener('pointerup', triggerCardRoll);
+      card.addEventListener('click', triggerCardRoll);
+
+      const cornerDiceBtn = card.querySelector('.corner-dice-btn');
+      if (cornerDiceBtn) {
+        cornerDiceBtn.addEventListener('pointerup', triggerCardRoll);
+        cornerDiceBtn.addEventListener('click', triggerCardRoll);
       }
 
       this.playersContainer.appendChild(card);
@@ -375,6 +409,7 @@ export class UIManager {
   }
 
   setRollButtonEnabled(enabled) {
+    this.isRollAllowed = enabled;
     const rollBtn = document.getElementById('btn-roll');
     if (rollBtn) {
       rollBtn.disabled = !enabled;

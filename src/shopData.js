@@ -1061,6 +1061,52 @@ export const SHOP_CATALOG = {
     { coins: 5000, gems: 275, label: "275 Diamonds Pack", icon: "💎✨", bonus: "+25 Bonus Diamonds!" },
     { coins: 10000, gems: 600, label: "600 Diamonds Pack", icon: "💎👑", bonus: "+100 Bonus Diamonds!" },
     { coins: 25000, gems: 1600, label: "1,600 Diamonds Pack", icon: "💎🔥", bonus: "+350 Super Bonus!" }
+  ],
+
+  // 6. ROYAL & COSMIC MYSTERY BOXES
+  mysteryBoxes: [
+    {
+      id: 'box_royal',
+      type: 'royal',
+      name: 'Royal Mystery Box',
+      hindiName: 'शाही मिस्ट्री बॉक्स',
+      tagline: '1x Daily Free or 🪙 500 Coins',
+      priceCoins: 500,
+      priceGems: 0,
+      hasDailyFree: true,
+      icon: '🎁',
+      badge: 'DAILY FREE',
+      badgeClass: 'badge-royal',
+      description: 'Open daily for free or purchase with 500 Coins! Drops up to 10,000 Coins, 75 Diamonds, and Rare Dice/Pawns!',
+      lootHighlights: [
+        '🪙 Up to 10,000 Coins Jackpot',
+        '💎 Up to 75 Diamonds',
+        '🎲 Rare Dice & Pawn Skins',
+        '⏰ 1 Free Claim Every 24 Hours'
+      ],
+      oddsText: 'Drop Rates: Common (45%), Rare (32%), Epic (15%), Mythic (8%)'
+    },
+    {
+      id: 'box_cosmic',
+      type: 'cosmic',
+      name: 'Cosmic Legendary Box',
+      hindiName: 'कॉस्मिक लीजेंडरी बॉक्स',
+      tagline: 'Ultra-Rare • 💎 100 Diamonds',
+      priceCoins: 0,
+      priceGems: 100,
+      hasDailyFree: false,
+      icon: '🌌',
+      badge: 'ULTRA RARE',
+      badgeClass: 'badge-cosmic',
+      description: 'Exclusive cosmic starlight vault! Guaranteed high-tier rewards, 50,000 Coins, 250 Diamonds, and Mythic skins!',
+      lootHighlights: [
+        '🌌 50,000 Coins Supernova Jackpot',
+        '💎 250 Diamonds Hoard',
+        '🎲 Mythic 3D Dice Skins',
+        '👑 Mythic Pawns & Board Themes'
+      ],
+      oddsText: 'Drop Rates: Epic (30%), Legendary (55%), Mythic Emperor (15%)'
+    }
   ]
 };
 

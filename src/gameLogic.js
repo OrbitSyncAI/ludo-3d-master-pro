@@ -127,19 +127,59 @@ export class GameEngine {
     if (!player) return Math.floor(Math.random() * 6) + 1;
     const isHuman = !player.isAI;
     const tokens = this.tokens[player.id];
-    const allInYard = tokens.every(s => s === -1);
+    const inYardCount = tokens.filter(s => s === -1).length;
+    const finishedCount = tokens.filter(s => s === 56).length;
 
-    // Anti-frustration rule 1: If player has all 4 tokens trapped in yard and hasn't rolled a 6
-    if (allInYard && (this.turnsWithoutSix[player.id] || 0) >= (isHuman ? 2 : 3)) {
-      if (Math.random() < 0.45) {
-        this.turnsWithoutSix[player.id] = 0;
-        return 6;
+    // Highest finished count across opponents
+    let maxOppFinished = 0;
+    this.players.forEach(p => {
+      if (p.id !== player.id) {
+        const f = (this.tokens[p.id] || []).filter(s => s === 56).length;
+        if (f > maxOppFinished) maxOppFinished = f;
       }
-    }
+    });
 
-    // Anti-frustration rule 2: Prevent accidental 3rd consecutive six forfeit for human player
-    if (isHuman && this.consecutiveSixes === 2) {
-      return Math.floor(Math.random() * 5) + 1; // Roll 1..5 safely
+    // Human Comeback & Anti-Frustration Assist (Ludo King style)
+    if (isHuman) {
+      // 1. If player has 4 tokens trapped in yard and hasn't rolled a 6 in 2+ turns
+      if (inYardCount === 4 && (this.turnsWithoutSix[player.id] || 0) >= 2) {
+        if (Math.random() < 0.45) {
+          this.turnsWithoutSix[player.id] = 0;
+          return 6;
+        }
+      }
+
+      // 2. Trailing player assist: If human is behind in finished pieces and has >= 2 in yard
+      if (inYardCount >= 2 && maxOppFinished > finishedCount && (this.turnsWithoutSix[player.id] || 0) >= 2) {
+        if (Math.random() < 0.35) {
+          this.turnsWithoutSix[player.id] = 0;
+          return 6;
+        }
+      }
+
+      // 3. Goal Finish Excitement: If human has a token in home stretch (51..55) and trailing
+      const homeStretchTokens = tokens.filter(s => s >= 51 && s < 56);
+      if (homeStretchTokens.length > 0 && maxOppFinished >= finishedCount && Math.random() < 0.28) {
+        const needed = 56 - homeStretchTokens[0];
+        if (needed >= 1 && needed <= 5) {
+          return needed;
+        }
+      }
+
+      // 4. Prevent accidental 3rd consecutive six forfeit for human player
+      if (this.consecutiveSixes === 2) {
+        return Math.floor(Math.random() * 5) + 1; // Roll 1..5 safely
+      }
+    } else {
+      // Bot Roll Rules:
+      // Anti-Double-Kill: If bot just knocked out a human token, prevent consecutive sniper roll
+      if (this.botJustCapturedHuman) {
+        this.botJustCapturedHuman = false;
+        // Roll standard 1..5 or normal variance rather than guaranteed 6
+        if (Math.random() < 0.65) {
+          return Math.floor(Math.random() * 5) + 1;
+        }
+      }
     }
 
     // Fair standard roll (1..6)
@@ -214,6 +254,9 @@ export class GameEngine {
                     tokenIndex: oppTokenIdx
                   };
                   this.stats.kills[pId]++;
+                  if (this.getCurrentPlayer().isAI && !this.players[opp.id].isAI) {
+                    this.botJustCapturedHuman = true;
+                  }
                 }
               }
             });

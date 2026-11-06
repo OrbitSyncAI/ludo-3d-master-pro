@@ -30,6 +30,8 @@ const DEFAULT_STATE = {
   claimedSnakesMilestones: [],
   lastDailySpinTime: 0, // timestamp
   bonusSpinsAvailable: 1, // earned 1 every 5 levels
+  lastMysteryBoxFreeClaimTime: 0, // 24-hour daily free mystery box
+  mysteryBoxesOpened: 0,
   equipped: {
     theme: 'classic_royal',
     snakesTheme: 'snakes_classic',
@@ -309,7 +311,341 @@ class EconomyManager {
     this.saveState();
   }
 
-  // Check if item is owned
+  // --- MYSTERY BOXES (Royal 24h Daily Free / 500 Coins & Cosmic 100 Diamonds) ---
+  canClaimFreeMysteryBox() {
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    return !this.data.lastMysteryBoxFreeClaimTime || (now - this.data.lastMysteryBoxFreeClaimTime >= twentyFourHours);
+  }
+
+  getFreeMysteryBoxCountdown() {
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    const elapsed = now - (this.data.lastMysteryBoxFreeClaimTime || 0);
+    return Math.max(0, twentyFourHours - elapsed);
+  }
+
+  openMysteryBox(boxType = 'royal', isFree = false) {
+    if (boxType === 'royal') {
+      if (isFree) {
+        if (!this.canClaimFreeMysteryBox()) {
+          return { success: false, reason: 'Free Royal Box is recharging' };
+        }
+        this.data.lastMysteryBoxFreeClaimTime = Date.now();
+      } else {
+        if (this.data.coins < 500) {
+          return { success: false, reason: 'Need 500 Coins to open Royal Mystery Box' };
+        }
+        this.data.coins -= 500;
+      }
+
+      // Dynamic Drop Algorithm: Balanced luck with exciting jackpots
+      const roll = Math.random();
+      let reward = null;
+
+      if (roll < 0.08) {
+        // 8% Grand Royal Jackpot
+        const coins = 10000;
+        const gems = 75;
+        const xp = 150;
+        this.addCoins(coins);
+        this.addGems(gems);
+        this.addXP(xp);
+        reward = {
+          boxType: 'royal',
+          tier: 'MYTHIC',
+          tierName: 'ROYAL GRAND JACKPOT',
+          title: '👑 Royal Treasury Jackpot!',
+          desc: 'Incredible fortune! You unlocked the entire royal treasury cache!',
+          icon: '👑',
+          coins,
+          gems,
+          xp,
+          isJackpot: true
+        };
+      } else if (roll < 0.23) {
+        // 15% Epic Reward (Rare Dice/Pawn unlock OR rich Diamond stash)
+        const candidateDice = ['gold', 'amethyst', 'magma', 'rainbow_holo'];
+        const candidatePawns = ['thunder_hammer', 'sorcerer_orb', 'spartan_helmet'];
+        const unownedDice = candidateDice.filter(id => !this.isItemOwned('dice', id));
+        const unownedPawns = candidatePawns.filter(id => !this.isItemOwned('pawns', id));
+
+        if (unownedDice.length > 0 && Math.random() < 0.5) {
+          const unlockedId = unownedDice[Math.floor(Math.random() * unownedDice.length)];
+          this.data.inventory.dice.push(unlockedId);
+          const gems = 25;
+          const xp = 60;
+          this.addGems(gems);
+          this.addXP(xp);
+          reward = {
+            boxType: 'royal',
+            tier: 'EPIC',
+            tierName: 'EPIC REWARD',
+            title: `🎲 Rare Dice Unlocked: ${unlockedId.replace(/_/g, ' ').toUpperCase()}`,
+            desc: `Congratulations! Added new luxury dice to your inventory!`,
+            icon: '🎲',
+            itemType: 'dice',
+            itemId: unlockedId,
+            coins: 0,
+            gems,
+            xp
+          };
+        } else if (unownedPawns.length > 0) {
+          const unlockedPawn = unownedPawns[Math.floor(Math.random() * unownedPawns.length)];
+          this.data.inventory.pawns.push(unlockedPawn);
+          const gems = 25;
+          const xp = 60;
+          this.addGems(gems);
+          this.addXP(xp);
+          reward = {
+            boxType: 'royal',
+            tier: 'EPIC',
+            tierName: 'EPIC REWARD',
+            title: `👑 Rare Pawn Unlocked: ${unlockedPawn.replace(/_/g, ' ').toUpperCase()}`,
+            desc: `Epic pawn added directly to your armory inventory!`,
+            icon: '👑',
+            itemType: 'pawns',
+            itemId: unlockedPawn,
+            coins: 0,
+            gems,
+            xp
+          };
+        } else {
+          const coins = 3500;
+          const gems = 30;
+          const xp = 75;
+          this.addCoins(coins);
+          this.addGems(gems);
+          this.addXP(xp);
+          reward = {
+            boxType: 'royal',
+            tier: 'EPIC',
+            tierName: 'EPIC REWARD',
+            title: '💎 Royal Gold & Diamond Stash',
+            desc: 'A hefty bundle of gleaming gold coins and sparkling gems!',
+            icon: '💎',
+            coins,
+            gems,
+            xp
+          };
+        }
+      } else if (roll < 0.55) {
+        // 32% Rare Reward
+        const coins = Math.floor(Math.random() * 1300) + 1200; // 1,200 - 2,500
+        const gems = Math.floor(Math.random() * 12) + 15;     // 15 - 26
+        const xp = 40;
+        this.addCoins(coins);
+        this.addGems(gems);
+        this.addXP(xp);
+        reward = {
+          boxType: 'royal',
+          tier: 'RARE',
+          tierName: 'RARE REWARD',
+          title: '✨ Knight\'s Treasure Cache',
+          desc: 'Generous rewards to boost your progression and upgrades!',
+          icon: '🪙',
+          coins,
+          gems,
+          xp
+        };
+      } else {
+        // 45% Common Reward
+        const coins = Math.floor(Math.random() * 400) + 400; // 400 - 800
+        const gems = Math.floor(Math.random() * 6) + 5;      // 5 - 10
+        const xp = 20;
+        this.addCoins(coins);
+        this.addGems(gems);
+        this.addXP(xp);
+        reward = {
+          boxType: 'royal',
+          tier: 'COMMON',
+          tierName: 'COMMON REWARD',
+          title: '🪙 Traveler\'s Coin Pouch',
+          desc: 'Solid purse of coins ready for your next tournament entry!',
+          icon: '🪙',
+          coins,
+          gems,
+          xp
+        };
+      }
+
+      this.data.mysteryBoxesOpened = (this.data.mysteryBoxesOpened || 0) + 1;
+      this.saveState();
+      return { success: true, reward };
+
+    } else if (boxType === 'cosmic') {
+      // Cosmic Legendary Mystery Box (100 Diamonds)
+      if (this.data.gems < 100) {
+        return { success: false, reason: 'Need 100 Diamonds to open Cosmic Mystery Box' };
+      }
+      this.data.gems -= 100;
+
+      const roll = Math.random();
+      let reward = null;
+
+      if (roll < 0.15) {
+        // 15% Mythic Emperor Jackpot!
+        const coins = 50000;
+        const gems = 250;
+        const xp = 500;
+        this.addCoins(coins);
+        this.addGems(gems);
+        this.addXP(xp);
+        reward = {
+          boxType: 'cosmic',
+          tier: 'MYTHIC',
+          tierName: 'COSMIC SUPERNOVA JACKPOT',
+          title: '🌌 Cosmic Supernova Jackpot!',
+          desc: 'Celestial fortune! You won the grand 50,000 Coin & 250 Diamond vault!',
+          icon: '🌌',
+          coins,
+          gems,
+          xp,
+          isJackpot: true
+        };
+      } else if (roll < 0.45) {
+        // 30% Legendary/Mythic Dice or Board Theme
+        const candidateDice = ['galactic_nebula_die', 'cyber_matrix_neon', 'dragon_inferno_die', 'apex_sovereign_die', 'starlight_prism', 'diamond_prism_die'];
+        const candidateThemes = ['mythic_emperor', 'celestial_nebula', 'snakes_dragon', 'snakes_hyperdrive'];
+        const unownedDice = candidateDice.filter(id => !this.isItemOwned('dice', id));
+        const unownedThemes = candidateThemes.filter(id => !this.isItemOwned('themes', id) && !this.isItemOwned('snakesThemes', id));
+
+        if (unownedDice.length > 0 && Math.random() < 0.6) {
+          const unlockedDie = unownedDice[Math.floor(Math.random() * unownedDice.length)];
+          this.data.inventory.dice.push(unlockedDie);
+          const coins = 5000;
+          const xp = 150;
+          this.addCoins(coins);
+          this.addXP(xp);
+          reward = {
+            boxType: 'cosmic',
+            tier: 'LEGENDARY',
+            tierName: 'LEGENDARY DIE UNLOCKED',
+            title: `🎲 Legendary Die: ${unlockedDie.replace(/_/g, ' ').toUpperCase()}`,
+            desc: 'Spectacular 3D Legendary Die unlocked directly into your equipment!',
+            icon: '🎲',
+            itemType: 'dice',
+            itemId: unlockedDie,
+            coins,
+            gems: 0,
+            xp
+          };
+        } else if (unownedThemes.length > 0) {
+          const unlockedTheme = unownedThemes[Math.floor(Math.random() * unownedThemes.length)];
+          const isSnakes = unlockedTheme.startsWith('snakes_');
+          if (isSnakes) {
+            this.data.inventory.snakesThemes.push(unlockedTheme);
+          } else {
+            this.data.inventory.themes.push(unlockedTheme);
+          }
+          const coins = 5000;
+          const xp = 150;
+          this.addCoins(coins);
+          this.addXP(xp);
+          reward = {
+            boxType: 'cosmic',
+            tier: 'LEGENDARY',
+            tierName: 'LEGENDARY THEME UNLOCKED',
+            title: `🎨 Luxury Theme: ${unlockedTheme.replace(/_/g, ' ').toUpperCase()}`,
+            desc: 'Exclusive tournament board theme added to your collection!',
+            icon: '🎨',
+            itemType: isSnakes ? 'snakesThemes' : 'themes',
+            itemId: unlockedTheme,
+            coins,
+            gems: 0,
+            xp
+          };
+        } else {
+          const coins = 25000;
+          const gems = 80;
+          const xp = 200;
+          this.addCoins(coins);
+          this.addGems(gems);
+          this.addXP(xp);
+          reward = {
+            boxType: 'cosmic',
+            tier: 'LEGENDARY',
+            tierName: 'LEGENDARY VAULT',
+            title: '🌠 Celestial Gold & Diamond Hoard',
+            desc: 'Astounding 25,000 Coins and 80 Diamonds added to your wallet!',
+            icon: '🌠',
+            coins,
+            gems,
+            xp
+          };
+        }
+      } else if (roll < 0.70) {
+        // 25% Legendary Pawn
+        const candidatePawns = ['astral_dragon_pawn', 'cyber_samurai_blade', 'horus_falcon_pawn', 'bengal_tiger_pawn', 'dragon_sigil'];
+        const unownedPawns = candidatePawns.filter(id => !this.isItemOwned('pawns', id));
+
+        if (unownedPawns.length > 0) {
+          const unlockedPawn = unownedPawns[Math.floor(Math.random() * unownedPawns.length)];
+          this.data.inventory.pawns.push(unlockedPawn);
+          const coins = 5000;
+          const xp = 150;
+          this.addCoins(coins);
+          this.addXP(xp);
+          reward = {
+            boxType: 'cosmic',
+            tier: 'LEGENDARY',
+            tierName: 'LEGENDARY PAWN UNLOCKED',
+            title: `👑 Mythic Pawn: ${unlockedPawn.replace(/_/g, ' ').toUpperCase()}`,
+            desc: 'Fierce battle pawn forged in cosmic starlight unlocked!',
+            icon: '👑',
+            itemType: 'pawns',
+            itemId: unlockedPawn,
+            coins,
+            gems: 0,
+            xp
+          };
+        } else {
+          const coins = 20000;
+          const gems = 60;
+          const xp = 150;
+          this.addCoins(coins);
+          this.addGems(gems);
+          this.addXP(xp);
+          reward = {
+            boxType: 'cosmic',
+            tier: 'LEGENDARY',
+            tierName: 'LEGENDARY CACHE',
+            title: '⚡ Astral Diamond Treasure',
+            desc: 'Powerful cosmic energy converted into massive wealth!',
+            icon: '⚡',
+            coins,
+            gems,
+            xp
+          };
+        }
+      } else {
+        // 30% Cosmic Treasure Vault
+        const coins = Math.floor(Math.random() * 14000) + 18000; // 18,000 - 32,000
+        const gems = Math.floor(Math.random() * 50) + 60;        // 60 - 110
+        const xp = 100;
+        this.addCoins(coins);
+        this.addGems(gems);
+        this.addXP(xp);
+        reward = {
+          boxType: 'cosmic',
+          tier: 'EPIC',
+          tierName: 'COSMIC VAULT',
+          title: '💎 Stellar Diamond Hoard',
+          desc: 'Tremendous stash of sparkling diamonds and royal currency!',
+          icon: '💎',
+          coins,
+          gems,
+          xp
+        };
+      }
+
+      this.data.mysteryBoxesOpened = (this.data.mysteryBoxesOpened || 0) + 1;
+      this.saveState();
+      return { success: true, reward };
+    }
+
+    return { success: false, reason: 'Unknown mystery box type' };
+  }
   isItemOwned(type, itemId) {
     if (!this.data.inventory || !this.data.inventory[type]) return false;
     return this.data.inventory[type].includes(itemId);

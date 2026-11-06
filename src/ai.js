@@ -41,9 +41,17 @@ export class LudoAI {
                 if (oppStep >= 0 && oppStep <= 50) {
                   const oppTile = engine.getCommonTileIndex(opp.id, oppStep);
                   if (oppTile === targetTile) {
-                    // Huge swing if capturing advanced opponent near their home stretch!
-                    const advanceBonus = oppStep >= 25 ? 350 : 0;
-                    score += 1050 + advanceBonus;
+                    // Check if human opponent is struggling (fair anti-bullying balance)
+                    const isOppHuman = !opp.isAI;
+                    const oppActiveTokens = engine.tokens[opp.id].filter(s => s >= 0 && s < 56).length;
+                    const oppHomeTokens = engine.tokens[opp.id].filter(s => s === 56).length;
+                    const myHomeTokens = engine.tokens[pId].filter(s => s === 56).length;
+
+                    // If human is trailing or only has 1 token in play, reduce predatory aggression
+                    const isHumanTrailing = isOppHuman && (oppActiveTokens <= 1 || (myHomeTokens > oppHomeTokens));
+                    const baseCapture = isHumanTrailing ? 420 : 850;
+                    const advanceBonus = oppStep >= 25 ? (isHumanTrailing ? 120 : 300) : 0;
+                    score += baseCapture + advanceBonus;
                   }
                 }
               });
@@ -132,8 +140,27 @@ export class LudoAI {
       return { move, score };
     });
 
-    // Pick highest scored move
+    // Sort moves by score descending
     scoredMoves.sort((a, b) => b.score - a.score);
+
+    // Instant Goal Completion: If top move scores a direct goal, always take it!
+    if (scoredMoves[0].move.targetStep === 56) {
+      return scoredMoves[0].move;
+    }
+
+    // Ludo King Casual Human Realism:
+    // Real players do not execute optimal minimax moves 100% of the time.
+    // ~72% optimal choice, ~23% viable second-best move (progress/spawn), ~5% third-best move.
+    if (scoredMoves.length >= 2) {
+      const roll = Math.random();
+      if (roll > 0.72 && scoredMoves[1].score > 0) {
+        return scoredMoves[1].move;
+      }
+      if (roll > 0.95 && scoredMoves.length >= 3 && scoredMoves[2].score > 0) {
+        return scoredMoves[2].move;
+      }
+    }
+
     return scoredMoves[0].move;
   }
 }

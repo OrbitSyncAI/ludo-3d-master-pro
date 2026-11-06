@@ -116,17 +116,13 @@ export class SnakesEngine {
       return boostRolls[Math.floor(Math.random() * boostRolls.length)];
     }
 
-    // 2. Trailing Comeback Assist: If human is > 30 tiles behind the leader
-    if (isHuman && (maxOppPos - myPos >= 30) && Math.random() < 0.40) {
+    // 2. Trailing Comeback Assist: If human is > 20 tiles behind the leader
+    if (isHuman && (maxOppPos - myPos >= 20) && Math.random() < 0.35) {
       const comebackRolls = [4, 5, 6];
       return comebackRolls[Math.floor(Math.random() * comebackRolls.length)];
     }
 
-    // 3. Exciting Climax: Near tile 100, ensure competitive photo-finish
-    if (myPos >= 94 && (100 - myPos) <= 6 && Math.random() < 0.28) {
-      return (100 - myPos);
-    }
-
+    // Standard fair roll for both human and AI (No artificial bot insta-win at tile 94-99)
     return Math.floor(Math.random() * 6) + 1;
   }
 

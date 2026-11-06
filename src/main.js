@@ -77,9 +77,9 @@ class LudoApp {
       precision: 'mediump'
     });
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
 
     this.clock = new THREE.Clock();
@@ -93,30 +93,31 @@ class LudoApp {
     this.camera.lookAt(camConfig.lookAt.x, camConfig.lookAt.y, camConfig.lookAt.z);
   }
 
-  // 2. High-Contrast Studio Lighting (Vibrant colors with rich contrast - NO washed out whites)
+  // 2. High-Contrast Studio Lighting with Realistic Directional Shadows
   initLighting() {
-    // Balanced ambient light preserving depth and tile borders
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    // Balanced ambient light preserving depth and rich shadow contrast
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.62);
     this.scene.add(this.ambientLight);
 
-    // Warm directional sun light casting realistic shadows
-    this.sunLight = new THREE.DirectionalLight(0xfffdf5, 1.25);
-    this.sunLight.position.set(10, 28, 14);
+    // Warm directional sun light casting realistic shadows at 45 degree angle
+    this.sunLight = new THREE.DirectionalLight(0xfffef0, 1.55);
+    this.sunLight.position.set(11, 22, 11);
     this.sunLight.castShadow = true;
-    this.sunLight.shadow.mapSize.width = 512;
-    this.sunLight.shadow.mapSize.height = 512;
+    this.sunLight.shadow.mapSize.width = 1024;
+    this.sunLight.shadow.mapSize.height = 1024;
     this.sunLight.shadow.near = 1;
     this.sunLight.shadow.far = 50;
-    this.sunLight.shadow.left = -12;
-    this.sunLight.shadow.right = 12;
-    this.sunLight.shadow.top = 12;
-    this.sunLight.shadow.bottom = -12;
-    this.sunLight.shadow.bias = -0.0003;
+    this.sunLight.shadow.left = -13;
+    this.sunLight.shadow.right = 13;
+    this.sunLight.shadow.top = 13;
+    this.sunLight.shadow.bottom = -13;
+    this.sunLight.shadow.bias = -0.0005;
+    this.sunLight.shadow.normalBias = 0.02;
     this.scene.add(this.sunLight);
 
     // Gentle cool fill light from opposite angle
-    this.fillLight = new THREE.DirectionalLight(0xdbeafe, 0.35);
-    this.fillLight.position.set(-10, 18, -14);
+    this.fillLight = new THREE.DirectionalLight(0xdbeafe, 0.25);
+    this.fillLight.position.set(-10, 16, -12);
     this.scene.add(this.fillLight);
   }
 
@@ -128,28 +129,44 @@ class LudoApp {
 
     if (this.renderer) {
       this.renderer.shadowMap.enabled = enableShadows;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
       let pixelRatio = 1.0;
-      let mapSize = 512;
+      let mapSize = 1024;
+      let ambientIntensity = 0.62;
+      let sunIntensity = 1.55;
 
       if (preset === 'smooth') {
         pixelRatio = 1.0;
-        mapSize = 256;
-      } else if (preset === 'balanced') {
-        pixelRatio = Math.min(window.devicePixelRatio, 1.5);
         mapSize = 512;
-      } else if (preset === 'hd') {
-        pixelRatio = Math.min(window.devicePixelRatio, 2.0);
+        ambientIntensity = 0.85;
+        sunIntensity = 1.1;
+      } else if (preset === 'balanced') {
+        pixelRatio = Math.min(window.devicePixelRatio, 1.25);
         mapSize = 1024;
+        ambientIntensity = 0.62;
+        sunIntensity = 1.55;
+      } else if (preset === 'hd') {
+        pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+        mapSize = 1024;
+        ambientIntensity = 0.52;
+        sunIntensity = 1.70;
       } else if (preset === 'ultra') {
-        pixelRatio = Math.min(window.devicePixelRatio, 2.5);
+        pixelRatio = Math.min(window.devicePixelRatio, 1.75);
         mapSize = 2048;
+        ambientIntensity = 0.46;
+        sunIntensity = 1.88;
       }
 
       this.renderer.setPixelRatio(pixelRatio);
 
+      if (this.ambientLight) {
+        this.ambientLight.intensity = ambientIntensity;
+      }
+
       if (this.sunLight) {
         this.sunLight.castShadow = enableShadows;
+        this.sunLight.intensity = sunIntensity;
         this.sunLight.shadow.mapSize.width = mapSize;
         this.sunLight.shadow.mapSize.height = mapSize;
         if (this.sunLight.shadow.map) {
@@ -157,6 +174,8 @@ class LudoApp {
           this.sunLight.shadow.map = null;
         }
       }
+
+      this.renderer.shadowMap.needsUpdate = true;
     }
   }
 
@@ -197,6 +216,7 @@ class LudoApp {
 
   // 4. Start a Match from Home or Progression
   startMatch(config) {
+    if (this.homeUI) this.homeUI.hide();
     this.currentGameMode = config.mode || 'classic';
     this.currentLevelNum = (this.currentGameMode !== 'snakes') ? (config.levelNumber || null) : null;
     this.currentSnakesLevelNum = (this.currentGameMode === 'snakes') ? (config.levelNumber || null) : null;
@@ -329,15 +349,15 @@ class LudoApp {
     this.homeUI.show();
   }
 
-  // 5. Tap Raycasting (Only for tapping Dice and Tokens - NO dragging!)
+  // 5. Tap Raycasting (Instant, Generous Hit Radius for Dice and Movable Tokens)
   initTapRaycasting() {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
 
     const getIntersectedDiceOrToken = (event) => {
       const rect = this.container.getBoundingClientRect();
-      const clientX = event.clientX || (event.changedTouches && event.changedTouches[0]?.clientX);
-      const clientY = event.clientY || (event.changedTouches && event.changedTouches[0]?.clientY);
+      const clientX = event.clientX !== undefined ? event.clientX : (event.changedTouches && event.changedTouches[0]?.clientX);
+      const clientY = event.clientY !== undefined ? event.clientY : (event.changedTouches && event.changedTouches[0]?.clientY);
       if (clientX === undefined || clientY === undefined) return null;
 
       this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
@@ -346,20 +366,56 @@ class LudoApp {
       this.raycaster.setFromCamera(this.mouse, this.camera);
       const intersects = this.raycaster.intersectObjects(this.scene.children, true);
 
+      // 1. Direct Token Mesh Intersection
+      for (let hit of intersects) {
+        let cur = hit.object;
+        while (cur && cur !== this.scene) {
+          if (cur.userData && cur.userData.isToken) {
+            return { type: 'token', playerId: cur.userData.playerId, tokenIndex: cur.userData.tokenIndex };
+          }
+          cur = cur.parent;
+        }
+      }
+
+      // 2. Direct Dice Mesh Intersection OR Generous Center Board Hit Zone (Radius 2.5)
       for (let hit of intersects) {
         let cur = hit.object;
         while (cur && cur !== this.scene) {
           if (cur.userData && cur.userData.isDice) return { type: 'dice' };
-          if (cur.userData && cur.userData.isToken) return { type: 'token', playerId: cur.userData.playerId, tokenIndex: cur.userData.tokenIndex };
           cur = cur.parent;
         }
+        // Center home tile radius check: tapping anywhere within 2.5 units of board center rolls dice!
+        if (hit.point && Math.hypot(hit.point.x, hit.point.z) < 2.5) {
+          return { type: 'dice' };
+        }
       }
+
+      // 3. Generous Proximity Hit-Test for Selectable Tokens (Effortless mobile finger touch)
+      if (this.engine && this.engine.state === GAME_STATES.WAITING_FOR_MOVE) {
+        const curP = this.engine.getCurrentPlayer();
+        if (!curP.isAI && this.tokens[curP.id]) {
+          for (let hit of intersects) {
+            if (hit.point) {
+              for (let t = 0; t < 4; t++) {
+                const token3D = this.tokens[curP.id][t];
+                if (token3D && token3D.isSelectable && token3D.mesh) {
+                  const dist = Math.hypot(hit.point.x - token3D.mesh.position.x, hit.point.z - token3D.mesh.position.z);
+                  if (dist < 1.1) {
+                    return { type: 'token', playerId: curP.id, tokenIndex: t };
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       return null;
     };
 
     const handlePointerDown = (event) => {
-      if (event.target.closest('.hud-btn, .modal-card, .player-card, .desktop-only-btn, .home-screen-container')) return;
-      if (event.target.closest('.roll-btn')) {
+      if (event.target.closest('.hud-btn, .modal-card, .desktop-only-btn, .home-screen-container, .hud-drawer-panel')) return;
+      if (event.target.closest('.roll-btn, .corner-dice-btn, .match-status-pill')) {
         if (this.dice3D) this.dice3D.onPointerPress();
         return;
       }
@@ -369,12 +425,17 @@ class LudoApp {
       }
     };
 
+    let lastTapRegistered = 0;
     const handleTap = (event) => {
       if (this.dice3D) this.dice3D.onPointerRelease();
-      if (event.target.closest('.hud-btn, .roll-btn, .modal-card, .player-card, .desktop-only-btn, .home-screen-container')) return;
+      if (event.target.closest('.hud-btn, .modal-card, .desktop-only-btn, .home-screen-container, .hud-drawer-panel')) return;
+
+      const now = Date.now();
+      if (now - lastTapRegistered < 300) return;
 
       const hit = getIntersectedDiceOrToken(event);
       if (hit) {
+        lastTapRegistered = now;
         if (hit.type === 'dice') {
           this.handleRollClick();
         } else if (hit.type === 'token') {

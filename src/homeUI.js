@@ -172,7 +172,7 @@ export class HomeUIManager {
               <span class="item-icon">🔄</span>
               <div class="item-update-row">
                 <span>Check for Updates</span>
-                <span class="version-chip">v1.3.7</span>
+                <span class="version-chip">v1.3.8</span>
               </div>
             </button>
             <button class="drawer-nav-item" data-drawer-action="graphics-settings">
@@ -471,7 +471,7 @@ export class HomeUIManager {
 
   // 4. Complete Categorized Royal Store, Diamond Exchange & Inventory
   renderShop() {
-    this.shopCategory = this.shopCategory || 'ludoThemes';
+    this.shopCategory = this.shopCategory || 'mystery';
 
     const curTheme = economy.data.equipped?.theme || 'classic_royal';
     const curSnakesTheme = economy.data.equipped?.snakesTheme || 'snakes_classic';
@@ -649,6 +649,93 @@ export class HomeUIManager {
           </div>
         </div>
       `;
+    } else if (this.shopCategory === 'mystery') {
+      const canClaimFree = economy.canClaimFreeMysteryBox();
+      const freeCountdownMs = economy.getFreeMysteryBoxCountdown();
+      const timerStr = this.formatCountdown(freeCountdownMs);
+
+      contentHtml = `
+        <div class="mystery-showcase-hero">
+          <div class="mystery-hero-glow"></div>
+          <h4>🎁 MYSTERY VAULT & TREASURE CHESTS</h4>
+          <p>Crack open Royal & Cosmic mystery boxes for massive coin vaults, diamonds & ultra-rare 3D skins!</p>
+        </div>
+
+        <div class="mystery-boxes-grid">
+          <!-- BOX 1: ROYAL MYSTERY BOX (FREE DAILY / 500 COINS) -->
+          <div class="mystery-box-card card-royal">
+            <div class="mystery-ribbon ${canClaimFree ? 'ribbon-free' : 'ribbon-standard'}">
+              ${canClaimFree ? '🌟 1x FREE DAILY' : '🪙 500 COINS'}
+            </div>
+            <div class="chest-visual-stage">
+              <div class="chest-ambient-glow royal-glow"></div>
+              <div class="chest-icon-wrapper">
+                <span class="chest-emoji">🎁</span>
+              </div>
+            </div>
+            <div class="box-meta">
+              <div class="box-title-row">
+                <h4 class="box-title">Royal Mystery Box</h4>
+                <span class="box-hindi-sub">शाही मिस्ट्री बॉक्स</span>
+              </div>
+              <p class="box-desc">Free once every 24 hours, or open anytime with 500 Coins! Drops up to 10,000 Coins & 75 Diamonds!</p>
+              <div class="box-loot-pills">
+                <span class="loot-pill">🪙 Up to 10,000 Coins</span>
+                <span class="loot-pill">💎 Up to 75 Diamonds</span>
+                <span class="loot-pill">🎲 Rare Dice & Pawns</span>
+              </div>
+              <div class="box-odds-strip">
+                <span>Drop Rates: Common (45%) | Rare (32%) | Epic (15%) | Mythic (8%)</span>
+              </div>
+            </div>
+            <div class="box-action-container">
+              ${canClaimFree ? `
+                <button class="btn-open-mystery btn-royal-free" data-box-type="royal" data-is-free="true">
+                  <span class="btn-box-icon">🎁</span> OPEN FREE NOW
+                </button>
+              ` : `
+                <button class="btn-open-mystery btn-royal-coins" data-box-type="royal" data-is-free="false">
+                  <span class="btn-box-icon">🪙</span> OPEN FOR 500 COINS
+                </button>
+                <div class="free-cooldown-text" id="free-mystery-cooldown">⏰ Next Free: ${timerStr}</div>
+              `}
+            </div>
+          </div>
+
+          <!-- BOX 2: COSMIC LEGENDARY MYSTERY BOX (100 DIAMONDS) -->
+          <div class="mystery-box-card card-cosmic">
+            <div class="mystery-ribbon ribbon-cosmic">
+              👑 ULTRA RARE • 100 💎
+            </div>
+            <div class="chest-visual-stage">
+              <div class="chest-ambient-glow cosmic-glow"></div>
+              <div class="chest-icon-wrapper cosmic-chest-wrapper">
+                <span class="chest-emoji">🌌</span>
+              </div>
+            </div>
+            <div class="box-meta">
+              <div class="box-title-row">
+                <h4 class="box-title cosmic-title">Cosmic Legendary Box</h4>
+                <span class="box-hindi-sub cosmic-sub">कॉस्मिक लीजेंडरी बॉक्स</span>
+              </div>
+              <p class="box-desc">Supreme VIP treasure chest! Forged from cosmic starlight. Guaranteed Epic/Legendary/Mythic high-tier rewards!</p>
+              <div class="box-loot-pills">
+                <span class="loot-pill loot-pill-cosmic">🌌 50,000 Supernova Coins</span>
+                <span class="loot-pill loot-pill-cosmic">💎 250 Diamonds Hoard</span>
+                <span class="loot-pill loot-pill-cosmic">🎲 Mythic Dice & Themes</span>
+              </div>
+              <div class="box-odds-strip">
+                <span>Drop Rates: Epic Vault (30%) | Legendary (55%) | Mythic Emperor (15%)</span>
+              </div>
+            </div>
+            <div class="box-action-container">
+              <button class="btn-open-mystery btn-cosmic-gems" data-box-type="cosmic" data-is-free="false">
+                <span class="btn-box-icon">💎</span> OPEN (100 DIAMONDS)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     return `
@@ -660,6 +747,7 @@ export class HomeUIManager {
 
         <!-- Store Sub-Category Filter Tabs -->
         <div class="shop-sub-nav">
+          <button class="shop-sub-tab ${this.shopCategory === 'mystery' ? 'active' : ''}" data-shop-cat="mystery">🎁 Mystery Boxes</button>
           <button class="shop-sub-tab ${this.shopCategory === 'ludoThemes' ? 'active' : ''}" data-shop-cat="ludoThemes">🎲 Ludo Themes</button>
           <button class="shop-sub-tab ${this.shopCategory === 'snakesThemes' ? 'active' : ''}" data-shop-cat="snakesThemes">🐍 Snakes Themes</button>
           <button class="shop-sub-tab ${this.shopCategory === 'dice' ? 'active' : ''}" data-shop-cat="dice">🎲 Dice</button>
@@ -1000,6 +1088,128 @@ export class HomeUIManager {
       modal.remove();
       this.render();
     });
+  }
+
+  // Suspenseful 3D Mystery Chest Unboxing with Dramatic Rarity Card Reveal & Confetti
+  triggerMysteryUnboxing(boxType = 'royal', isFree = false) {
+    if (boxType === 'royal' && !isFree && economy.data.coins < 500) {
+      this.showInsufficientFundsModal({ name: 'Royal Mystery Box', icon: '🎁' }, 500, 0);
+      return;
+    }
+    if (boxType === 'cosmic' && economy.data.gems < 100) {
+      this.showInsufficientFundsModal({ name: 'Cosmic Legendary Box', icon: '🌌' }, 0, 100);
+      return;
+    }
+
+    const result = economy.openMysteryBox(boxType, isFree);
+    if (!result.success) {
+      this.showGenericNotice('MYSTERY BOX NOTICE', result.reason || 'Could not open mystery box');
+      return;
+    }
+
+    const reward = result.reward;
+    sounds.playDiceRoll();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay mystery-unbox-overlay';
+    overlay.innerHTML = `
+      <div class="mystery-unbox-stage">
+        <!-- Stage 1: Shaking Glowing Mystery Chest -->
+        <div class="unbox-chest-container">
+          <div class="chest-rays"></div>
+          <div class="chest-pulse-sphere tier-${reward.tier.toLowerCase()}"></div>
+          <div class="mystery-animated-chest ${boxType === 'cosmic' ? 'cosmic-chest-shake' : 'royal-chest-shake'}">
+            ${boxType === 'cosmic' ? '🌌' : '🎁'}
+          </div>
+          <div class="chest-suspense-label">CRACKING OPEN MYSTERY CHEST...</div>
+        </div>
+
+        <!-- Stage 2: Reveal Card -->
+        <div class="unbox-reward-card hidden tier-${reward.tier.toLowerCase()}">
+          <div class="reward-sunburst"></div>
+          <div class="reward-tier-badge tier-${reward.tier.toLowerCase()}">
+            ${reward.tierName || reward.tier}
+          </div>
+          <div class="reward-icon-display">
+            <span class="reward-big-icon">${reward.icon || '🎁'}</span>
+          </div>
+          <h3 class="reward-title">${reward.title}</h3>
+          <p class="reward-desc">${reward.desc}</p>
+
+          <div class="reward-payouts-row">
+            ${reward.coins > 0 ? `<div class="payout-badge coins-badge">🪙 +${reward.coins.toLocaleString()} Coins</div>` : ''}
+            ${reward.gems > 0 ? `<div class="payout-badge gems-badge">💎 +${reward.gems} Diamonds</div>` : ''}
+            ${reward.xp > 0 ? `<div class="payout-badge xp-badge">⭐ +${reward.xp} XP</div>` : ''}
+          </div>
+
+          <button class="btn-claim-mystery-reward" id="btn-claim-mystery">
+            ✨ CLAIM REWARD ✨
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Sequence the reveal
+    setTimeout(() => {
+      const chestContainer = overlay.querySelector('.unbox-chest-container');
+      const rewardCard = overlay.querySelector('.unbox-reward-card');
+      if (chestContainer && rewardCard) {
+        chestContainer.classList.add('chest-burst-out');
+        try { sounds.playVictory(); } catch (e) {}
+        try {
+          confetti({
+            particleCount: reward.isJackpot ? 180 : 100,
+            spread: 90,
+            origin: { y: 0.5 },
+            colors: ['#ffd700', '#00e5ff', '#ff007f', '#a855f7', '#ffffff']
+          });
+        } catch (e) {}
+
+        setTimeout(() => {
+          chestContainer.style.display = 'none';
+          rewardCard.classList.remove('hidden');
+          rewardCard.style.display = 'flex';
+          rewardCard.classList.add('reward-card-pop');
+        }, 300);
+      }
+    }, 1000);
+
+    const claimBtn = overlay.querySelector('#btn-claim-mystery');
+    if (claimBtn) {
+      claimBtn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        overlay.remove();
+        this.render();
+      });
+    }
+  }
+
+  // Ticking countdown timer for Daily Free Mystery Box
+  startMysteryTimerInterval() {
+    if (this.mysteryTimerInterval) {
+      clearInterval(this.mysteryTimerInterval);
+      this.mysteryTimerInterval = null;
+    }
+
+    this.mysteryTimerInterval = setInterval(() => {
+      if (this.activeTab !== 'shop' || this.shopCategory !== 'mystery') {
+        clearInterval(this.mysteryTimerInterval);
+        this.mysteryTimerInterval = null;
+        return;
+      }
+
+      const cd = economy.getFreeMysteryBoxCountdown();
+      const cdEl = this.container.querySelector('#free-mystery-cooldown');
+      if (cd <= 0) {
+        clearInterval(this.mysteryTimerInterval);
+        this.mysteryTimerInterval = null;
+        this.render(); // Re-render when free box becomes available
+      } else if (cdEl) {
+        cdEl.textContent = `⏰ Next Free: ${this.formatCountdown(cd)}`;
+      }
+    }, 1000);
   }
 
   // Backup Export: Dedicated Download & Share Modal for Mobile & Desktop
@@ -1429,7 +1639,7 @@ export class HomeUIManager {
   // Dedicated Full-Screen System Update Page
   async checkForUpdatesManual() {
     sounds.playButtonClick();
-    const CURRENT_VERSION = '1.3.7';
+    const CURRENT_VERSION = '1.3.8';
     const GITHUB_REPO = 'OrbitSyncAI/ludo-3d-master-pro';
 
     this.legalModal.className = 'legal-page-screen';
@@ -1835,6 +2045,21 @@ export class HomeUIManager {
         this.render();
       });
     });
+
+    // Mystery Box Open Buttons (Daily Free, 500 Coins, 100 Diamonds)
+    const mysteryBtns = this.container.querySelectorAll('.btn-open-mystery');
+    mysteryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sounds.playButtonClick();
+        const boxType = btn.dataset.boxType;
+        const isFree = btn.dataset.isFree === 'true';
+        this.triggerMysteryUnboxing(boxType, isFree);
+      });
+    });
+
+    if (this.activeTab === 'shop' && this.shopCategory === 'mystery') {
+      this.startMysteryTimerInterval();
+    }
 
     // Spin Exclusive Buttons
     const spinTargetBtns = this.container.querySelectorAll('.btn-shop-spin-exclusive');
