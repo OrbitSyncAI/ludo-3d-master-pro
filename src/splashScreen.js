@@ -48,7 +48,7 @@ export class SplashScreen {
             <span class="title-master">MASTER PRO</span>
           </h1>
           <div class="splash-edition-chip">
-            <span>🎲 500 LEVELS • SNAKES 3D • 60 FPS</span>
+            <span>🎲 500 LEVELS • SNAKES 3D • 120 FPS ULTRA</span>
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export class SplashScreen {
         <!-- Studio Watermark -->
         <div class="splash-footer">
           <div class="splash-studio-name">ORBITSYNC STUDIOS</div>
-          <div class="splash-version">BUILD v1.3.7 • PRODUCTION READY</div>
+          <div class="splash-version">BUILD v1.3.10 • 120 FPS PRO READY</div>
         </div>
       </div>
     `;
@@ -81,7 +81,7 @@ export class SplashScreen {
     const statusSteps = [
       { progress: 15, text: "✨ Loading 3D Board & Visual Shaders..." },
       { progress: 38, text: "🎲 Initializing 500 Levels & Stages..." },
-      { progress: 62, text: "👑 Calibrating 60 FPS Physics & AI Engine..." },
+      { progress: 62, text: "👑 Calibrating 120 FPS Physics & AI Engine..." },
       { progress: 85, text: "🛡️ Securing Player Data & Cloud Vault..." },
       { progress: 100, text: "🚀 Welcome to the Royal Arena!" }
     ];
@@ -90,7 +90,7 @@ export class SplashScreen {
     const percentEl = document.getElementById('splash-percent-text');
     const statusEl = document.getElementById('splash-status-text');
 
-    const totalDuration = 1800; // 1.8 seconds - crisp, authentic AAA mobile loading feel
+    const totalDuration = 3800; // 3.8 seconds - majestic, relaxing AAA opening animation with +2s delay
     const startTime = performance.now();
 
     const animateProgress = (now) => {

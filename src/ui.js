@@ -296,7 +296,6 @@ export class UIManager {
   }
 
   updateDiceDisplay(rollValue, isRolling = false, activePlayerId = this.activePlayerId) {
-    // Update Ludo King Integrated Corner Dice for Active Player (Pure Big 3D SVG Dice, Zero Redundant Text)
     if (activePlayerId !== undefined && activePlayerId !== null) {
       const cornerPip = document.getElementById(`corner-pip-${activePlayerId}`);
       if (cornerPip) {
@@ -307,7 +306,7 @@ export class UIManager {
             this.rollIntervals[activePlayerId] = setInterval(() => {
               const rand = Math.floor(Math.random() * 6) + 1;
               cornerPip.innerHTML = getDiceFaceSvg(rand);
-            }, 65);
+            }, 60);
           }
         } else {
           if (this.rollIntervals[activePlayerId]) {
@@ -317,6 +316,8 @@ export class UIManager {
           cornerPip.classList.remove('spinning');
           if (rollValue) {
             cornerPip.innerHTML = getDiceFaceSvg(rollValue);
+            cornerPip.classList.remove('bounce-dice');
+            void cornerPip.offsetWidth; // Force reflow to re-trigger bounce cleanly
             cornerPip.classList.add('bounce-dice');
             setTimeout(() => cornerPip.classList.remove('bounce-dice'), 600);
           }
