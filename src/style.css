@@ -1787,43 +1787,35 @@ html, body {
   line-height: 1;
 }
 
-/* Integrated Ludo King Corner Dice Button */
+/* Integrated Ludo King Corner Dice Button (Large, Bold 3D Dice) */
 .corner-dice-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 2px;
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-  border: 1.5px solid #cbd5e1;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.95);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   user-select: none;
 }
 
 .corner-dice-btn:active {
-  transform: scale(0.92);
+  transform: scale(0.90);
 }
 
 .corner-dice-pip {
-  font-size: 1.25rem;
+  font-size: 2.15rem;
   line-height: 1;
   display: inline-block;
   transition: transform 0.2s ease;
-}
-
-.corner-dice-label {
-  font-size: 0.50rem;
-  font-weight: 900;
-  color: #475569;
-  text-transform: uppercase;
-  margin-top: 1px;
-  letter-spacing: 0.3px;
+  color: #1e293b;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* When it's this player's turn to roll, pulsate with gold/green aura */

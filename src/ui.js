@@ -231,25 +231,21 @@ export class UIManager {
       }
     }
 
-    // Update Ludo King Integrated Corner Dice for Active Player
+    // Update Ludo King Integrated Corner Dice for Active Player (Pure Big Dice, Zero Redundant Text)
     if (activePlayerId !== undefined && activePlayerId !== null) {
       const cornerPip = document.getElementById(`corner-pip-${activePlayerId}`);
-      const cornerLabel = document.querySelector(`#corner-dice-${activePlayerId} .corner-dice-label`);
       if (cornerPip) {
         if (isRolling) {
           cornerPip.classList.add('spinning');
           cornerPip.textContent = '🎲';
-          if (cornerLabel) cornerLabel.textContent = '...';
         } else {
           cornerPip.classList.remove('spinning');
           if (rollValue) {
             cornerPip.textContent = pipIcons[rollValue - 1] || `${rollValue}`;
             cornerPip.classList.add('bounce-dice');
             setTimeout(() => cornerPip.classList.remove('bounce-dice'), 600);
-            if (cornerLabel) cornerLabel.textContent = `${rollValue}`;
           } else {
             cornerPip.textContent = '🎲';
-            if (cornerLabel) cornerLabel.textContent = 'ROLL';
           }
         }
       }
@@ -316,10 +312,9 @@ export class UIManager {
           </div>
         </div>
 
-        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON -->
+        <!-- INTEGRATED LUDO KING CORNER DICE BUTTON (Large, Pure Dice) -->
         <button class="corner-dice-btn" id="corner-dice-${p.id}" data-player-id="${p.id}" title="${p.name} Tap to Roll">
           <span class="corner-dice-pip" id="corner-pip-${p.id}">🎲</span>
-          <span class="corner-dice-label">${p.isAI ? 'BOT' : 'ROLL'}</span>
         </button>
 
         <div class="active-pulse-dot"></div>

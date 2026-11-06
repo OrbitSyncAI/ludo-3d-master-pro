@@ -186,7 +186,7 @@ export class Token3D {
     this.isSelectable = selectable;
     if (selectable) {
       this.selectionRing.visible = true;
-      this.selectionRing.material.opacity = 0.85;
+      this.selectionRing.material.opacity = 0.95;
       this.selectionRing.material.color.setHex(this.playerConfig.hexColor);
       // Synchronize selectionRing position lockstep with token's current world position
       this.selectionRing.position.set(this.mesh.position.x, 0.12, this.mesh.position.z);
@@ -196,6 +196,8 @@ export class Token3D {
       if (this.baseY !== undefined) {
         this.mesh.position.y = this.baseY; // reset flush on pedestal
       }
+      this.mesh.scale.set(1.0, 1.0, 1.0);
+      this.mesh.rotation.set(0, 0, 0);
     }
   }
 
@@ -285,33 +287,50 @@ export class Token3D {
     });
   }
 
-  // Dramatic Arc out of Yard onto Start Square (Snappy 270ms)
-  animateYardSpawn(duration = 270) {
+  // Dramatic Celebratory Arc out of Yard onto Start Square (Juicy 450ms)
+  animateYardSpawn(duration = 450) {
     return new Promise((resolve) => {
       this.setSelectable(false);
       const start = getTokenWorldCoords(this.playerId, this.tokenIndex, -1);
       const end = getTokenWorldCoords(this.playerId, this.tokenIndex, 0);
       this.baseY = end.y;
       const startTime = performance.now();
-      const jumpHeight = 1.35;
+      const jumpHeight = 2.4; // High triumphant airborne leap
 
       const spawnAnim = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1.0);
-        const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
 
-        const x = start.x + (end.x - start.x) * ease;
-        const z = start.z + (end.z - start.z) * ease;
-        const y = start.y + Math.sin(progress * Math.PI) * jumpHeight;
+        if (progress < 0.8) {
+          // Phase 1: Majestic soaring arc with 3 full airborne spins
+          const t = progress / 0.8;
+          const ease = 0.5 - Math.cos(t * Math.PI) / 2;
+          const x = start.x + (end.x - start.x) * ease;
+          const z = start.z + (end.z - start.z) * ease;
+          const y = start.y + Math.sin(t * Math.PI) * jumpHeight;
 
-        this.mesh.position.set(x, y, z);
-        this.selectionRing.position.set(x, 0.12, z);
-        this.mesh.rotation.y = progress * Math.PI * 4; // 2 full spins
+          this.mesh.position.set(x, y, z);
+          this.selectionRing.position.set(x, 0.12, z);
+          this.mesh.rotation.y = t * Math.PI * 6; // 3 full airborne spins
+
+          // Mid-air stretch
+          const stretch = 1.0 + Math.sin(t * Math.PI) * 0.22;
+          this.mesh.scale.set(1.0 / Math.sqrt(stretch), stretch, 1.0 / Math.sqrt(stretch));
+        } else {
+          // Phase 2: Landing impact & elastic squash-stretch
+          const t2 = (progress - 0.8) / 0.2;
+          this.mesh.position.set(end.x, end.y, end.z);
+          this.selectionRing.position.set(end.x, 0.12, end.z);
+          this.mesh.rotation.y = 0;
+
+          const squish = 1.0 - Math.sin(t2 * Math.PI) * 0.25;
+          this.mesh.scale.set(1.0 + (1.0 - squish), squish, 1.0 + (1.0 - squish));
+        }
 
         if (progress < 1.0) {
           requestAnimationFrame(spawnAnim);
         } else {
-          this.mesh.rotation.y = 0;
+          this.mesh.rotation.set(0, 0, 0);
           this.mesh.position.set(end.x, end.y, end.z);
           this.selectionRing.position.set(end.x, 0.12, end.z);
           this.mesh.scale.set(1.0, 1.0, 1.0);
@@ -368,15 +387,30 @@ export class Token3D {
       if (this.baseY === undefined) {
         this.baseY = getTokenWorldCoords(this.playerId, this.tokenIndex, this.step).y;
       }
-      const bounce = Math.sin(Date.now() * 0.008 + this.tokenIndex) * 0.12;
-      this.mesh.position.y = this.baseY + Math.max(0, bounce);
 
       // Lock selection ring under token
       this.selectionRing.position.x = this.mesh.position.x;
       this.selectionRing.position.z = this.mesh.position.z;
 
-      const pulse = 1.0 + Math.sin(Date.now() * 0.01) * 0.15;
-      this.selectionRing.scale.set(pulse, pulse, pulse);
+      // JUICY UNLOCK BOUNCE FOR TOKENS IN YARD (When 6 is rolled!)
+      if (this.step === -1) {
+        const bounce = Math.abs(Math.sin(Date.now() * 0.007 + this.tokenIndex)) * 0.32;
+        this.mesh.position.y = this.baseY + bounce;
+        const squish = 1.0 + Math.sin(Date.now() * 0.007 + this.tokenIndex) * 0.16;
+        this.mesh.scale.set(1.0 - (squish - 1.0) * 0.5, squish, 1.0 - (squish - 1.0) * 0.5);
+        this.mesh.rotation.y = Math.sin(Date.now() * 0.005) * 0.35;
+
+        // Radiant expanding golden/team aura
+        const pulse = 1.05 + Math.sin(Date.now() * 0.012) * 0.25;
+        this.selectionRing.scale.set(pulse, pulse, pulse);
+        this.selectionRing.material.opacity = 0.95;
+      } else {
+        // Track hover bounce
+        const hover = Math.max(0, Math.sin(Date.now() * 0.008 + this.tokenIndex) * 0.12);
+        this.mesh.position.y = this.baseY + hover;
+        const pulse = 1.0 + Math.sin(Date.now() * 0.01) * 0.15;
+        this.selectionRing.scale.set(pulse, pulse, pulse);
+      }
     }
   }
 

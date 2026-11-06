@@ -88,7 +88,7 @@ jobs:
 
   build-ios:
     name: 🍏 Compile iOS App Bundle & IPA
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
