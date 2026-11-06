@@ -296,30 +296,23 @@ export class UIManager {
   }
 
   updateDiceDisplay(rollValue, isRolling = false, activePlayerId = this.activePlayerId) {
+    const pipIcons = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
     if (activePlayerId !== undefined && activePlayerId !== null) {
       const cornerPip = document.getElementById(`corner-pip-${activePlayerId}`);
       if (cornerPip) {
-        if (!this.rollIntervals) this.rollIntervals = {};
         if (isRolling) {
           cornerPip.classList.add('spinning');
-          if (!this.rollIntervals[activePlayerId]) {
-            this.rollIntervals[activePlayerId] = setInterval(() => {
-              const rand = Math.floor(Math.random() * 6) + 1;
-              cornerPip.innerHTML = getDiceFaceSvg(rand);
-            }, 60);
-          }
+          cornerPip.textContent = '🎲';
         } else {
-          if (this.rollIntervals[activePlayerId]) {
-            clearInterval(this.rollIntervals[activePlayerId]);
-            delete this.rollIntervals[activePlayerId];
-          }
           cornerPip.classList.remove('spinning');
           if (rollValue) {
-            cornerPip.innerHTML = getDiceFaceSvg(rollValue);
+            cornerPip.textContent = pipIcons[rollValue - 1] || `${rollValue}`;
             cornerPip.classList.remove('bounce-dice');
             void cornerPip.offsetWidth; // Force reflow to re-trigger bounce cleanly
             cornerPip.classList.add('bounce-dice');
-            setTimeout(() => cornerPip.classList.remove('bounce-dice'), 600);
+            setTimeout(() => cornerPip.classList.remove('bounce-dice'), 500);
+          } else {
+            cornerPip.textContent = '🎲';
           }
         }
       }
@@ -375,7 +368,7 @@ export class UIManager {
       const diceHtml = `
         <!-- INTEGRATED LUDO KING CORNER DICE BUTTON (Large, Pure 3D Dice) -->
         <button class="corner-dice-btn" id="corner-dice-${p.id}" data-player-id="${p.id}" title="${p.name} Tap to Roll">
-          <span class="corner-dice-pip" id="corner-pip-${p.id}">${getDiceFaceSvg(6)}</span>
+          <span class="corner-dice-pip" id="corner-pip-${p.id}">🎲</span>
         </button>
       `;
 
